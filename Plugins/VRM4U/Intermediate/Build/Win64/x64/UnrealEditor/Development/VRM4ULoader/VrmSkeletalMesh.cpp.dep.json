@@ -1,0 +1,37 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4uloader\\private\\vrmskeletalmesh.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbgunseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4uloader\\definitions.vrm4uloader.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4uloader\\public\\vrmskeletalmesh.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4uloader\\uht\\vrmskeletalmesh.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshlodrenderdata.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\multisizeindexcontainer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshvertexbuffer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skinweightvertexbuffer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\skeletalmeshtypes.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\componentreregistercontext.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\skeletalmeshlegacycustomversions.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\gpuskinvertexfactory.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\resourcepool.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\rendercore\\public\\tickableobjectrenderthread.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\matrix3x4.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\uobject\\animobjectversion.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshduplicatedverticesbuffer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshvertexclothbuffer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\morphtargetvertexinfobuffers.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshhalfedgebuffer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\skeletalmeshvertexattribute.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\skeletalmeshvertexattribute.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\skinweightprofile.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\rhi\\public\\rhigpureadback.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\skinweightprofile.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\rendering\\skeletalmeshrenderdata.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

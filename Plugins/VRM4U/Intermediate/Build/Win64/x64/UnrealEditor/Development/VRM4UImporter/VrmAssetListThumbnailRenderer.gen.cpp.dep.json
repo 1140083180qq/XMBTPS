@@ -1,0 +1,32 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4uimporter\\uht\\vrmassetlistthumbnailrenderer.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbgunseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4uimporter\\definitions.vrm4uimporter.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4uimporter\\private\\vrmassetlistthumbnailrenderer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\classes\\thumbnailrendering\\texturethumbnailrenderer.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\classes\\thumbnailrendering\\thumbnailrenderer.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\thumbnailrenderer.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\texturethumbnailrenderer.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\assettypeactions_base.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\iassettools.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\assettypecategories.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\iassettypeactions.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\merge\\public\\merge.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\classes\\thumbnailrendering\\thumbnailmanager.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\thumbnailmanager.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\public\\automatedassetimportdata.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\automatedassetimportdata.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\assettools\\uht\\iassettools.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\assettoolsmodule.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\public\\toolkits\\simpleasseteditor.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4uimporter\\uht\\vrmassetlistthumbnailrenderer.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

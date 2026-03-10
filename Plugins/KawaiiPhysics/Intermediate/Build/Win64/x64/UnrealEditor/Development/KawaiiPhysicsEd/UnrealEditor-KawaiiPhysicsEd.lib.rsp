@@ -1,0 +1,15 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-KawaiiPhysicsEd.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"G:\UEGAME\5.4\XMBGuns\Intermediate\Build\Win64\x64\XMBGunsEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\AnimGraphNode_KawaiiPhysics.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\KawaiiPhysicsEd.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\KawaiiPhysicsEditMode.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\KawaiiPhysicsEd.init.gen.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\Default.rc2.res"
+/OUT:"G:\UEGAME\5.4\XMBGuns\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\UnrealEditor-KawaiiPhysicsEd.lib"

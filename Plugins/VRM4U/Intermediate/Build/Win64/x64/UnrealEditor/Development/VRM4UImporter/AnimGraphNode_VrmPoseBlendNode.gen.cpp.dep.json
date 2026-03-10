@@ -1,0 +1,35 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4uimporter\\uht\\animgraphnode_vrmposeblendnode.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbgunseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4uimporter\\definitions.vrm4uimporter.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4uimporter\\private\\animgraphnode_vrmposeblendnode.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\animgraph\\public\\animgraphnode_posehandler.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\animgraph\\public\\animgraphnode_assetplayerbase.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\animgraph\\public\\animgraphnode_base.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\public\\ipropertyaccesseditor.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\animgraph\\uht\\animgraphnode_base.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\animgraph\\uht\\animgraphnode_assetplayerbase.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\animgraph\\uht\\animgraphnode_posehandler.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4u\\public\\animnode_vrmposeblendnode.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\animgraphruntime\\public\\animnodes\\animnode_poseblendnode.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\animgraphruntime\\public\\animnodes\\animnode_posehandler.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\animation\\poseasset.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\poseasset.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\animation\\animnode_assetplayerbase.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\animation\\animnode_relevantassetplayerbase.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\animnode_relevantassetplayerbase.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\animnode_assetplayerbase.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\animgraphruntime\\uht\\animnode_posehandler.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\animgraphruntime\\uht\\animnode_poseblendnode.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\animnode_vrmposeblendnode.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4uimporter\\uht\\animgraphnode_vrmposeblendnode.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
