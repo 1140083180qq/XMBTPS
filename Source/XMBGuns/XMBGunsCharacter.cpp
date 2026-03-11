@@ -10,13 +10,21 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // AXMBGunsCharacter
 
-AXMBGunsCharacter::AXMBGunsCharacter()
+AXMBGunsCharacter::AXMBGunsCharacter():
+// 	//加入游戏绑定的函数
+	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),//成功给你创建了一个委托并绑定到此类的回调
+	FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),//成功找到会话窗口后绑定的函数
+	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))//成功加入会话窗口后触发回调
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -52,6 +60,24 @@ AXMBGunsCharacter::AXMBGunsCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	//-----------------------------↓联机↓-------------------------------
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get(); 
+	if (OnlineSubsystem)
+	{
+		OnlineSessionInteraface = OnlineSubsystem->GetSessionInterface();
+		if(GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("找到会话窗口 %s"),*OnlineSubsystem->GetSubsystemName().ToString()));
+		}
+		
+	}
+	//-----------------------------↑联机↑-------------------------------
+	
 }
 
 void AXMBGunsCharacter::BeginPlay()
@@ -59,6 +85,8 @@ void AXMBGunsCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -128,3 +156,136 @@ void AXMBGunsCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+//-----------------------------↓联机↓-------------------------------
+void AXMBGunsCharacter::CreateGameSession()
+{
+	if (!OnlineSessionInteraface.IsValid())
+	{
+		return;
+	}
+
+	//检查是否已拥有对话
+	auto ExistingSession = OnlineSessionInteraface->GetNamedSession(NAME_GameSession);
+	if (ExistingSession != nullptr)
+	{
+		OnlineSessionInteraface->DestroySession(NAME_GameSession);
+	}
+
+	//添加会话窗口
+	OnlineSessionInteraface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+
+	//使用makeshareable初始化这个会话
+	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+	SessionSettings->bIsLANMatch = false;
+	SessionSettings->NumPublicConnections = 4;
+	SessionSettings->bAllowJoinInProgress = true;
+	SessionSettings->bAllowJoinViaPresence = true;
+	SessionSettings->bShouldAdvertise = true;
+	SessionSettings->bUsesPresence = true;
+	SessionSettings->bUseLobbiesIfAvailable = true;
+	SessionSettings->Set(FName("MatchType"), FString("FreeForAll"),EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	
+	//从LocalplayerController获取了唯一的ID来设置会话
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInteraface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
+}
+
+void AXMBGunsCharacter::JoinGameSession()
+{
+	//找到会话窗口
+	if (!OnlineSessionInteraface.IsValid())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("会话窗口无效")));
+		return;
+	}
+
+	OnlineSessionInteraface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
+	
+	//查找会话窗口
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->MaxSearchResults = 10000;
+	SessionSearch->bIsLanQuery = false;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInteraface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+}
+
+void AXMBGunsCharacter::OnFindSessionsComplete(bool bWasSuccessful)
+{
+	if (!OnlineSessionInteraface.IsValid()) return;
+	
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("开始轮循会话窗口")));
+	for (auto Result : SessionSearch->SearchResults)
+	{
+		FString Id = Result.GetSessionIdStr();
+		FString User = Result.Session.OwningUserName;
+		FString MatchType;
+		Result.Session.SessionSettings.Get(FName("MatchType"), MatchType);
+		
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("会话窗口ID：%s, 会话窗口用户：%s"), *Id, *User));
+		}
+		
+		if (MatchType == FString("FreeForAll"))
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("会话窗口类型：%s"), *MatchType));
+			}
+
+			OnlineSessionInteraface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
+
+			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+			OnlineSessionInteraface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, Result);
+		}
+	}
+}
+
+void AXMBGunsCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, TEXT("创建会话窗口成功"));
+		}
+		
+		UWorld* World = GetWorld();
+		if (World) World->ServerTravel(FString("/Game/Maps/Lobby?listen"));
+		
+	}
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, TEXT("创建会话窗口失败"));
+		}
+	}
+}
+
+
+
+void AXMBGunsCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+	if (!OnlineSessionInteraface.IsValid()) return;
+
+	FString Address;
+	GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Green, FString::Printf(TEXT("连接字符串：%s"), *Address));
+	if (OnlineSessionInteraface->GetResolvedConnectString(NAME_GameSession, Address))
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Green, FString::Printf(TEXT("连接字符串：%s"), *Address));
+		}
+
+		APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
+		if (PlayerController) PlayerController->ClientTravel(Address,TRAVEL_Absolute);
+		
+	}
+	
+		
+}
+
+//-----------------------------↑联机↑-------------------------------

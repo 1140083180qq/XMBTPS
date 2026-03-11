@@ -4,6 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/OnlineSessionDelegates.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+
+#include "EnhancedInputSubsystems.h"
+
 #include "Logging/LogMacros.h"
 #include "XMBGunsCharacter.generated.h"
 
@@ -69,5 +75,29 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	//-----------------------------↓联机↓-------------------------------
+
+public:
+	IOnlineSessionPtr OnlineSessionInteraface;
+
+protected:
+	UFUNCTION(BlueprintCallable)
+	void CreateGameSession();
+
+	UFUNCTION(BlueprintCallable)
+	void JoinGameSession();
+
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+	void OnFindSessionsComplete(bool bWasSuccessful);
+	void OnJoinSessionComplete(FName SessionName,EOnJoinSessionCompleteResult::Type Result);
+
+private:
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+	
+	//-----------------------------↑联机↑-------------------------------
 };
 
