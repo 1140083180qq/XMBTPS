@@ -1,0 +1,16 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\private\\vrmcustomstruct.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbblaster\\intermediate\\build\\win64\\x64\\xmbblastereditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderoldest.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4u\\definitions.vrm4u.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmcustomstruct.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcustomstruct.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\public\\vrm4u.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

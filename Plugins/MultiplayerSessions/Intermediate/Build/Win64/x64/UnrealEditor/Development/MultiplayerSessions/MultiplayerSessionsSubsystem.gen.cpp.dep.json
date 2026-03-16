@@ -1,0 +1,21 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\intermediate\\build\\win64\\unrealeditor\\inc\\multiplayersessions\\uht\\multiplayersessionssubsystem.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbgunseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\multiplayersessions\\definitions.multiplayersessions.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\source\\multiplayersessions\\public\\multiplayersessionssubsystem.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessioninterface.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemtypes.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemnames.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinedelegatemacros.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessiondelegates.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinekeyvaluepair.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\intermediate\\build\\win64\\unrealeditor\\inc\\multiplayersessions\\uht\\multiplayersessionssubsystem.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

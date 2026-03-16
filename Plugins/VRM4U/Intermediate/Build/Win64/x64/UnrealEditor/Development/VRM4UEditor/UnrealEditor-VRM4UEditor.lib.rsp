@@ -1,0 +1,14 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-VRM4UEditor.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"G:\UEGAME\5.4\XMBBlaster\Intermediate\Build\Win64\x64\XMBBlasterEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderOldest.h.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UEditor\Module.VRM4UEditor.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UEditor\VRM4UEditor.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UEditor\VrmEditorBPFunctionLibrary.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UEditor\Default.rc2.res"
+/OUT:"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UEditor\UnrealEditor-VRM4UEditor.lib"

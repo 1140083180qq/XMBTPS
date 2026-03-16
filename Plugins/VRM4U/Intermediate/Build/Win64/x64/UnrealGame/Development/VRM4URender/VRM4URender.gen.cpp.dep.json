@@ -1,0 +1,18 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4urender\\uht\\vrm4urender.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4urender\\definitions.vrm4urender.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4urender\\private\\vrm4urender.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\engine\\texturerendertarget2d.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\engine\\texturerendertarget.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\texturerendertarget.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\texturerendertarget2d.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

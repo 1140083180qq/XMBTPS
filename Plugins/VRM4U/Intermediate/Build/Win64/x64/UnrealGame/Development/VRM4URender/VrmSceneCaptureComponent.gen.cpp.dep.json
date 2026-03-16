@@ -1,0 +1,19 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4urender\\uht\\vrmscenecapturecomponent.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4urender\\definitions.vrm4urender.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4urender\\public\\vrmscenecapturecomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\components\\scenecapturecomponent2d.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\components\\scenecapturecomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\scenecapturecomponent.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\scenecapturecomponent2d.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4urender\\uht\\vrmscenecapturecomponent.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

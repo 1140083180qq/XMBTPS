@@ -1,0 +1,34 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4u\\uht\\vrmaniminstanceretargetfrommannequin.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4u\\definitions.vrm4u.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmaniminstanceretargetfrommannequin.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\animinstanceproxy.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\animtrace.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\objecttrace.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\tracefilter.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\objecttrace.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\animattributes.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\animinstanceproxy.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\retargeter\\ikretargeter.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\retargeter\\ikretargetprofile.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\retargeter\\ikretargetsettings.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\intermediate\\build\\win64\\unrealgame\\inc\\ikrig\\uht\\ikretargetsettings.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\intermediate\\build\\win64\\unrealgame\\inc\\ikrig\\uht\\ikretargetprofile.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\rig\\ikrigdefinition.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\ikriglogger.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\source\\ikrig\\public\\rig\\ikrigskeleton.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\intermediate\\build\\win64\\unrealgame\\inc\\ikrig\\uht\\ikrigskeleton.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\intermediate\\build\\win64\\unrealgame\\inc\\ikrig\\uht\\ikrigdefinition.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\animation\\ikrig\\intermediate\\build\\win64\\unrealgame\\inc\\ikrig\\uht\\ikretargeter.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4u\\uht\\vrmaniminstanceretargetfrommannequin.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

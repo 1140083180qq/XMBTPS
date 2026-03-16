@@ -1,0 +1,21 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcinecameracomponent.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbgunseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4u\\definitions.vrm4u.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmcinecameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\camera\\cameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\cameracomponent.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecamerasettings.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\cinematiccamera\\uht\\cinecamerasettings.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\cinematiccamera\\uht\\cinecameracomponent.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcinecameracomponent.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

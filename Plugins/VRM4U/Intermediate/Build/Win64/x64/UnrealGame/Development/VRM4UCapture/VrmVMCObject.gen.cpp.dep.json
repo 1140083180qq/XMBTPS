@@ -1,0 +1,28 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmvmcobject.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4ucapture\\definitions.vrm4ucapture.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrmvmcobject.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscserver.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscbundle.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscpacket.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\osctypes.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscstream.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscaddress.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\osclog.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealgame\\inc\\osc\\uht\\oscaddress.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealgame\\inc\\osc\\uht\\oscbundle.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscmessage.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealgame\\inc\\osc\\uht\\oscmessage.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealgame\\inc\\osc\\uht\\oscserver.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmvmcobject.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4ucapture\\private\\vrm4u_vmcsubsystem.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbblaster\\intermediate\\build\\win64\\x64\\xmbblastereditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderoldest.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4ucapture\\definitions.vrm4ucapture.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrm4u_vmcsubsystem.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscserver.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscbundle.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscpacket.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\osctypes.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscstream.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscaddress.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\osclog.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealeditor\\inc\\osc\\uht\\oscaddress.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealeditor\\inc\\osc\\uht\\oscbundle.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscmessage.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealeditor\\inc\\osc\\uht\\oscmessage.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealeditor\\inc\\osc\\uht\\oscserver.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrmvmcobject.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4ucapture\\uht\\vrmvmcobject.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4ucapture\\uht\\vrm4u_vmcsubsystem.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\source\\osc\\public\\oscmanager.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\runtime\\osc\\intermediate\\build\\win64\\unrealeditor\\inc\\osc\\uht\\oscmanager.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

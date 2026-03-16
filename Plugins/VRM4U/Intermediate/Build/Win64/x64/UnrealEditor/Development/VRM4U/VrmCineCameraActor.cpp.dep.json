@@ -1,0 +1,28 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\private\\vrmcinecameraactor.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbblaster\\intermediate\\build\\win64\\x64\\xmbblastereditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderoldest.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4u\\definitions.vrm4u.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmcinecameraactor.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecameraactor.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\camera\\cameraactor.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\cameraactor.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\cinematiccamera\\uht\\cinecameraactor.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcinecameraactor.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmcinecameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\camera\\cameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\cameracomponent.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecamerasettings.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\cinematiccamera\\uht\\cinecamerasettings.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\cinematiccamera\\uht\\cinecameracomponent.generated.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcinecameracomponent.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

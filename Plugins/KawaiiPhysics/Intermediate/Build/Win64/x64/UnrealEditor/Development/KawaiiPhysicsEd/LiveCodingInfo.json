@@ -1,0 +1,11 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.KawaiiPhysicsEd.cpp.obj": [
+			"KawaiiPhysicsEd.init.gen.cpp.obj",
+			"AnimGraphNode_KawaiiPhysics.cpp.obj",
+			"KawaiiPhysicsEd.cpp.obj",
+			"KawaiiPhysicsEditMode.cpp.obj"
+		]
+	}
+}

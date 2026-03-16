@@ -1,0 +1,25 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\source\\multiplayersessions\\private\\multiplayersessionssubsystem.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\intermediate\\build\\win64\\x64\\unrealgame\\development\\multiplayersessions\\definitions.multiplayersessions.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\source\\multiplayersessions\\public\\multiplayersessionssubsystem.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessioninterface.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemtypes.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemnames.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinedelegatemacros.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessiondelegates.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinekeyvaluepair.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\multiplayersessions\\intermediate\\build\\win64\\unrealgame\\inc\\multiplayersessions\\uht\\multiplayersessionssubsystem.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystem.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemmodule.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesessionsettings.h",
+            "g:\\ue\\ue_5.4\\engine\\plugins\\online\\onlinebase\\source\\public\\online\\onlinesessionnames.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

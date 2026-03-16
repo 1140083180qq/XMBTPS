@@ -1,0 +1,41 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4uimporter\\private\\vrm4udetailcustomize.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbblaster\\intermediate\\build\\win64\\x64\\xmbblastereditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderoldest.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vrm4uimporter\\definitions.vrm4uimporter.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4uimporter\\private\\vrm4udetailcustomize.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\propertycustomizationhelpers.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\idetailcustomnodebuilder.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\detailwidgetrow.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\idetailpropertyrow.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\detailcategorybuilder.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\detailbuildertypes.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\propertyeditorcopypaste.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\sresettodefaultmenu.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\actorpickermode\\public\\actorpickermode.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\scenedepthpickermode\\public\\scenedepthpickermode.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmcustomstruct.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealeditor\\inc\\vrm4u\\uht\\vrmcustomstruct.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\assettoolsmodule.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\iassettools.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\assettypecategories.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\assettools\\public\\iassettypeactions.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\developer\\merge\\public\\merge.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\classes\\thumbnailrendering\\thumbnailmanager.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\classes\\thumbnailrendering\\thumbnailrenderer.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\thumbnailrenderer.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\thumbnailmanager.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\unrealed\\public\\automatedassetimportdata.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\unrealed\\uht\\automatedassetimportdata.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\assettools\\uht\\iassettools.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\idetailchildrenbuilder.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\editor\\propertyeditor\\public\\detaillayoutbuilder.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

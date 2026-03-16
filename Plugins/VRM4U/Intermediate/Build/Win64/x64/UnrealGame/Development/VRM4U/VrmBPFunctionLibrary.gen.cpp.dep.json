@@ -1,0 +1,38 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4u\\uht\\vrmbpfunctionlibrary.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4u\\definitions.vrm4u.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmbpfunctionlibrary.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\engine\\texturerendertarget2d.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\engine\\texturerendertarget.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\texturerendertarget.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\texturerendertarget2d.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\livelinkinterface\\public\\livelinktypes.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\livelinkinterface\\public\\livelinkrefskeleton.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\livelinkinterface\\uht\\livelinkrefskeleton.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\livelinkinterface\\uht\\livelinktypes.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4u\\public\\vrmutil.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\engine\\skinnedassetcommon.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\skeletalmeshreductionsettings.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\skeletalmeshreductionsettings.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\public\\animation\\skeletalmeshvertexattribute.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\skeletalmeshvertexattribute.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\skinnedassetcommon.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4u\\uht\\vrmutil.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\engine\\classes\\camera\\cameracomponent.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\engine\\uht\\cameracomponent.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\cinematiccamera\\public\\cinecamerasettings.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\cinematiccamera\\uht\\cinecamerasettings.generated.h",
+            "g:\\ue\\ue_5.4\\engine\\intermediate\\build\\win64\\unrealgame\\inc\\cinematiccamera\\uht\\cinecameracomponent.generated.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4u\\uht\\vrmbpfunctionlibrary.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

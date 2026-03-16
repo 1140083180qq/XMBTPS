@@ -1,0 +1,15 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-VRM4U.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"G:\UEGAME\5.4\XMBGuns\Intermediate\Build\Win64\x64\XMBGunsEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\Module.VRM4U.1.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\Module.VRM4U.2.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\Module.VRM4U.3.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\Module.VRM4U.4.cpp.obj"
+"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\Default.rc2.res"
+/OUT:"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4U\UnrealEditor-VRM4U.lib"

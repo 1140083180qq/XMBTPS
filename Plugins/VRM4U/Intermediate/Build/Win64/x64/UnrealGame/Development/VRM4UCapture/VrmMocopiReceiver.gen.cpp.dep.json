@@ -1,0 +1,33 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4ucapture\\definitions.vrm4ucapture.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrmmocopireceiver.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\uobject\\noexporttypes.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\uobject\\propertyaccessutil.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\serialization\\testundeclaredscriptstructobjectreferences.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\math\\unitconversion.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\math\\unitconversion.inl",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\internationalization\\polyglottextdata.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\assetregistry\\arfilter.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\interfaces\\ipv4\\ipv4address.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\interfaces\\ipv4\\ipv4subnetmask.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\interfaces\\ipv4\\ipv4endpoint.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\sockets\\public\\socketsubsystem.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\sockets\\public\\addressinfotypes.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\common\\udpsocketreceiver.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\serialization\\arrayreader.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\sockets\\public\\sockets.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\common\\udpsocketbuilder.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\containers\\ringbuffer.h",
+            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

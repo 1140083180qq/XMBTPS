@@ -1,0 +1,23 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.KawaiiPhysics.cpp.obj": [
+			"AnimNode_KawaiiPhysics.cpp.obj",
+			"AnimNotifyState_KawaiiPhysicsAddExternalForce.cpp.obj",
+			"AnimNotifyState_KawaiiPhysicsSetAlpha.cpp.obj",
+			"AnimNotify_KawaiiPhysicsAddExternalForce.cpp.obj",
+			"KawaiiPhysicsExternalForce.cpp.obj",
+			"KawaiiPhysicsExternalForce_Basic.cpp.obj",
+			"KawaiiPhysicsExternalForce_Curve.cpp.obj",
+			"KawaiiPhysicsExternalForce_Gravity.cpp.obj",
+			"KawaiiPhysicsExternalForce_Wind.cpp.obj",
+			"KawaiiPhysics.cpp.obj",
+			"KawaiiPhysicsBoneConstraintsDataAsset.cpp.obj",
+			"KawaiiPhysicsCustomExternalForce.cpp.obj",
+			"KawaiiPhysicsLibrary.cpp.obj",
+			"KawaiiPhysicsLimitsDataAsset.cpp.obj",
+			"KawaiiPhysicsSyncBone.cpp.obj",
+			"KawaiiPhysics.init.gen.cpp.obj"
+		]
+	}
+}
