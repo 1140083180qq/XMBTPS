@@ -3,20 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
-#include "CharacterBase.generated.h"
+#include "XMBCharacterBase.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS()
-class XMBBLASTER_API ACharacterBase : public ACharacter
+class XMBBLASTER_API AXMBCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 
-	ACharacterBase();
+	AXMBCharacterBase();
 
 protected:
 	
@@ -28,5 +29,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* OverheadWidget;
 
 };

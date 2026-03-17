@@ -1,12 +1,12 @@
 
 
-#include "Character/CharacterBase.h"
+#include "Character/XMBCharacterBase.h"
 
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
-
-ACharacterBase::ACharacterBase()
+AXMBCharacterBase::AXMBCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -19,10 +19,16 @@ ACharacterBase::ACharacterBase()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(RootComponent);
+
 }
 
 
-void ACharacterBase::BeginPlay()
+void AXMBCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
