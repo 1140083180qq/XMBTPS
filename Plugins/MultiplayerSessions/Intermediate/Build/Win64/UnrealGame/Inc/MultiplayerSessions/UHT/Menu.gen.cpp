@@ -86,7 +86,7 @@ struct Z_Construct_UFunction_UMenu_MenuSetup_Statics
 	};
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
-		{ "CPP_Default_LobbyPath", "/Game/Maps/Lobby" },
+		{ "CPP_Default_LobbyPath", "/Game/Maps/BlasterMap" },
 		{ "CPP_Default_NumOfPublicConnections", "4" },
 		{ "CPP_Default_TypeOfMatch", "FreeForAll" },
 		{ "ModuleRelativePath", "Public/Menu.h" },
@@ -333,7 +333,7 @@ struct Z_Construct_UClass_UMenu_Statics
 	static constexpr FClassFunctionLinkInfo FuncInfo[] = {
 		{ &Z_Construct_UFunction_UMenu_HostButtonClicked, "HostButtonClicked" }, // 128811646
 		{ &Z_Construct_UFunction_UMenu_JoinButtonClicked, "JoinButtonClicked" }, // 3398739101
-		{ &Z_Construct_UFunction_UMenu_MenuSetup, "MenuSetup" }, // 1315281551
+		{ &Z_Construct_UFunction_UMenu_MenuSetup, "MenuSetup" }, // 3320811666
 		{ &Z_Construct_UFunction_UMenu_OnCreateSession, "OnCreateSession" }, // 2335940313
 		{ &Z_Construct_UFunction_UMenu_OnDestorySession, "OnDestorySession" }, // 2464587493
 		{ &Z_Construct_UFunction_UMenu_OnStartSession, "OnStartSession" }, // 1266615269
@@ -393,14 +393,14 @@ UMenu::~UMenu() {}
 // End Class UMenu
 
 // Begin Registration
-struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics
+struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_UMenu, UMenu::StaticClass, TEXT("UMenu"), &Z_Registration_Info_UClass_UMenu, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UMenu), 1800124873U) },
+		{ Z_Construct_UClass_UMenu, UMenu::StaticClass, TEXT("UMenu"), &Z_Registration_Info_UClass_UMenu, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UMenu), 2864105925U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_3687475215(TEXT("/Script/MultiplayerSessions"),
-	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_3127815961(TEXT("/Script/MultiplayerSessions"),
+	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_MultiplayerSessions_Source_MultiplayerSessions_Public_Menu_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // End Registration

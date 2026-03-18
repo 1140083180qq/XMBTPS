@@ -22,22 +22,31 @@ class XMBBLASTER_API AXMBCharacterBase : public ACharacter
 public:
 
 	AXMBCharacterBase();
-	virtual void Tick(float DeltaSeconds) override;
-
-	void SetOverlappingWeapon(AWeaponBase* Weapon);//一旦overlappingWeapon这个变量发生改变时，复制才会起作用。仅当OverlappingWeapon在Server发生变化时，才会让Client发生变化
-
 	virtual void PostInitializeComponents() override;
 
+	void SetOverlappingWeapon(AWeaponBase* Weapon);//一旦overlappingWeapon这个变量发生改变时，复制才会起作用。仅当OverlappingWeapon在Server发生变化时，才会让Client发生变化
+	
 	bool IsWeaponEquipped();
+
+	bool IsAiming();
+	bool IsShoulderAiming();
+	
 protected:
 	
-	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	void EquipButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void CrouchButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void AimButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void AimButtonReleased();
+	UFUNCTION(BlueprintCallable)
+	void ShoulderAimButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void ShoulderAimButtonReleased();
 	
 
 private:

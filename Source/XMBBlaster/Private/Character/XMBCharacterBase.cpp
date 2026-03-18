@@ -44,13 +44,6 @@ void AXMBCharacterBase::PostInitializeComponents()
 	}
 }
 
-
-
-void AXMBCharacterBase::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -85,18 +78,6 @@ void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
 	}
 }
 
-void AXMBCharacterBase::CrouchButtonPressed()
-{
-	if (bIsCrouched)
-	{
-		UnCrouch();
-	}
-	else
-	{
-		Crouch();
-	}
-}
-
 void AXMBCharacterBase::SetOverlappingWeapon(AWeaponBase* Weapon)
 {
 	if (OverlappingWeapon)
@@ -128,14 +109,53 @@ void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
 	}
 }
 
+void AXMBCharacterBase::CrouchButtonPressed()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
+void AXMBCharacterBase::AimButtonPressed()
+{
+	if (CombatComponent) CombatComponent->bAiming = true;
+}
+
+void AXMBCharacterBase::AimButtonReleased()
+{
+	if (CombatComponent) CombatComponent->bAiming = false;
+}
+
+void AXMBCharacterBase::ShoulderAimButtonPressed()
+{
+	if (CombatComponent) CombatComponent->bShoulderAiming = true;
+}
+
+void AXMBCharacterBase::ShoulderAimButtonReleased()
+{
+	if (CombatComponent) CombatComponent->bShoulderAiming = false;
+}
+
+
 bool AXMBCharacterBase::IsWeaponEquipped()
 {
 	return (CombatComponent && CombatComponent->EquippedWeapon);
 }
 
 
-void AXMBCharacterBase::Tick(float DeltaSeconds)
+bool AXMBCharacterBase::IsAiming()
 {
-	Super::Tick(DeltaSeconds);
+	return (CombatComponent && CombatComponent->bAiming);
 }
+
+bool AXMBCharacterBase::IsShoulderAiming()
+{
+	return (CombatComponent && CombatComponent->bShoulderAiming);
+}
+
 

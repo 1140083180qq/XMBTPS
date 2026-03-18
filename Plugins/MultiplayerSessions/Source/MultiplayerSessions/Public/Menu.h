@@ -17,7 +17,8 @@ class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 	UFUNCTION(BlueprintCallable)
 	void MenuSetup(int32 NumOfPublicConnections = 4,
 		FString TypeOfMatch = FString(TEXT("FreeForAll")),
-		 FString LobbyPath = FString(TEXT("/Game/Maps/Lobby")));
+		FString LobbyPath = FString(TEXT("/Game/Maps/BlasterMap")));
+		 // FString LobbyPath = FString(TEXT("/Game/Maps/Lobby")));
 
 protected:
 	virtual bool Initialize() override;

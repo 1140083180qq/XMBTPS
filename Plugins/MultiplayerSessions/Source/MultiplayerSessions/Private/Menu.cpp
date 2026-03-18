@@ -103,7 +103,7 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 
 		IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
 		IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
-		FString Address;
+		FString Address = FString(TEXT("192.168.101.152"));
 		SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
 		GEngine->AddOnScreenDebugMessage(-1,15.f,
 				FColor::Purple,FString::Printf(TEXT("连接的Address: %s"), *Address));
@@ -175,7 +175,7 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 		IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{
-			FString Address;
+			FString Address = FString(TEXT("192.168.101.152"));;
 			if (!SessionInterface->GetResolvedConnectString(NAME_GameSession, Address))
 			{
 				if (GEngine)

@@ -34,5 +34,8 @@ private:
 	UPROPERTY(Replicated)//这里需要设置复制，否则在进行武器装备仅会在服务器执行，客户端不执行(Character内目前仅有HasAuthority进行判断)
 	AWeaponBase* EquippedWeapon;
 
-		
+	UPROPERTY(Replicated)
+	bool bAiming;
+	UPROPERTY(Replicated)
+	bool bShoulderAiming;
 };

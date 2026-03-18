@@ -30,4 +30,6 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	bIsAccelerating = XMBCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
 	bIsWeaponEquipped = XMBCharacter->IsWeaponEquipped();
 	bIsCrouched = XMBCharacter->bIsCrouched; //character内的crouch是属于原生的
+	bAiming = XMBCharacter->IsAiming();
+	bShoulderAiming = XMBCharacter->IsShoulderAiming();
 }
