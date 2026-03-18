@@ -9,7 +9,7 @@ void UAnimInstanceBase::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	XMBCharacter = Cast<AXMBCharacterBase>(TryGetPawnOwner());
-} 
+}
 
 void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 {
@@ -20,7 +20,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 		XMBCharacter = Cast<AXMBCharacterBase>(TryGetPawnOwner());
 	}
 	if (XMBCharacter == nullptr) return;
-
+	
 	FVector Velocity = XMBCharacter->GetVelocity();
 	Velocity.Z = 0.f;
 	Speed = Velocity.Size();
@@ -28,5 +28,6 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = XMBCharacter->GetCharacterMovement()->IsFalling();
 
 	bIsAccelerating = XMBCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
-	
+	bIsWeaponEquipped = XMBCharacter->IsWeaponEquipped();
+	bIsCrouched = XMBCharacter->bIsCrouched; //character内的crouch是属于原生的
 }

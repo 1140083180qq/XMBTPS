@@ -20,8 +20,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
-
-
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
 	float Speed;
 
@@ -33,5 +31,10 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
 	bool bIsAccelerating;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
+	bool bIsWeaponEquipped;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
+	bool bIsCrouched;
 };
