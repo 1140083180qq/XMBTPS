@@ -27,15 +27,33 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void SetAiming(bool bIsAiming);
+	UFUNCTION(Server,Reliable)
+	void ServerSetAiming(bool bIsAiming);
+	
+	void SetShoulderAiming(bool bIsShoulderAiming);
+	UFUNCTION(Server,Reliable)
+	void ServerSetShoulderAiming(bool bIsShoulderAiming);
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
 
 private:
 	AXMBCharacterBase* Owner;
 
-	UPROPERTY(Replicated)//这里需要设置复制，否则在进行武器装备仅会在服务器执行，客户端不执行(Character内目前仅有HasAuthority进行判断)
+	UPROPERTY(Replicatedusing = OnRep_EquippedWeapon)//这里需要设置复制，否则在进行武器装备仅会在服务器执行，客户端不执行(Character内目前仅有HasAuthority进行判断)
 	AWeaponBase* EquippedWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
 	UPROPERTY(Replicated)
 	bool bShoulderAiming;
+
+	UPROPERTY(EditAnywhere)
+	float BaseWalkSpeed;
+	UPROPERTY(EditAnywhere)
+	float AimWalkSpeed;
+	UPROPERTY(EditAnywhere)
+	float ShoulderAimWalkSpeed;
 };
+

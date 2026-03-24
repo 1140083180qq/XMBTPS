@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "Weapon/WeaponBase.h"
+#include "TurningInPlace.h"
 
 #include "XMBCharacterBase.generated.h"
 
@@ -27,12 +28,16 @@ public:
 	void SetOverlappingWeapon(AWeaponBase* Weapon);//一旦overlappingWeapon这个变量发生改变时，复制才会起作用。仅当OverlappingWeapon在Server发生变化时，才会让Client发生变化
 	
 	bool IsWeaponEquipped();
-
 	bool IsAiming();
 	bool IsShoulderAiming();
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
+
+	AWeaponBase* GetEquippedWeapon();
 	
 protected:
-	
+	// virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
@@ -47,7 +52,11 @@ protected:
 	void ShoulderAimButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void ShoulderAimButtonReleased();
-	
+
+	UFUNCTION(BlueprintCallable)
+	void AimOffset(float DeltaTime);
+
+	virtual void Jump() override;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -71,5 +80,17 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
 
+	
+	
+	float AO_Yaw;
+	float InterpAO_Yaw;//用于设置转身时的Yaw插值
+	float AO_Pitch;
+	FRotator StartingAimRotation;
+
+	ETurningInPlace TurningInPlace;
+
+	void TurnInPlace(float DeltaTime);
+	
 };
+
 
