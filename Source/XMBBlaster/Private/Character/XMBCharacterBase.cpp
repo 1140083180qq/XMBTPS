@@ -117,7 +117,7 @@ void AXMBCharacterBase::TurnInPlace(float DeltaTime)
 	}
 	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
 	{
-		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 2.f);//更改插值(角色在转身的时候，我们需要改变着一个值，使其与AO_Yaw一致)
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);//更改插值(角色在转身的时候，我们需要改变着一个值，使其与AO_Yaw一致)
 		AO_Yaw = InterpAO_Yaw;
 		if (FMath::Abs(AO_Yaw) < 15.f)//若旋转角度已经变换到小于这个角度
 		{
@@ -139,12 +139,24 @@ void AXMBCharacterBase::Jump()
 	}
 }
 
-
-
 AWeaponBase* AXMBCharacterBase::GetEquippedWeapon()
 {
 	if (CombatComponent == nullptr) return nullptr;
 	return CombatComponent->EquippedWeapon;
+}
+
+void AXMBCharacterBase::PlayFireMontage(bool bAiming)
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
 }
 
 void AXMBCharacterBase::EquipButtonPressed()
@@ -205,6 +217,15 @@ void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
 }
 
 
+void AXMBCharacterBase::FireButtonPressed()
+{
+	CombatComponent->FireButtonPressed(true);
+}
+
+void AXMBCharacterBase::FireButtonReleased()
+{
+	CombatComponent->FireButtonPressed(false);
+}
 
 void AXMBCharacterBase::CrouchButtonPressed()
 {

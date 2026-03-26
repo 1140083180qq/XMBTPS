@@ -35,6 +35,8 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 
 	AWeaponBase* GetEquippedWeapon();
+
+	void PlayFireMontage(bool bAiming);
 	
 protected:
 	// virtual void Tick(float DeltaSeconds) override;
@@ -58,6 +60,11 @@ protected:
 
 	virtual void Jump() override;
 
+	UFUNCTION(BlueprintCallable)
+	void FireButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void FireButtonReleased();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* CameraBoom;
@@ -79,6 +86,9 @@ private:
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* FireWeaponMontage;
 
 	
 	

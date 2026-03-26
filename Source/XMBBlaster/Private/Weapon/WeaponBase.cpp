@@ -53,6 +53,20 @@ void AWeaponBase::BeginPlay()
 	}
 }
 
+void AWeaponBase::Fire(const FVector& HitTarget)
+{
+	if (FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation,false);
+	}
+}
+
+void AWeaponBase::SetWeaponOwner(ACharacter* Character)
+{
+	SetOwner(Character);
+	InstigatorPawn = Cast<APawn>(GetOwner());
+}
+
 void AWeaponBase::ShowPickupWidget(bool bShowWidget)
 {
 	if (PickupWidget)

@@ -9,7 +9,7 @@
 #include "CombatComponent.generated.h"
 
 class AXMBCharacterBase;
-
+#define TRACE_LENGTH 80000;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -26,6 +26,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void SetAiming(bool bIsAiming);
 	UFUNCTION(Server,Reliable)
@@ -38,6 +39,18 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	void FireButtonPressed(bool bPressed);
+
+	//到第五章第四节的一半为止，这一部分仅可以从客户端调用服务器执行，别的客户端看不见;以及在服务器调用且执行，客户端看不见
+	//server表示从客户端上调用并在服务器上执行//非常重要的同步需要Reliable传到服务器
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
+
+	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
 private:
 	AXMBCharacterBase* Owner;
 
@@ -48,6 +61,8 @@ private:
 	bool bAiming;
 	UPROPERTY(Replicated)
 	bool bShoulderAiming;
+	UPROPERTY(Replicated)
+	bool bFireButtonPressed;
 
 	UPROPERTY(EditAnywhere)
 	float BaseWalkSpeed;
@@ -55,5 +70,10 @@ private:
 	float AimWalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float ShoulderAimWalkSpeed;
+
+	FVector HitTargetVector;
+	
+	
+	
 };
 
