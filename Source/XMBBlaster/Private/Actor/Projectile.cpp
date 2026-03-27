@@ -1,11 +1,13 @@
 
 #include "Actor/Projectile.h"
 #include "Components/BoxComponent.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	SetRootComponent(CollisionBox);
@@ -16,13 +18,40 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic,ECR_Block);
 
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	ProjectileMovementComponent->bRotationFollowsVelocity = true;//确保Projectile的旋转与Projectile的移动方向一致
+
+	// InitialLifeSpan = 5.f;
 }
 
 
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (Tracer)
+	{
+		TracerComponent = UGameplayStatics::SpawnEmitterAttached(
+			Tracer,
+			CollisionBox,
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition
+			);
+	}
+
+	//检查权限再进行绑定
+	if (HasAuthority())
+	{
+		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+	}
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	Destroyed();
 }
 
 
@@ -30,5 +59,29 @@ void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ImpactParticles,
+			GetActorLocation(),
+			GetActorRotation()
+			);
+	}
+
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			ImpactSound,
+			GetActorLocation()
+			);
+	}
 }
 

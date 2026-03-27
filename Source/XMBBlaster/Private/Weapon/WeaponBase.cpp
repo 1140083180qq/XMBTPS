@@ -1,19 +1,18 @@
-
 #include "Weapon/WeaponBase.h"
-
+#include "Engine/SkeletalMeshSocket.h"
 #include "Character/XMBCharacterBase.h"
 #include "Net/UnrealNetwork.h"
 
 
 AWeaponBase::AWeaponBase()
 {
-	bReplicates = true;//在这里设置了这个类为可复制的，所以他的变量才能设置为可复制
+	bReplicates = true; //在这里设置了这个类为可复制的，所以他的变量才能设置为可复制
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
 
 	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn,ECR_Ignore);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
@@ -23,7 +22,6 @@ AWeaponBase::AWeaponBase()
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
-	
 }
 
 void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -37,14 +35,14 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())//GetLocalRole() == ROLE_Authority
+	if (HasAuthority()) //GetLocalRole() == ROLE_Authority
 	{
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
-		
+		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 		//绑定重叠事件
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this,&AWeaponBase::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this,&AWeaponBase::OnSphereEndOverlap);
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
 	}
 
 	if (PickupWidget)
@@ -57,7 +55,22 @@ void AWeaponBase::Fire(const FVector& HitTarget)
 {
 	if (FireAnimation)
 	{
-		WeaponMesh->PlayAnimation(FireAnimation,false);
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+	if (CasingClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEjectSocket)
+		{
+			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(GetWeaponMesh());
+			if (UWorld* World = GetWorld())
+			{
+				ACasing* Projectile = World->SpawnActor<ACasing>(
+					CasingClass,
+					SocketTransform.GetLocation(),
+					SocketTransform.GetRotation().Rotator());
+			}
+		}
 	}
 }
 
@@ -98,17 +111,18 @@ void AWeaponBase::OnRep_WeaponState()
 }
 
 void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                  const FHitResult& SweepResult)
 {
 	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
 	if (XMBCharacter && PickupWidget)
 	{
-		XMBCharacter->SetOverlappingWeapon(this);//调用角色内更改武器的函数，触发之后会将更新后的Weapon从Server复制给其他的Client
+		XMBCharacter->SetOverlappingWeapon(this); //调用角色内更改武器的函数，触发之后会将更新后的Weapon从Server复制给其他的Client
 	}
 }
 
 void AWeaponBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
 	if (XMBCharacter && PickupWidget)
@@ -116,5 +130,3 @@ void AWeaponBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 		XMBCharacter->SetOverlappingWeapon(nullptr);
 	}
 }
-
-

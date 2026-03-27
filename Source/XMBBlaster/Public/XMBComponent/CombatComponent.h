@@ -43,11 +43,11 @@ protected:
 
 	//到第五章第四节的一半为止，这一部分仅可以从客户端调用服务器执行，别的客户端看不见;以及在服务器调用且执行，客户端看不见
 	//server表示从客户端上调用并在服务器上执行//非常重要的同步需要Reliable传到服务器
-	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	UFUNCTION(Server, Reliable)//TODO:需要了解FVector_NetQuantize这一个类型对于网络复制的作用
+	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire();
+	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
@@ -71,7 +71,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ShoulderAimWalkSpeed;
 
-	FVector HitTargetVector;
+	
 	
 	
 	

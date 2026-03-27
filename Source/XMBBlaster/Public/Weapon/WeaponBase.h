@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Casing.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -71,6 +72,9 @@ private:
 	
 	UFUNCTION()
 	void OnRep_WeaponState();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACasing> CasingClass;
 };
 
 

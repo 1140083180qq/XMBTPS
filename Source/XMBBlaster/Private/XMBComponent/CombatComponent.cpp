@@ -59,18 +59,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
-			HitTargetVector = End;
-		}
-		else
-		{
-			HitTargetVector = TraceHitResult.ImpactPoint;
-			DrawDebugSphere(
-				GetWorld(),
-				TraceHitResult.ImpactPoint,
-				12.f,
-				12,
-				FColor::Red);
-			
 		}
 	}
 }
@@ -144,27 +132,27 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	bFireButtonPressed = bPressed;
 	if (bFireButtonPressed)
 	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
 		//在第五章第四节的一半前，这个函数若从客户端调用，则服务器执行;在服务器调用，则也在服务器执行。并且这两种情况都不会同步到其他的客户端。
-		ServerFire();
+		ServerFire(HitResult.ImpactPoint);
 	}
 }
 
-
-
 //若客户端执行了这个函数，不会传递给其他客户端，必须由客户端(调用)->服务器(执行并传播)->其他客户端(执行)
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	//若是服务器调用，则同步到其他客户端。
-	MulticastFire();
+	MulticastFire(TraceHitTarget);
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
 	if (Owner)
 	{
 		Owner->PlayFireMontage(bFireButtonPressed);
-		EquippedWeapon->Fire(HitTargetVector);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -185,6 +173,5 @@ void UCombatComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
+	
 }
