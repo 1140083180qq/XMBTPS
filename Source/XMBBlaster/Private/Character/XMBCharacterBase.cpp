@@ -35,6 +35,9 @@ AXMBCharacterBase::AXMBCharacterBase()
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	CombatComponent->SetIsReplicated(true);
 
+	UIComponent = CreateDefaultSubobject<UUIComponent>(TEXT("UIComponent"));
+	UIComponent->SetIsReplicated(true);
+	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 650.f);
 
@@ -42,8 +45,11 @@ AXMBCharacterBase::AXMBCharacterBase()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
-
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+
+	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+                            
+                            	// GetMesh()->bOnlyAllowAutonomousTickPose = true;
 }
 
 void AXMBCharacterBase::PostInitializeComponents()
@@ -54,9 +60,12 @@ void AXMBCharacterBase::PostInitializeComponents()
 	{
 		CombatComponent->Owner = this;
 	}
+
+	if (UIComponent)
+	{
+		UIComponent->Owner = this;
+	}
 }
-
-
 
 void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -64,6 +73,7 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 
 	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon,COND_OwnerOnly);//添加一个条件，只能让Owner同步。触发时也只能让Owner看到
 }
+
 
 void AXMBCharacterBase::AimOffset(float DeltaTime)
 {
@@ -125,6 +135,12 @@ void AXMBCharacterBase::TurnInPlace(float DeltaTime)
 			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);//并且将当前瞄准的方向设置为起始方向
 		}
 	}
+}
+
+FVector AXMBCharacterBase::GetHitTarget() const
+{
+	if (CombatComponent == nullptr) return FVector();
+	return CombatComponent->HitTarget;
 }
 
 void AXMBCharacterBase::Jump()

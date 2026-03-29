@@ -8,6 +8,8 @@
 #include "Weapon/WeaponBase.h"
 #include "TurningInPlace.h"
 
+#include "XMBComponent/UIComponent.h"
+
 #include "XMBCharacterBase.generated.h"
 
 class UCameraComponent;
@@ -33,14 +35,21 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
-
+	
 	AWeaponBase* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
-	
+
+	/*XMBUITEST*/
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	/*XMBUITEST*/
+
+	FVector GetHitTarget() const;
 protected:
 	// virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	
 
 	UFUNCTION(BlueprintCallable)
 	void EquipButtonPressed();
@@ -81,6 +90,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCombatComponent* CombatComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	UUIComponent* UIComponent;
+
 	UFUNCTION(Server,Reliable)//需要了解RPC的可靠与不可靠执行，出现不可靠执行的几种情形。知道解决不可靠执行的几种办法。
 	void ServerEquipButtonPressed();
 	
@@ -89,8 +101,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* FireWeaponMontage;
-
-	
 	
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
@@ -100,6 +110,7 @@ private:
 	ETurningInPlace TurningInPlace;
 
 	void TurnInPlace(float DeltaTime);
+
 	
 };
 

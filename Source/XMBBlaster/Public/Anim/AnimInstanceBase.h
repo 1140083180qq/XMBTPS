@@ -22,7 +22,7 @@ public:
 private:
 
 	//物体数据
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (allowprivateaccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (allowprivateaccess = "true"))
 	AXMBCharacterBase* XMBCharacter;
 
 	
@@ -73,4 +73,11 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
 	ETurningInPlace TurningInPlace;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
+	FRotator RightHandRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
+	bool bLocallyControlled;
+	
 };

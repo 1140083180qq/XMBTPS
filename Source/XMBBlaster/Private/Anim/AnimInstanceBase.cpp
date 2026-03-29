@@ -21,7 +21,11 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		XMBCharacter = Cast<AXMBCharacterBase>(TryGetPawnOwner());
 	}
-	if (XMBCharacter == nullptr) return;
+	
+	if (XMBCharacter == nullptr)
+	{
+		return;
+	}
 	
 	FVector Velocity = XMBCharacter->GetVelocity();
 	Velocity.Z = 0.f;
@@ -58,12 +62,21 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	if (bIsWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && XMBCharacter->GetMesh())
 	{
 		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"),RTS_World);
-
 		FVector OutPosition;
 		FRotator OutRotation;
 		XMBCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+		// if (XMBCharacter->IsLocallyControlled())//如此判断是为了减少网络传输，只需要将枪口的转向传输即可
+		// {
+		// 	bLocallyControlled = true;
+			//进行枪口与准心的偏移修复//XMBTODO:此处短暂的解决办法为对插槽进行旋转
+			FTransform RightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("hand_r"),RTS_World);
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - XMBCharacter->GetHitTarget()));
+			// RightHandRotation.Roll -= 90.f;
+			// RightHandRotation.Yaw -= 90.f;
+		// }
 	}
 	
 }

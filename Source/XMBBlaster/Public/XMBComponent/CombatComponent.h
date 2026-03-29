@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "PlayerController/XMBPlayerController.h"
+#include "UI/HUD/XMBHUD.h"
 #include "Weapon/WeaponBase.h"
 
 #include "CombatComponent.generated.h"
@@ -23,6 +25,12 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
+	/*XMBUITEST*/
+	// 【新增】提供只读访问，安全获取已装备武器
+	FORCEINLINE AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE bool IsAiming() const { return bAiming; }
+	FORCEINLINE bool IsShoulderAiming() const { return bShoulderAiming; }
+	/*XMBUITEST*/
 
 protected:
 	virtual void BeginPlay() override;
@@ -71,9 +79,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ShoulderAimWalkSpeed;
 
+	AXMBPlayerController* XMBController;
 	
-	
-	
+	AXMBHUD* HUD;
+
+	FVector HitTarget;
 	
 };
 

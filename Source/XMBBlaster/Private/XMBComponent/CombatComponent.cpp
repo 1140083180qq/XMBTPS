@@ -9,7 +9,6 @@
 #include "Net/UnrealNetwork.h"
 
 
-
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -156,8 +155,6 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	}
 }
 
-
-
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -172,6 +169,13 @@ void UCombatComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Owner && Owner->IsLocallyControlled())
+	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		HitTarget = HitResult.ImpactPoint;
+	}
 
 	
 }
