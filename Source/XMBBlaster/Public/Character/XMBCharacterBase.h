@@ -7,7 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Weapon/WeaponBase.h"
 #include "TurningInPlace.h"
-
+#include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "XMBComponent/UIComponent.h"
 
 #include "XMBCharacterBase.generated.h"
@@ -18,7 +18,7 @@ class UCombatComponent;
 
 
 UCLASS()
-class XMBBLASTER_API AXMBCharacterBase : public ACharacter
+class XMBBLASTER_API AXMBCharacterBase : public ACharacter, public IInteractWithCrosshairsInterface
 {
 	GENERATED_BODY()
 
@@ -35,21 +35,30 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	
 	AWeaponBase* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
+	
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastHit();
 
 	/*XMBUITEST*/
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
 	/*XMBUITEST*/
 
 	FVector GetHitTarget() const;
-protected:
-	// virtual void Tick(float DeltaSeconds) override;
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-	
+	virtual void OnRep_ReplicatedMovement() override;//当角色移动时，会自动调用这个类//具体参考于Actor.h
+protected:
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	void CalculateAO_Pitch();//获取相机俯仰角，传给动画蓝图驱动上半身上下转动。
+
 
 	UFUNCTION(BlueprintCallable)
 	void EquipButtonPressed();
@@ -66,6 +75,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void AimOffset(float DeltaTime);
+	UFUNCTION(BlueprintCallable)
+	void SimProxiesTurn();//本地玩家用 AimOffset（通过相机方向判断），但远程角色没有相机信息。所以改用帧间 Actor 旋转差（ProxyYaw）来判断是否在转身。
 
 	virtual void Jump() override;
 
@@ -73,6 +84,8 @@ protected:
 	void FireButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void FireButtonReleased();
+
+	void PlayHitReactMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -101,17 +114,33 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* FireWeaponMontage;
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* HitReactMontage;
 	
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
 	float AO_Pitch;
-	FRotator StartingAimRotation;
+	FRotator StartingAimRotation;//上次停止移动时的瞄准方向（"锚点"）
 
 	ETurningInPlace TurningInPlace;
 
 	void TurnInPlace(float DeltaTime);
 
+	UFUNCTION(BlueprintCallable)
+	void HideCameraIfCharacterClose();
+
+	UPROPERTY(EditAnywhere)
+	float CameraThreshold = 200.f;
+
+	bool bRotateRootBone;
+	float TurnThreshold = 0.5f;//每帧旋转角度的阈值
+	FRotator ProxyRotationLastFrame;
+	FRotator ProxyRotation;
+	float ProxyYaw;
+	float TimeSinceLastMovementReplication;
+	float CalculateSpeed();//计算角色的水平移动速度（忽略 Z 轴的下落/跳跃分量）。用于判断角色是否在移动。
 	
 };
+
 
 

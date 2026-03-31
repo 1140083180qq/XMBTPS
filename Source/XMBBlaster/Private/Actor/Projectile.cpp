@@ -1,8 +1,11 @@
 
 #include "Actor/Projectile.h"
+
+#include "Character/XMBCharacterBase.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "XMBBlaster/XMBBlaster.h"
 
 AProjectile::AProjectile()
 {
@@ -17,6 +20,8 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionBox->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic,ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);
+	// ECollisionChannel::
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;//确保Projectile的旋转与Projectile的移动方向一致
@@ -51,6 +56,13 @@ void AProjectile::BeginPlay()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
+
+	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
+	if (XMBCharacter)
+	{
+		XMBCharacter->MulticastHit();
+	}
+	
 	Destroyed();
 }
 

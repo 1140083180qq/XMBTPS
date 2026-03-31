@@ -36,6 +36,8 @@ public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh; }
+	// FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
+	
 	
 	virtual void Fire(const FVector& HitTarget);
 
@@ -58,6 +60,18 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
 	UTexture2D* CrosshairBottom;
+
+	/**
+	 * 瞄准时的Fov缩放
+	 */
+
+	UPROPERTY(EditAnywhere)
+	float ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere)//缩放的插入速度
+	float ZoomInterpSpeed = 20.f;
+	
+	
 protected:
 	virtual void BeginPlay() override;
 

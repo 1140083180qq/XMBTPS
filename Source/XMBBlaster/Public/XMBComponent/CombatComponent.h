@@ -30,6 +30,7 @@ public:
 	FORCEINLINE AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
 	FORCEINLINE bool IsAiming() const { return bAiming; }
 	FORCEINLINE bool IsShoulderAiming() const { return bShoulderAiming; }
+	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
 	/*XMBUITEST*/
 
 protected:

@@ -44,7 +44,7 @@ void AWeaponBase::BeginPlay()
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
 	}
-
+	
 	if (PickupWidget)
 	{
 		PickupWidget->SetVisibility(false);

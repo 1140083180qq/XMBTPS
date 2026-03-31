@@ -18,6 +18,29 @@ UCombatComponent::UCombatComponent()
 	ShoulderAimWalkSpeed = 300.f;
 }
 
+void UCombatComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (Owner)
+	{
+		Owner->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
+}
+
+void UCombatComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Owner && Owner->IsLocallyControlled())
+	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		HitTarget = HitResult.ImpactPoint;
+	}
+}
+
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -47,6 +70,15 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if (bScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPosition;
+
+		if (Owner)
+		{
+			//TODO:此处可以换种方式:考虑摄像机臂的长度
+			float DistanceToCharacter = (Owner->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+			// DrawDebugSphere(GetWorld(),Start,16.f,12,FColor::Red,false);
+		}
+		
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
 
 		GetWorld()->LineTraceSingleByChannel(
@@ -54,6 +86,24 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			Start,
 			End,
 			ECC_Visibility);
+
+		//此处需要通过更改UIComponent的bool值，再由此来控制其运行
+		if (bool InChanged = TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+		{
+			if (Owner->GetUIComponent()->GetbIsChange() != InChanged)
+			{
+				// Owner->GetUIComponent()->GetHUDPackage().CrosshairsColor = FLinearColor::Red;
+				Owner->GetUIComponent()->SetbIsChange(true);
+			}
+		}
+		else
+		{
+			if (Owner->GetUIComponent()->GetbIsChange() != InChanged)
+			{
+				// Owner->GetUIComponent()->GetHUDPackage().CrosshairsColor = FLinearColor::Green;
+				Owner->GetUIComponent()->SetbIsChange(false);
+			}
+		}
 		
 		if (!TraceHitResult.bBlockingHit)
 		{
@@ -155,27 +205,3 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	}
 }
 
-void UCombatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (Owner)
-	{
-		Owner->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-	}
-}
-
-void UCombatComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (Owner && Owner->IsLocallyControlled())
-	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		HitTarget = HitResult.ImpactPoint;
-	}
-
-	
-}
