@@ -4,7 +4,7 @@
 #include "Character/XMBCharacterBase.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Sound/SoundCue.h"
+
 #include "XMBBlaster/XMBBlaster.h"
 
 AProjectile::AProjectile()

@@ -133,6 +133,7 @@ private:
 	float CameraThreshold = 200.f;
 
 	bool bRotateRootBone;
+	
 	float TurnThreshold = 0.5f;//每帧旋转角度的阈值
 	FRotator ProxyRotationLastFrame;
 	FRotator ProxyRotation;

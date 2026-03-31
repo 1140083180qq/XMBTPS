@@ -47,6 +47,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	void Fire();
 
 	void FireButtonPressed(bool bPressed);
 
@@ -85,6 +86,20 @@ private:
 	AXMBHUD* HUD;
 
 	FVector HitTarget;
+
+	/*
+	 * 控制开火
+	 */
+
+	FTimerHandle FireTimer;
+
+	
+
+	
+	bool bCanFire = true;//当武器开枪时，设置这个为false;当武器可以开枪时，设置这个为True。由Timer进行控制
+
+	void StartFireTimer();
+	void FireTimerFinished();
 	
 };
 

@@ -108,7 +108,7 @@ void UUIComponent::SetHUDCrosshairs(float DeltaTime)
 				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor,0.f, DeltaTime, 0.3f);
 			}
 
-			if (CachedEquippedWeapon && CombatComp->IsFireButtonPressed())
+			if (CachedEquippedWeapon && CombatComp->IsFireButtonPressed())//此处开枪时才会成功
 			{
 				CrosshairShootingFactor += 0.75f;
 			}

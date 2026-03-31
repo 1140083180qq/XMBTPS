@@ -234,13 +234,9 @@ FVector AXMBCharacterBase::GetHitTarget() const
 void AXMBCharacterBase::OnRep_ReplicatedMovement()
 {
 	Super::OnRep_ReplicatedMovement();
-
-	// if (GetLocalRole() == ROLE_SimulatedProxy)
-	// {
-		SimProxiesTurn();
-	// }
-	TimeSinceLastMovementReplication = 0.f;
 	
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
 }
 
 void AXMBCharacterBase::Jump()

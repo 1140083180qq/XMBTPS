@@ -5,7 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 #include "Projectile.generated.h"
 
 UCLASS()

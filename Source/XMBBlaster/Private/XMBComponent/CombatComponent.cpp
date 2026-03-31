@@ -3,9 +3,9 @@
 
 #include "Character/XMBCharacterBase.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "Evaluation/Blending/MovieSceneBlendType.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -176,15 +176,48 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::StartFireTimer()
+{
+	if (EquippedWeapon == nullptr || Owner == nullptr) return;
+
+	Owner->GetWorldTimerManager().SetTimer(
+		FireTimer,
+		this,
+		&UCombatComponent::FireTimerFinished,
+		EquippedWeapon->FireDelay
+		);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if (EquippedWeapon == nullptr) return;
+	
+	bCanFire = true;
+	if (bFireButtonPressed && EquippedWeapon->bAutomatic)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::Fire()
+{
+	if (EquippedWeapon == nullptr) return;
+	
+	if (bCanFire)
+	{
+		bCanFire = false;
+		ServerFire(HitTarget);
+		StartFireTimer();
+	}
+}
+
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 	if (bFireButtonPressed)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		//在第五章第四节的一半前，这个函数若从客户端调用，则服务器执行;在服务器调用，则也在服务器执行。并且这两种情况都不会同步到其他的客户端。
-		ServerFire(HitResult.ImpactPoint);
+		// ServerFire(HitTarget);
+		Fire();
 	}
 }
 

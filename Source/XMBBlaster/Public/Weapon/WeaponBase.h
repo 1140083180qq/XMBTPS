@@ -70,7 +70,16 @@ public:
 
 	UPROPERTY(EditAnywhere)//缩放的插入速度
 	float ZoomInterpSpeed = 20.f;
+
+	/**
+	 * 控制开火
+	 */
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float FireDelay = 0.15f;
 	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	bool bAutomatic = true;//设置武器是否为全自动
 	
 protected:
 	virtual void BeginPlay() override;
