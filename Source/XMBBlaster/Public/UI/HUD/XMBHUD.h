@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/Widget/CharacterOverlayWidget.h"
 #include "XMBHUD.generated.h"
 
 USTRUCT(BlueprintType)
@@ -34,6 +35,15 @@ public:
 	virtual void DrawHUD() override;
 
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
+
+	UPROPERTY(EditAnywhere,Category = "Player States")
+	TSubclassOf<UUserWidget> CharacterOverlayWidgetClass;
+	
+	UCharacterOverlayWidget* CharacterOverlayWidget;
+
+protected:
+	virtual void BeginPlay() override;
+	void AddCharacterOverlayWidget();
 	
 private:
 	FHUDPackage HUDPackage;

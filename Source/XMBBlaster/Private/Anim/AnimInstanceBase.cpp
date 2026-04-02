@@ -41,6 +41,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	TurningInPlace = XMBCharacter->GetTurningInPlace();
 	bRotateRootBone = XMBCharacter->ShouldRotateRootBone();
 	EquippedWeapon = XMBCharacter->GetEquippedWeapon();//TODO:此处为Update，需要考虑将武器制作为"仅在装备、更换、丢弃时才对此进行更新"
+	bElimmed = XMBCharacter->IsElimmed();
 
 	//--------------------------------重点
 	/**

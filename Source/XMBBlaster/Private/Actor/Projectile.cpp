@@ -46,7 +46,7 @@ void AProjectile::BeginPlay()
 			);
 	}
 
-	//检查权限再进行绑定
+	//检查权限再在服务器进行绑定
 	if (HasAuthority())
 	{
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
@@ -57,12 +57,6 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	FVector NormalImpulse, const FHitResult& Hit)
 {
 
-	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
-	if (XMBCharacter)
-	{
-		XMBCharacter->MulticastHit();
-	}
-	
 	Destroyed();
 }
 

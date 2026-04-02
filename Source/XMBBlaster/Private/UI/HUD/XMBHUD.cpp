@@ -43,6 +43,23 @@ void AXMBHUD::DrawHUD()
 	}
 }
 
+void AXMBHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AddCharacterOverlayWidget();
+}
+
+void AXMBHUD::AddCharacterOverlayWidget()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();//获取本地控制器
+	if (PlayerController && CharacterOverlayWidgetClass)
+	{
+		CharacterOverlayWidget = CreateWidget<UCharacterOverlayWidget>(PlayerController, CharacterOverlayWidgetClass);
+		CharacterOverlayWidget->AddToViewport();
+	}
+}
+
 void AXMBHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportContent,FVector2D Spread, FLinearColor CrosshairColor)
 {
 	const float TextureWidth = Texture->GetSizeX();

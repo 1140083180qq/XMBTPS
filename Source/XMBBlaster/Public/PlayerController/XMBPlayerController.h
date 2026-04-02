@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/HUD/XMBHUD.h"
 #include "XMBPlayerController.generated.h"
 
 /**
@@ -13,5 +14,15 @@ UCLASS()
 class XMBBLASTER_API AXMBPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	void SetHUDHealth(float Health, float MaxHealth);
+	
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	AXMBHUD* XMBHUD;
+	
 	
 };

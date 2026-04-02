@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameMode/BlasterGameMode.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "XMBComponent/CombatComponent.h"
 
@@ -18,6 +19,8 @@ AXMBCharacterBase::AXMBCharacterBase()
 	PrimaryActorTick.bCanEverTick = false;
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+	
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;//生成策略
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -56,6 +59,49 @@ AXMBCharacterBase::AXMBCharacterBase()
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
                             
                             	// GetMesh()->bOnlyAllowAutonomousTickPose = true;
+	// DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));//需要设置溶解材质时再启用这里//同时也需要把MulticastElim_Implementation里的溶解调用注释关闭
+}
+
+void AXMBCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UpdateHUDHealth();
+	
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &AXMBCharacterBase::ReceiveDamage);
+	}
+}
+
+void AXMBCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaSeconds);
+	}
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaSeconds;
+		if (TimeSinceLastMovementReplication > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+	
+	HideCameraIfCharacterClose();
+}
+
+void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon,COND_OwnerOnly);//添加一个条件，只能让Owner同步。触发时也只能让Owner看到
+	DOREPLIFETIME(AXMBCharacterBase,Health);
+	DOREPLIFETIME(AXMBCharacterBase,MaxHealth);
 }
 
 void AXMBCharacterBase::PostInitializeComponents()
@@ -72,14 +118,6 @@ void AXMBCharacterBase::PostInitializeComponents()
 		UIComponent->Owner = this;
 	}
 }
-
-void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon,COND_OwnerOnly);//添加一个条件，只能让Owner同步。触发时也只能让Owner看到
-}
-
 
 void AXMBCharacterBase::AimOffset(float DeltaTime)
 {
@@ -223,32 +261,10 @@ void AXMBCharacterBase::HideCameraIfCharacterClose()
 	
 }
 
-
-
 FVector AXMBCharacterBase::GetHitTarget() const
 {
 	if (CombatComponent == nullptr) return FVector();
 	return CombatComponent->HitTarget;
-}
-
-void AXMBCharacterBase::OnRep_ReplicatedMovement()
-{
-	Super::OnRep_ReplicatedMovement();
-	
-	SimProxiesTurn();
-	TimeSinceLastMovementReplication = 0.f;
-}
-
-void AXMBCharacterBase::Jump()
-{
-	if (bIsCrouched)
-	{
-		UnCrouch();
-	}
-	else
-	{
-		Super::Jump();
-	}
 }
 
 AWeaponBase* AXMBCharacterBase::GetEquippedWeapon()
@@ -271,6 +287,15 @@ void AXMBCharacterBase::PlayFireMontage(bool bAiming)
 	}
 }
 
+void AXMBCharacterBase::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
 void AXMBCharacterBase::PlayHitReactMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -283,6 +308,28 @@ void AXMBCharacterBase::PlayHitReactMontage()
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
+
+void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DmaageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	UpdateHUDHealth();
+	PlayHitReactMontage();
+
+	if (Health == 0.f)
+	{
+		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+		if (BlasterGameMode)
+		{
+			XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
+			AXMBPlayerController* AttackController = Cast<AXMBPlayerController>(InstigatorController);
+			BlasterGameMode->PlayerEliminated(this, XMBPlayerController, AttackController);
+		}
+	}
+	
+}
+
+
 
 void AXMBCharacterBase::EquipButtonPressed()
 {
@@ -297,16 +344,6 @@ void AXMBCharacterBase::EquipButtonPressed()
 		{
 			ServerEquipButtonPressed();
 		}
-	}
-}
-
-//连接服务器需要实现_Implementation
-void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
-{
-	//不用检查Authority因为仅在Server执行
-	if (CombatComponent)
-	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
 	}
 }
 
@@ -341,9 +378,110 @@ void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
 	}
 }
 
-void AXMBCharacterBase::MulticastHit_Implementation()
+void AXMBCharacterBase::OnRep_ReplicatedMovement()
 {
+	Super::OnRep_ReplicatedMovement();
+	
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
+}
+
+
+
+void AXMBCharacterBase::OnRep_Health()
+{
+	UpdateHUDHealth();
 	PlayHitReactMontage();
+}
+
+void AXMBCharacterBase::OnRep_MaxHealth()
+{
+}
+
+
+
+void AXMBCharacterBase::UpdateHUDHealth()
+{
+	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
+	if (XMBPlayerController)
+	{
+		XMBPlayerController->SetHUDHealth(Health,MaxHealth);
+	}
+}
+
+void AXMBCharacterBase::Elim()
+{
+	MulticastElim();
+	GetWorldTimerManager().SetTimer(
+		ElimTimer,
+		this,
+		&AXMBCharacterBase::ElimTimerFinished,
+		ElimDelay);
+}
+
+void AXMBCharacterBase::MulticastElim_Implementation()
+{
+	bElimmed = true;
+	PlayElimMontage();
+
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this);
+		GetMesh()->SetMaterial(0,DynamicDissolveMaterialInstance);
+
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),0.55f);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
+	}
+	// StartDissolve();//溶解效果的调用
+}
+
+void AXMBCharacterBase::ElimTimerFinished()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	if (BlasterGameMode)
+	{
+		BlasterGameMode->RequestRespawn(this,Controller);
+	}
+}
+
+void AXMBCharacterBase::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),DissolveValue);
+	}
+}
+
+void AXMBCharacterBase::StartDissolve()
+{
+	DissolveTrack.BindDynamic(this,&AXMBCharacterBase::UpdateDissolveMaterial);
+	if (DissolveCurve && DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeline->Play();
+	}
+}
+
+void AXMBCharacterBase::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Super::Jump();
+	}
+}
+
+//连接服务器需要实现_Implementation
+void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
+{
+	//不用检查Authority因为仅在Server执行
+	if (CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
 }
 
 void AXMBCharacterBase::FireButtonPressed()
@@ -393,7 +531,6 @@ bool AXMBCharacterBase::IsWeaponEquipped()
 	return (CombatComponent && CombatComponent->EquippedWeapon);
 }
 
-
 bool AXMBCharacterBase::IsAiming()
 {
 	return (CombatComponent && CombatComponent->bAiming);
@@ -402,27 +539,6 @@ bool AXMBCharacterBase::IsAiming()
 bool AXMBCharacterBase::IsShoulderAiming()
 {
 	return (CombatComponent && CombatComponent->bShoulderAiming);
-}
-
-void AXMBCharacterBase::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
-	{
-		AimOffset(DeltaSeconds);
-	}
-	else
-	{
-		TimeSinceLastMovementReplication += DeltaSeconds;
-		if (TimeSinceLastMovementReplication > 0.25f)
-		{
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAO_Pitch();
-	}
-	
-	HideCameraIfCharacterClose();
 }
 
 

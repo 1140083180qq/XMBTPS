@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Weapon/WeaponBase.h"
 #include "TurningInPlace.h"
+#include "Components/TimelineComponent.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "XMBComponent/UIComponent.h"
 
@@ -37,14 +38,12 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	
 	AWeaponBase* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
-	
-
-	UFUNCTION(NetMulticast,Unreliable)
-	void MulticastHit();
+	void PlayElimMontage();
 
 	/*XMBUITEST*/
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
@@ -54,8 +53,15 @@ public:
 	FVector GetHitTarget() const;
 
 	virtual void OnRep_ReplicatedMovement() override;//当角色移动时，会自动调用这个类//具体参考于Actor.h
+
+	//这个函数仅在服务器执行
+	void Elim();
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastElim();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void CalculateAO_Pitch();//获取相机俯仰角，传给动画蓝图驱动上半身上下转动。
 
@@ -87,6 +93,13 @@ protected:
 
 	void PlayHitReactMontage();
 
+	//使用变量的复制比使用RPC对网络更节俭。为了节省网络，此处对伤害不使用RPC，删除了multicast。
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
+
+	UFUNCTION()
+	void UpdateHUDHealth(); 
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* CameraBoom;
@@ -116,6 +129,8 @@ private:
 	UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* HitReactMontage;
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ElimMontage;
 	
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
@@ -140,7 +155,56 @@ private:
 	float ProxyYaw;
 	float TimeSinceLastMovementReplication;
 	float CalculateSpeed();//计算角色的水平移动速度（忽略 Z 轴的下落/跳跃分量）。用于判断角色是否在移动。
+
+	/*
+	 * Player Health
+	 */
+
+	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth,VisibleAnywhere,Category = "Player States")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player States")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health();
+
+	UFUNCTION()
+	void OnRep_MaxHealth();
+
+	AXMBPlayerController* XMBPlayerController;
+
+	bool bElimmed = false;
+
+	FTimerHandle ElimTimer;
+	void ElimTimerFinished();
+	UPROPERTY(EditDefaultsOnly)
+	float ElimDelay = 3.f;
+
+
+	/*
+	 * 溶解效果
+	 */
+
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
 	
+	FOnTimelineFloat DissolveTrack;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* DissolveCurve;
+
+	//在运行时可以改变的实例
+	UPROPERTY(VisibleAnywhere,Category = Elim)
+	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
+
+	//在蓝图中设置的材质实例，用于DynamicDissolveMaterialInstance↑
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* DissolveMaterialInstance;
 };
 
 
