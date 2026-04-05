@@ -128,6 +128,24 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	Owner->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Owner)
+	{
+
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+		if (HandSocket)
+		{
+			HandSocket->AttachActor(EquippedWeapon, Owner->GetMesh());
+		}
+		
+		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Owner->bUseControllerRotationYaw = true;
+		
+	}
+}
+
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
 	bAiming = bIsAiming;
@@ -166,15 +184,7 @@ void UCombatComponent::ServerSetShoulderAiming_Implementation(bool bIsShoulderAi
 	}
 }
 
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if (EquippedWeapon && Owner)
-	{
-		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Owner->bUseControllerRotationYaw = true;
-		// EquippedWeapon->SetOwner(Owner);
-	}
-}
+
 
 void UCombatComponent::StartFireTimer()
 {

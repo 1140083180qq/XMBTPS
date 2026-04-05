@@ -80,6 +80,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bAutomatic = true;//设置武器是否为全自动
+
+	void Dropped();
 	
 protected:
 	virtual void BeginPlay() override;

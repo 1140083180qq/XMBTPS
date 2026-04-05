@@ -5,10 +5,18 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "PlayerState/XMBPlayerState.h"
 
 void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXMBPlayerController* VictimController,
                                         AXMBPlayerController* AttackerController)
 {
+	AXMBPlayerState* AttackerPlayerState = AttackerController ? Cast<AXMBPlayerState>(AttackerController->PlayerState) : nullptr;
+	AXMBPlayerState* VictimPlayerState = VictimController ? Cast<AXMBPlayerState>(VictimController->PlayerState) : nullptr;
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	{
+		AttackerPlayerState->AddToScore(1.f);
+	}
+	
 	if (ElimmedCharacter)
 	{
 		ElimmedCharacter->Elim();

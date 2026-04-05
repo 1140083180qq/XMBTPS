@@ -9,6 +9,7 @@
 #include "TurningInPlace.h"
 #include "Components/TimelineComponent.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
+// #include "PlayerState/XMBPlayerState.h"
 #include "XMBComponent/UIComponent.h"
 
 #include "XMBCharacterBase.generated.h"
@@ -16,7 +17,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UCombatComponent;
-
+class AXMBPlayerState;
 
 UCLASS()
 class XMBBLASTER_API AXMBCharacterBase : public ACharacter, public IInteractWithCrosshairsInterface
@@ -39,6 +40,8 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	
 	AWeaponBase* GetEquippedWeapon();
 
@@ -98,7 +101,13 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
 
 	UFUNCTION()
-	void UpdateHUDHealth(); 
+	void UpdateHUDHealth();
+
+	/*
+	 * 此处要放在Tick内，因为无法及时更新HUD。TODO:尝试使用计时器
+	 */
+	void PollInit();
+	bool bDoOnce = true;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -205,6 +214,22 @@ private:
 	//在蓝图中设置的材质实例，用于DynamicDissolveMaterialInstance↑
 	UPROPERTY(EditAnywhere,Category = Elim)
 	UMaterialInstance* DissolveMaterialInstance;
+
+	/*
+	 * Elim bot
+	 */
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ElimBotEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ElimBotComponent;
+
+	UPROPERTY(EditAnywhere)
+	 USoundCue* ElimBotSound;
+
+	AXMBPlayerState* XMBPlayerState;
+	
 };
 
 

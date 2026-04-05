@@ -1,5 +1,4 @@
 
-
 #include "Character/XMBCharacterBase.h"
 
 #include "Camera/CameraComponent.h"
@@ -7,9 +6,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameMode/BlasterGameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "XMBComponent/CombatComponent.h"
-
+#include "PlayerState/XMBPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "XMBBlaster/XMBBlaster.h"
 
@@ -93,6 +93,8 @@ void AXMBCharacterBase::Tick(float DeltaSeconds)
 	}
 	
 	HideCameraIfCharacterClose();
+
+	PollInit();//TODO:转换为定时器
 }
 
 void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -409,8 +411,27 @@ void AXMBCharacterBase::UpdateHUDHealth()
 	}
 }
 
+void AXMBCharacterBase::PollInit()
+{
+	if (XMBPlayerState == nullptr)
+	{
+		XMBPlayerState = GetPlayerState<AXMBPlayerState>();
+		if (XMBPlayerState)
+		{
+			bDoOnce = false;
+			XMBPlayerState->AddToScore(0.f);
+		}
+	}
+}
+
 void AXMBCharacterBase::Elim()
 {
+	//武器掉落
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
+	
 	MulticastElim();
 	GetWorldTimerManager().SetTimer(
 		ElimTimer,
@@ -424,15 +445,49 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 	bElimmed = true;
 	PlayElimMontage();
 
-	if (DissolveMaterialInstance)
-	{
-		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this);
-		GetMesh()->SetMaterial(0,DynamicDissolveMaterialInstance);
+	//溶解效果的调用
+	// if (DissolveMaterialInstance)
+	// {
+	// 	DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this);
+	// 	GetMesh()->SetMaterial(0,DynamicDissolveMaterialInstance);
+	//
+	// 	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),0.55f);
+	// 	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
+	// }
+	// StartDissolve();
 
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),0.55f);
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
+	//让角色的MovementComponent失效
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if (XMBPlayerController)
+	{
+		DisableInput(XMBPlayerController);//禁用输入
 	}
-	// StartDissolve();//溶解效果的调用
+	//禁用碰撞
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//生成回收机器人
+	if (ElimBotEffect)
+	{
+		FVector ElimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f);
+		ElimBotComponent = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ElimBotEffect,
+			ElimBotSpawnPoint,
+			GetActorRotation()
+			);
+	}
+
+	if (ElimBotSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(
+			this,
+			ElimBotSound,
+			GetActorLocation()
+			);
+	}
+	
 }
 
 void AXMBCharacterBase::ElimTimerFinished()
@@ -440,6 +495,7 @@ void AXMBCharacterBase::ElimTimerFinished()
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 	if (BlasterGameMode)
 	{
+		bDoOnce = true;
 		BlasterGameMode->RequestRespawn(this,Controller);
 	}
 }
