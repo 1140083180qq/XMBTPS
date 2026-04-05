@@ -26,6 +26,8 @@ void AXMBPlayerController::OnPossess(APawn* InPawn)
 }
 
 
+
+
 void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
 	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
@@ -54,4 +56,15 @@ void AXMBPlayerController::SetHUDScore(float Score)
 	}
 }
 
-
+void AXMBPlayerController::SetHUDDefeats(int32 Defeats)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+	&& XMBHUD->CharacterOverlayWidget
+	&& XMBHUD->CharacterOverlayWidget->DefeatsAmount;
+	if(bHUDValid)
+	{
+		FString DefeatsText = FString::Printf(TEXT("%d"),Defeats);
+		XMBHUD->CharacterOverlayWidget->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+	}
+}

@@ -62,6 +62,7 @@ protected:
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 private:
+	UPROPERTY()
 	AXMBCharacterBase* Owner;
 
 	UPROPERTY(Replicatedusing = OnRep_EquippedWeapon)//这里需要设置复制，否则在进行武器装备仅会在服务器执行，客户端不执行(Character内目前仅有HasAuthority进行判断)
@@ -81,8 +82,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ShoulderAimWalkSpeed;
 
+	UPROPERTY()
 	AXMBPlayerController* XMBController;
-	
+
+	UPROPERTY()
 	AXMBHUD* HUD;
 
 	FVector HitTarget;

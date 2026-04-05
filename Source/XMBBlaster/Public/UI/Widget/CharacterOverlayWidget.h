@@ -27,6 +27,10 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreAmount;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DefeatsAmount;
+
+	//TODO:增加助攻，并且把这些换做为K/D/A，还需要加一个总得分
 	
 	
 };

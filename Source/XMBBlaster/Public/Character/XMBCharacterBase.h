@@ -181,6 +181,7 @@ private:
 	UFUNCTION()
 	void OnRep_MaxHealth();
 
+	UPROPERTY()
 	AXMBPlayerController* XMBPlayerController;
 
 	bool bElimmed = false;
@@ -228,6 +229,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	 USoundCue* ElimBotSound;
 
+	UPROPERTY()
 	AXMBPlayerState* XMBPlayerState;
 	
 };

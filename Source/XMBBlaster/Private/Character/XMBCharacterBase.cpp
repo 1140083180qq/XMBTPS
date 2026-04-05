@@ -420,6 +420,7 @@ void AXMBCharacterBase::PollInit()
 		{
 			bDoOnce = false;
 			XMBPlayerState->AddToScore(0.f);
+			XMBPlayerState->AddToDefeats(0);
 		}
 	}
 }

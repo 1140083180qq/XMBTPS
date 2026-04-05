@@ -19,11 +19,13 @@ public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(float Score);
 	virtual void OnPossess(APawn* InPawn) override;
+	void SetHUDDefeats(int32 Defeats);
 	
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY()
 	AXMBHUD* XMBHUD;
 	
 	
