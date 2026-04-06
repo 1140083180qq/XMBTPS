@@ -3,10 +3,13 @@
 
 #include "CoreMinimal.h"
 #include "Casing.h"
-
+#include "GameTypes/WeaponTypes.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Actor.h"
+
+class AXMBPlayerController;
+class AXMBCharacterBase;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -36,12 +39,16 @@ public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	// FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
-	
+	virtual void OnRep_Owner() override;
+	void SetHUDAmmo();
 	
 	virtual void Fire(const FVector& HitTarget);
 
 	void SetWeaponOwner(ACharacter* Character);
+
+	bool IsAmmoEmply();
 
 	/**
 	 * 武器准心
@@ -118,7 +125,29 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ACasing> CasingClass;
 
-	
+	/*
+	 * 弹丸
+	 */
+
+	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_Ammo)
+	int32 Ammo;
+
+	UPROPERTY(EditAnywhere)
+	int32 MagCapacity;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
+
+	UPROPERTY()
+	AXMBCharacterBase* XMBOwnerCharacter;
+
+	UPROPERTY()
+	AXMBPlayerController* XMBOwnerController;
+
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 	
 };
 

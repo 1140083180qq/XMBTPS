@@ -74,6 +74,8 @@ void AXMBCharacterBase::BeginPlay()
 	}
 }
 
+
+
 void AXMBCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -259,9 +261,9 @@ void AXMBCharacterBase::HideCameraIfCharacterClose()
 			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;//bOwnerNoSee的作用是控制该组件是否对拥有者（Owner）不可见
 		}
 	}
-		
-	
 }
+
+
 
 FVector AXMBCharacterBase::GetHitTarget() const
 {
@@ -295,6 +297,27 @@ void AXMBCharacterBase::PlayElimMontage()
 	if (AnimInstance && ElimMontage)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
+void AXMBCharacterBase::PlayReloadMontage()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+
+		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 
@@ -443,6 +466,11 @@ void AXMBCharacterBase::Elim()
 
 void AXMBCharacterBase::MulticastElim_Implementation()
 {
+	if (XMBPlayerController)
+	{
+		XMBPlayerController->SetHUDWeaponAmmo(0);
+	}
+	
 	bElimmed = true;
 	PlayElimMontage();
 
@@ -583,6 +611,14 @@ void AXMBCharacterBase::ShoulderAimButtonReleased()
 	if (CombatComponent) CombatComponent->SetShoulderAiming(false);
 }
 
+void AXMBCharacterBase::ReloadButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->Reload();
+	}
+}
+
 bool AXMBCharacterBase::IsWeaponEquipped()
 {
 	return (CombatComponent && CombatComponent->EquippedWeapon);
@@ -599,3 +635,8 @@ bool AXMBCharacterBase::IsShoulderAiming()
 }
 
 
+ECombatState AXMBCharacterBase::GetCombatState() const
+{
+	if (CombatComponent == nullptr) return ECombatState::ECS_MAX;
+	return CombatComponent->CombatState;
+}

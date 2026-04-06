@@ -3,7 +3,7 @@
 
 #include "Anim/AnimInstanceBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "TurningInPlace.h"
+#include "GameTypes/TurningInPlace.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UAnimInstanceBase::NativeInitializeAnimation()
@@ -106,5 +106,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 			// RightHandRotation.Yaw -= 90.f;
 		// }
 	}
+
+	bUseFABRIK = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 	
 }

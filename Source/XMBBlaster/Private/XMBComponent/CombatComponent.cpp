@@ -18,6 +18,7 @@ UCombatComponent::UCombatComponent()
 	ShoulderAimWalkSpeed = 300.f;
 }
 
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -25,6 +26,11 @@ void UCombatComponent::BeginPlay()
 	if (Owner)
 	{
 		Owner->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+		
+		if (Owner->HasAuthority())
+		{
+			InitializeCarriedAmmo();
+		}
 	}
 }
 
@@ -48,6 +54,9 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, bShoulderAiming);
 	DOREPLIFETIME(UCombatComponent, bFireButtonPressed);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo,COND_OwnerOnly);//添加这一个条件是为了不会复制到其他的客户端，仅会在激活的客户端执行
+	DOREPLIFETIME(UCombatComponent, CombatState);
+	
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -112,9 +121,49 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	}
 }
 
+
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if (Owner == nullptr) return;
+	if (Owner->HasAuthority())
+	{
+		CombatState =ECombatState::ECS_Unoccupied;
+	}
+	if(bFireButtonPressed)
+	{
+		Fire();
+	}
+}
+
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	if (Owner == nullptr) return;
+
+	CombatState = ECombatState::ECS_Reloading;
+	HandleReload();
+}
+
+void UCombatComponent::HandleReload()
+{
+	Owner->PlayReloadMontage();
+}
+
 void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 {
 	if (Owner == nullptr || WeaponToEquip == nullptr) return;
+	 if (EquippedWeapon)
+	 {
+		 EquippedWeapon->Dropped();
+	 }
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
@@ -124,6 +173,19 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 		HandSocket->AttachActor(EquippedWeapon, Owner->GetMesh());
 	}
 	EquippedWeapon->SetWeaponOwner(Owner);//SetOwner为复制的，所以当执行到此处时，不管是Client或Server，都会执行
+	EquippedWeapon->SetHUDAmmo();//设置HUD的弹药
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[WeaponToEquip->GetWeaponType()];
+	}
+	
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+	
 	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Owner->bUseControllerRotationYaw = true;
 }
@@ -144,6 +206,37 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Owner->bUseControllerRotationYaw = true;
 		
 	}
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+		case ECombatState::ECS_Reloading: 
+			HandleReload();
+			break;
+		case ECombatState::ECS_Unoccupied: 
+			if(bFireButtonPressed)
+			{
+				Fire();
+			}
+			break;
+	}
+}
+
+
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingArAmmo);
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)
@@ -209,10 +302,19 @@ void UCombatComponent::FireTimerFinished()
 	}
 }
 
+bool UCombatComponent::CanFire()
+{
+	if (EquippedWeapon == nullptr) return false;
+	// return !EquippedWeapon->IsAmmoEmply() || !bCanFire;
+	// return !EquippedWeapon->IsAmmoEmply() && bCanFire;
+	return !EquippedWeapon->IsAmmoEmply() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
+}
+
 void UCombatComponent::Fire()
 {
 	if (EquippedWeapon == nullptr) return;
 	
+	// if (CanFire())
 	if (bCanFire)
 	{
 		bCanFire = false;
@@ -241,7 +343,7 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
-	if (Owner)
+	if (Owner && CombatState == ECombatState::ECS_Unoccupied)//若在换蛋时仍按着鼠标，若没进入这个状态，则无法开火
 	{
 		Owner->PlayFireMontage(bFireButtonPressed);
 		EquippedWeapon->Fire(TraceHitTarget);

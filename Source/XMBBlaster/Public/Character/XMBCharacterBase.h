@@ -6,10 +6,10 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "Weapon/WeaponBase.h"
-#include "TurningInPlace.h"
+#include "GameTypes/TurningInPlace.h"
 #include "Components/TimelineComponent.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
-// #include "PlayerState/XMBPlayerState.h"
+
 #include "XMBComponent/UIComponent.h"
 
 #include "XMBCharacterBase.generated.h"
@@ -47,6 +47,7 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 	void PlayElimMontage();
+	void PlayReloadMontage();
 
 	/*XMBUITEST*/
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
@@ -62,6 +63,8 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
+
+	ECombatState GetCombatState() const;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -81,6 +84,8 @@ protected:
 	void ShoulderAimButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void ShoulderAimButtonReleased();
+	UFUNCTION(BlueprintCallable)
+	void ReloadButtonPressed();
 
 	UFUNCTION(BlueprintCallable)
 	void AimOffset(float DeltaTime);
@@ -122,7 +127,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon);
 	AWeaponBase* OverlappingWeapon;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere)
@@ -140,6 +145,8 @@ private:
 	UAnimMontage* HitReactMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ElimMontage;
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ReloadMontage;
 	
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值

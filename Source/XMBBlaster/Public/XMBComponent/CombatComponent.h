@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameTypes/CombatState.h"
 #include "PlayerController/XMBPlayerController.h"
 #include "UI/HUD/XMBHUD.h"
 #include "Weapon/WeaponBase.h"
+#include "GameTypes/WeaponTypes.h"
 
 #include "CombatComponent.generated.h"
 
@@ -32,6 +34,11 @@ public:
 	FORCEINLINE bool IsShoulderAiming() const { return bShoulderAiming; }
 	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
 	/*XMBUITEST*/
+
+	void Reload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 protected:
 	virtual void BeginPlay() override;
@@ -60,6 +67,11 @@ protected:
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
+	UFUNCTION(Server,Reliable)
+	void ServerReload();
+
+	void HandleReload();
 
 private:
 	UPROPERTY()
@@ -95,14 +107,34 @@ private:
 	 */
 
 	FTimerHandle FireTimer;
-
-	
-
 	
 	bool bCanFire = true;//当武器开枪时，设置这个为false;当武器可以开枪时，设置这个为True。由Timer进行控制
 
 	void StartFireTimer();
 	void FireTimerFinished();
-	
+
+	bool CanFire();
+
+	//存储已装备武器的弹药
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingArAmmo = 30;
+
+	//开局时初始化角色身上所携带武器类型的对应弹药数量
+	void InitializeCarriedAmmo();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	UFUNCTION()
+	void OnRep_CombatState();
 };
+
 

@@ -31,6 +31,11 @@ public:
 	UTextBlock* DefeatsAmount;
 
 	//TODO:增加助攻，并且把这些换做为K/D/A，还需要加一个总得分
-	
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* WeaponAmmoAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CarriedAmmoAmount;
 	
 };

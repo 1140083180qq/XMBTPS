@@ -1,6 +1,7 @@
 #include "Weapon/WeaponBase.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/XMBCharacterBase.h"
+#include "PlayerController/XMBPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -29,6 +30,7 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//注册可复制的变量
 	DOREPLIFETIME(AWeaponBase, WeaponState);
+	DOREPLIFETIME(AWeaponBase, Ammo);
 }
 
 
@@ -53,6 +55,8 @@ void AWeaponBase::BeginPlay()
 	}
 }
 
+
+
 void AWeaponBase::Fire(const FVector& HitTarget)
 {
 	if (FireAnimation)
@@ -74,6 +78,7 @@ void AWeaponBase::Fire(const FVector& HitTarget)
 			}
 		}
 	}
+	SpendRound();
 }
 
 void AWeaponBase::SetWeaponOwner(ACharacter* Character)
@@ -132,6 +137,48 @@ void AWeaponBase::OnRep_WeaponState()
 	}
 }
 
+void AWeaponBase::SpendRound()
+{
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	SetHUDAmmo();
+}
+
+void AWeaponBase::OnRep_Ammo()
+{
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+
+	SetHUDAmmo();
+}
+
+void AWeaponBase::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		XMBOwnerCharacter = nullptr;
+		XMBOwnerController = nullptr;
+	}
+	else
+	{
+		SetHUDAmmo();
+	}
+	
+}
+
+void AWeaponBase::SetHUDAmmo()
+{
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+
+	if (XMBOwnerCharacter)
+	{
+		XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(XMBOwnerCharacter->Controller) : XMBOwnerController;
+		if (XMBOwnerController)
+		{
+			XMBOwnerController->SetHUDWeaponAmmo(Ammo);
+		}
+	}
+}
+
 void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                   const FHitResult& SweepResult)
@@ -159,4 +206,12 @@ void AWeaponBase::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld,true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	XMBOwnerCharacter = nullptr;
+	XMBOwnerController = nullptr;
 }
+
+bool AWeaponBase::IsAmmoEmply()
+{
+	return Ammo <= 0;
+}
+

@@ -25,9 +25,6 @@ void AXMBPlayerController::OnPossess(APawn* InPawn)
 	
 }
 
-
-
-
 void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
 	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
@@ -66,5 +63,31 @@ void AXMBPlayerController::SetHUDDefeats(int32 Defeats)
 	{
 		FString DefeatsText = FString::Printf(TEXT("%d"),Defeats);
 		XMBHUD->CharacterOverlayWidget->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+	}
+}
+
+void AXMBPlayerController::SetHUDWeaponAmmo(int32 Ammo)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+	&& XMBHUD->CharacterOverlayWidget
+	&& XMBHUD->CharacterOverlayWidget->WeaponAmmoAmount;
+	if(bHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"),Ammo);
+		XMBHUD->CharacterOverlayWidget->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+}
+
+void AXMBPlayerController::SetHUDCarriedAmmo(int32 Ammo)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+	&& XMBHUD->CharacterOverlayWidget
+	&& XMBHUD->CharacterOverlayWidget->CarriedAmmoAmount;
+	if(bHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"),Ammo);
+		XMBHUD->CharacterOverlayWidget->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
 }
