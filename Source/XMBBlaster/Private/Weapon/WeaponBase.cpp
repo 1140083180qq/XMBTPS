@@ -210,6 +210,12 @@ void AWeaponBase::Dropped()
 	XMBOwnerController = nullptr;
 }
 
+void AWeaponBase::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
+}
+
 bool AWeaponBase::IsAmmoEmply()
 {
 	return Ammo <= 0;

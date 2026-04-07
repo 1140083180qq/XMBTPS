@@ -41,6 +41,9 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	// FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+	
 	virtual void OnRep_Owner() override;
 	void SetHUDAmmo();
 	
@@ -89,6 +92,8 @@ public:
 	bool bAutomatic = true;//设置武器是否为全自动
 
 	void Dropped();
+
+	void AddAmmo(int32 AmmoToAdd);
 	
 protected:
 	virtual void BeginPlay() override;
