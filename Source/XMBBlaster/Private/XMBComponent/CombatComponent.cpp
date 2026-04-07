@@ -204,6 +204,19 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	{
 		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
 	}
+
+	if (EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			EquippedWeapon->EquipSound,
+			Owner->GetActorLocation());
+	}
+
+	if (GetEquippedWeapon()->IsAmmoEmply())
+	{
+		Reload();
+	}
 	
 	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Owner->bUseControllerRotationYaw = true;
@@ -223,7 +236,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		
 		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Owner->bUseControllerRotationYaw = true;
-		
+
+		if (EquippedWeapon->EquipSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				this,
+				EquippedWeapon->EquipSound,
+				Owner->GetActorLocation());
+		}
 	}
 }
 
@@ -339,6 +359,12 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Fire();
 	}
+
+	//自动装填
+	if (GetEquippedWeapon()->IsAmmoEmply())
+	{
+		Reload();
+	}
 }
 
 bool UCombatComponent::CanFire()
@@ -353,8 +379,8 @@ void UCombatComponent::Fire()
 {
 	if (EquippedWeapon == nullptr) return;
 	
-	// if (CanFire())
-	if (bCanFire)
+	if (CanFire())
+	// if (bCanFire)
 	{
 		bCanFire = false;
 		ServerFire(HitTarget);

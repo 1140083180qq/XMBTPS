@@ -94,6 +94,9 @@ public:
 	void Dropped();
 
 	void AddAmmo(int32 AmmoToAdd);
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* EquipSound;
 	
 protected:
 	virtual void BeginPlay() override;

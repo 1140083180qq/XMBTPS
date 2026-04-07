@@ -108,5 +108,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	bUseFABRIK = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bUseAimOffset = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bTransformRightHand = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 	
 }
