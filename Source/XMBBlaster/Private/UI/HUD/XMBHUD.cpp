@@ -43,11 +43,13 @@ void AXMBHUD::DrawHUD()
 	}
 }
 
+
+
 void AXMBHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AddCharacterOverlayWidget();
+	
 }
 
 void AXMBHUD::AddCharacterOverlayWidget()
@@ -57,6 +59,16 @@ void AXMBHUD::AddCharacterOverlayWidget()
 	{
 		CharacterOverlayWidget = CreateWidget<UCharacterOverlayWidget>(PlayerController, CharacterOverlayWidgetClass);
 		CharacterOverlayWidget->AddToViewport();
+	}
+}
+
+void AXMBHUD::AddAnnouncement()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();//获取本地控制器
+	if (PlayerController && AnnouncementWidgetClass)
+	{
+		AnnouncementWidget = CreateWidget<UAnnouncementWidget>(PlayerController, AnnouncementWidgetClass);
+		AnnouncementWidget->AddToViewport();
 	}
 }
 

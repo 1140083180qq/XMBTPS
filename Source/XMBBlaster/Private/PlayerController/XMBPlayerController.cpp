@@ -3,7 +3,12 @@
 
 #include "PlayerController/XMBPlayerController.h"
 
+#include "OnlineSubsystemTypes.h"
 #include "Character/XMBCharacterBase.h"
+#include "GameFramework/GameMode.h"
+#include "GameMode/BlasterGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 
 void AXMBPlayerController::BeginPlay()
@@ -11,9 +16,16 @@ void AXMBPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	XMBHUD = Cast<AXMBHUD>(GetHUD());
+	ServerCheckMatchState();
+	
 }
 
+void AXMBPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(AXMBPlayerController, MatchState);
+}
 
 void AXMBPlayerController::OnPossess(APawn* InPawn)
 {
@@ -34,6 +46,11 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 	SetHUDTime();
 
 	CheckTimeSync(DeltaSeconds);
+
+	if (bInitializeCharcterOverlay)
+	{
+		PollInit();
+	}
 }
 
 void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
@@ -49,6 +66,12 @@ void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		XMBHUD->CharacterOverlayWidget->HealthText->SetText(FText::FromString(HealthText));
 	}
+	else
+	{
+		bInitializeCharcterOverlay = true;
+		HUdHealth = Health;
+		HUDMaxHealth = MaxHealth;
+	}
 }
 
 void AXMBPlayerController::SetHUDScore(float Score)
@@ -62,6 +85,12 @@ void AXMBPlayerController::SetHUDScore(float Score)
 	FString ScoreText = FString::Printf(TEXT("%d"),FMath::FloorToInt(Score));
 	XMBHUD->CharacterOverlayWidget->ScoreAmount->SetText(FText::FromString(ScoreText));
 	}
+	else
+	{
+		bInitializeCharcterOverlay = true;
+		HUDScore = Score;
+	}
+	
 }
 
 void AXMBPlayerController::SetHUDDefeats(int32 Defeats)
@@ -74,6 +103,11 @@ void AXMBPlayerController::SetHUDDefeats(int32 Defeats)
 	{
 		FString DefeatsText = FString::Printf(TEXT("%d"),Defeats);
 		XMBHUD->CharacterOverlayWidget->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+	}
+	else
+	{
+		bInitializeCharcterOverlay = true;
+		HUDDefeats = Defeats;
 	}
 }
 
@@ -123,11 +157,28 @@ void AXMBPlayerController::SetHUDMatchCountdown(float CountdownTime)
 
 void AXMBPlayerController::SetHUDTime()
 {
+	float TimeLeft = 0.f;
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		TimeLeft = WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+	}
+	
 	// int32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
-	int32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+	int32 SecondsLeft = FMath::CeilToInt(TimeLeft);
 	if (CountdownInt != SecondsLeft)
 	{
-		SetHUDMatchCountdown(MatchTime - GetServerTime());
+		if (MatchState == MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountdown(TimeLeft);
+		}
+		if (MatchState == MatchState::InProgress)
+		{
+			SetHUDMatchCountdown(TimeLeft);
+		}
 	}
 	
 	CountdownInt = SecondsLeft;
@@ -142,6 +193,8 @@ void AXMBPlayerController::CheckTimeSync(float DeltaSeconds)
 		TimeSyncRunningTime = 0.f;
 	}
 }
+
+
 
 void AXMBPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
 {
@@ -171,5 +224,102 @@ void AXMBPlayerController::ReceivedPlayer()
 	if (IsLocalPlayerController())
 	{
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+void AXMBPlayerController::OnMatchStateSet(FName State)
+{
+	MatchState = State;
+
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+}
+
+void AXMBPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+}
+
+void AXMBPlayerController::PollInit()
+{
+	if (CharacterOverlayWidget == nullptr)
+	{
+		if (XMBHUD && XMBHUD->CharacterOverlayWidget)
+		{
+			CharacterOverlayWidget = XMBHUD->CharacterOverlayWidget;
+			if (CharacterOverlayWidget)
+			{
+				SetHUDHealth(HUdHealth,HUDMaxHealth);
+				SetHUDScore(HUDScore);
+				SetHUDDefeats(HUDDefeats);
+			}
+		}
+	}
+}
+
+void AXMBPlayerController::HandleMatchHasStarted()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	if (XMBHUD)
+	{
+		XMBHUD->AddCharacterOverlayWidget();
+		if (XMBHUD->AnnouncementWidget)
+		{
+			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+
+void AXMBPlayerController::ServerCheckMatchState_Implementation()
+{
+	ABlasterGameMode* GameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GameMode)
+	{
+		WarmupTime = GameMode->WarmupTime;
+		MatchTime = GameMode->MatchTime;
+		LevelStartingTime = GameMode->LevelStartingTime;
+		MatchState = GameMode->GetMatchState();
+		ClientJoinMidgame(MatchState,WarmupTime,MatchTime,LevelStartingTime);
+	}
+	
+	if (XMBHUD && MatchState == MatchState::WaitingToStart)
+	{
+		XMBHUD->AddAnnouncement();
+	}
+}
+
+void AXMBPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,float WarmUp,float Match,float StartingTime)
+{
+	WarmupTime = WarmUp;
+	MatchTime = Match;
+	LevelStartingTime = StartingTime;
+	MatchState = StateOfMatch;
+	OnMatchStateSet(MatchState);
+
+	if (XMBHUD && MatchState == MatchState::WaitingToStart)//此处为等待开始；若为中期加入则不会执行此处判断
+	{
+		XMBHUD->AddAnnouncement();
+	}
+}
+
+void AXMBPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+	&& XMBHUD->AnnouncementWidget
+	&& XMBHUD->AnnouncementWidget->WarmupTime;
+	if(bHUDValid)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+		
+		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
+		XMBHUD->AnnouncementWidget->WarmupTime->SetText(FText::FromString(CountdownText));
 	}
 }

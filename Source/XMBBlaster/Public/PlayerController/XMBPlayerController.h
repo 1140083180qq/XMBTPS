@@ -25,10 +25,14 @@ public:
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDAnnouncementCountdown(float CountdownTime);
 
 	virtual float GetServerTime();//Synced with server world clock
 	virtual void ReceivedPlayer() override;//Sync with server clock as soon as possible
 	
+	void OnMatchStateSet(FName State);
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
 	virtual void BeginPlay() override;
 	void SetHUDTime();
@@ -52,14 +56,44 @@ protected:
 
 	float TimeSyncRunningTime = 0.f;
 	void CheckTimeSync(float DeltaSeconds);
+
+	
+	void PollInit();
+
+	void HandleMatchHasStarted();
+	
+	UFUNCTION(Server,Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client,Reliable)
+	void ClientJoinMidgame(FName StateOfMatch,float WarmUp,float Match,float StartingTime);
 	
 private:
 	UPROPERTY()
 	AXMBHUD* XMBHUD;
 
-	float MatchTime = 120.f;
+	float MatchTime = 0.f;
 	uint32 CountdownInt = 0;
+	float WarmupTime = 0.f;
+	float LevelStartingTime = 0.f;
 
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName MatchState;
+	
+	UFUNCTION(BlueprintCallable)
+	void OnRep_MatchState();
+
+	UPROPERTY()
+	UCharacterOverlayWidget* CharacterOverlayWidget;
+
+	bool bInitializeCharcterOverlay = false;
+
+	float HUdHealth;
+	float HUDMaxHealth;
+	float HUDScore;
+	int32 HUDDefeats;
 	
 	
 };
+
+

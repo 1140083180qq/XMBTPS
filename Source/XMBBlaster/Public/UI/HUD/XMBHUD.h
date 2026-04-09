@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/Widget/AnnouncementWidget.h"
 #include "UI/Widget/CharacterOverlayWidget.h"
 #include "XMBHUD.generated.h"
 
@@ -38,12 +39,23 @@ public:
 
 	UPROPERTY(EditAnywhere,Category = "Player States")
 	TSubclassOf<UUserWidget> CharacterOverlayWidgetClass;
-	
+
+	UPROPERTY()
 	UCharacterOverlayWidget* CharacterOverlayWidget;
+	
+	void AddCharacterOverlayWidget();
+
+	
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+	TSubclassOf<UUserWidget> AnnouncementWidgetClass;
+
+	UPROPERTY()
+	UAnnouncementWidget* AnnouncementWidget;
+
+	void AddAnnouncement();
 
 protected:
 	virtual void BeginPlay() override;
-	void AddCharacterOverlayWidget();
 	
 private:
 	FHUDPackage HUDPackage;
