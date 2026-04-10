@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameMode/BlasterGameMode.h"
+#include "GameState/XMBBlasterGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "XMBComponent/CombatComponent.h"
@@ -104,7 +105,11 @@ void AXMBCharacterBase::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
-	if (CombatComponent && CombatComponent->EquippedWeapon)
+
+	AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
+	bool bmatchNotInProgress = BlasterGameState && BlasterGameState->GetMatchState() != MatchState::InProgress;//通过GameMode来判断是否处于游戏中，若不处于游戏中死亡后则销毁武器
+	
+	if (CombatComponent && CombatComponent->EquippedWeapon && bmatchNotInProgress)
 	{
 		CombatComponent->EquippedWeapon->Destroy();
 	}
@@ -510,6 +515,11 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 	// 	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
 	// }
 	// StartDissolve();
+
+	if (CombatComponent)
+	{
+		CombatComponent->FireButtonPressed(false);
+	}
 
 	//让角色的MovementComponent失效
 	GetCharacterMovement()->DisableMovement();

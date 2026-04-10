@@ -5,6 +5,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "GameState/XMBBlasterGameState.h"
 #include "PlayerState/XMBPlayerState.h"
 
 namespace MatchState
@@ -60,11 +61,17 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXMBPlayerController* VictimController,
                                         AXMBPlayerController* AttackerController)
 {
+	if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
+	if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
 	AXMBPlayerState* AttackerPlayerState = AttackerController ? Cast<AXMBPlayerState>(AttackerController->PlayerState) : nullptr;
 	AXMBPlayerState* VictimPlayerState = VictimController ? Cast<AXMBPlayerState>(VictimController->PlayerState) : nullptr;
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+
+	AXMBBlasterGameState* BlasterGameState = GetGameState<AXMBBlasterGameState>();
+	
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && BlasterGameState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+		BlasterGameState->UpdateTopScore(AttackerPlayerState);//击杀后更新最高分统计
 	}
 
 	if (VictimPlayerState)

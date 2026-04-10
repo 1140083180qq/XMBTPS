@@ -7,8 +7,10 @@
 #include "Character/XMBCharacterBase.h"
 #include "GameFramework/GameMode.h"
 #include "GameMode/BlasterGameMode.h"
+#include "GameState/XMBBlasterGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerState/XMBPlayerState.h"
 
 
 void AXMBPlayerController::BeginPlay()
@@ -290,7 +292,35 @@ void AXMBPlayerController::HandleCooldown()
 			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Visible);
 			FString AnnouncementText("New Match Starts In:");
 			XMBHUD->AnnouncementWidget->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-			XMBHUD->AnnouncementWidget->InfoText->SetText(FText());
+
+			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
+			AXMBPlayerState* BlasterPlayerState = GetPlayerState<AXMBPlayerState>();
+			if (BlasterGameState)
+			{
+				TArray<AXMBPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
+				FString InfoTextString;
+				if (TopPlayers.Num() == 0)
+				{
+					InfoTextString = FString("没有最高分");
+				}
+				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
+				{
+					InfoTextString = FString("你是胜利者!");
+				}
+				else if (TopPlayers.Num() == 1)
+				{
+					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *TopPlayers[0]->GetPlayerName());
+				}
+				else if (TopPlayers.Num() > 1)
+				{
+					InfoTextString = FString("Players tied for the win:\n");
+					for (auto TiedPlayer : TopPlayers)
+					{
+						InfoTextString.Append(FString::Printf(TEXT("\n%s"), *TiedPlayer->GetPlayerName()));
+					}
+				}
+				XMBHUD->AnnouncementWidget->InfoText->SetText(FText::FromString(InfoTextString));
+			}
 		}
 	}
 
