@@ -42,17 +42,17 @@ public:
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
-	
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
+	/*XMBUITEST*/
+	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
+	/*XMBUITEST*/
+
 	AWeaponBase* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
 	void PlayElimMontage();
 	void PlayReloadMontage();
-
-	/*XMBUITEST*/
-	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
-	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
-	/*XMBUITEST*/
 
 	FVector GetHitTarget() const;
 
@@ -65,6 +65,12 @@ public:
 	void MulticastElim();
 
 	ECombatState GetCombatState() const;
+
+	//这个变量用于禁止玩家进行输入,false为可以，true为不可以
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;//TODO:这个变量仅用来设置禁止使用技能以及用来设置游戏开始前的弹药不消耗(但是可以开枪)
+
+	virtual void Destroyed() override;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -113,6 +119,7 @@ protected:
 	 */
 	void PollInit();
 	bool bDoOnce = true;
+	void RotateInPlace(float DeltaSeconds);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)

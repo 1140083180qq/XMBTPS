@@ -34,7 +34,7 @@ public:
 	float MatchTime = 10.f;//本局游戏时间
 
 	UPROPERTY(EditDefaultsOnly)
-	float CooldownTime = 5.f;
+	float CooldownTime = 5.f;//比赛开始前的冷却时间
 
 	float LevelStartingTime = 0.f;
 

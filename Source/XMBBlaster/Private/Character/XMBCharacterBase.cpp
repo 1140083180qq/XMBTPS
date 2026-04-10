@@ -11,6 +11,7 @@
 #include "XMBComponent/CombatComponent.h"
 #include "PlayerState/XMBPlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "XMBBlaster/XMBBlaster.h"
 
 
@@ -74,25 +75,11 @@ void AXMBCharacterBase::BeginPlay()
 	}
 }
 
-
-
 void AXMBCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
-	{
-		AimOffset(DeltaSeconds);
-	}
-	else
-	{
-		TimeSinceLastMovementReplication += DeltaSeconds;
-		if (TimeSinceLastMovementReplication > 0.25f)
-		{
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAO_Pitch();
-	}
+	RotateInPlace(DeltaSeconds);
 	
 	HideCameraIfCharacterClose();
 
@@ -106,6 +93,21 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon,COND_OwnerOnly);//添加一个条件，只能让Owner同步。触发时也只能让Owner看到
 	DOREPLIFETIME(AXMBCharacterBase,Health);
 	DOREPLIFETIME(AXMBCharacterBase,MaxHealth);
+	DOREPLIFETIME(AXMBCharacterBase,bDisableGameplay);
+}
+
+void AXMBCharacterBase::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ElimBotComponent)
+	{
+		ElimBotComponent->DestroyComponent();
+	}
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
+	}
 }
 
 void AXMBCharacterBase::PostInitializeComponents()
@@ -448,6 +450,30 @@ void AXMBCharacterBase::PollInit()
 	}
 }
 
+void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
+{
+	// if (bDisableGameplay)
+	// {
+	// 	bUseControllerRotationYaw = false;
+	// 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	// 	return;
+	// }
+	
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaSeconds);
+	}
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaSeconds;
+		if (TimeSinceLastMovementReplication > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+}
+
 void AXMBCharacterBase::Elim()
 {
 	//武器掉落
@@ -490,8 +516,12 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 	GetCharacterMovement()->StopMovementImmediately();
 	if (XMBPlayerController)
 	{
+		//TODO:角色死亡后能转动摄像机但是无法进行其他输入
 		DisableInput(XMBPlayerController);//禁用输入
 	}
+	// bDisableGameplay = true;//TODO:判断是否需要在此处将其设置为true
+	
+	
 	//禁用碰撞
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

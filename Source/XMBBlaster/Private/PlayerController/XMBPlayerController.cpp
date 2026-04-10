@@ -293,6 +293,15 @@ void AXMBPlayerController::HandleCooldown()
 			XMBHUD->AnnouncementWidget->InfoText->SetText(FText());
 		}
 	}
+
+	//更改角色输入的条件bDisableGameplay用来判断角色是否能进行输入
+	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(GetPawn());
+	if (XMBCharacter && XMBCharacter->GetCombatComponent())
+	{
+		//XMB:此处我觉得不应该在比赛处于Cooldown时对玩家的输入进行限制
+		// XMBCharacter->bDisableGameplay = true;
+		// XMBCharacter->GetCombatComponent()->FireButtonPressed(false);
+	}
 }
 
 void AXMBPlayerController::PollInit()
