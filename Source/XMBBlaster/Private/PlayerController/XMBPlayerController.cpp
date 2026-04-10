@@ -53,6 +53,7 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 	}
 }
 
+
 void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
 	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
@@ -145,6 +146,12 @@ void AXMBPlayerController::SetHUDMatchCountdown(float CountdownTime)
 	&& XMBHUD->CharacterOverlayWidget->MatchCountdownText;
 	if(bHUDValid)
 	{
+		if (CountdownTime < 0.f)
+		{
+			XMBHUD->CharacterOverlayWidget->MatchCountdownText->SetText(FText());
+			return;
+		}
+		
 		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		int32 Seconds = CountdownTime - Minutes * 60;
 		
@@ -153,25 +160,27 @@ void AXMBPlayerController::SetHUDMatchCountdown(float CountdownTime)
 	}
 }
 
-
-
 void AXMBPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
-	if (MatchState == MatchState::WaitingToStart)
+	if (MatchState == MatchState::WaitingToStart) TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
+	else if (MatchState == MatchState::InProgress) TimeLeft = WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+	else if (MatchState == MatchState::Cooldown) TimeLeft = CooldownTime + WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+
+	int32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+
+	if (HasAuthority())
 	{
-		TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
-	}
-	else if (MatchState == MatchState::InProgress)
-	{
-		TimeLeft = WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+		BlasterGameMode = BlasterGameMode == nullptr ? Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this)) : BlasterGameMode;
+		if (BlasterGameMode)
+		{
+			SecondsLeft = FMath::CeilToInt(BlasterGameMode->GetCountdownTime() + LevelStartingTime);
+		}
 	}
 	
-	// int32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
-	int32 SecondsLeft = FMath::CeilToInt(TimeLeft);
 	if (CountdownInt != SecondsLeft)
 	{
-		if (MatchState == MatchState::WaitingToStart)
+		if (MatchState == MatchState::WaitingToStart || MatchState == MatchState::Cooldown)
 		{
 			SetHUDAnnouncementCountdown(TimeLeft);
 		}
@@ -184,6 +193,28 @@ void AXMBPlayerController::SetHUDTime()
 	CountdownInt = SecondsLeft;
 }
 
+void AXMBPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+	&& XMBHUD->AnnouncementWidget
+	&& XMBHUD->AnnouncementWidget->WarmupTime;
+	if(bHUDValid)
+	{
+		if (CountdownTime < 0.f)
+		{
+			XMBHUD->AnnouncementWidget->WarmupTime->SetText(FText());
+			return;
+		}
+		
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+		
+		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
+		XMBHUD->AnnouncementWidget->WarmupTime->SetText(FText::FromString(CountdownText));
+	}
+}
+
 void AXMBPlayerController::CheckTimeSync(float DeltaSeconds)
 {
 	TimeSyncRunningTime += DeltaSeconds;
@@ -194,23 +225,6 @@ void AXMBPlayerController::CheckTimeSync(float DeltaSeconds)
 	}
 }
 
-
-
-void AXMBPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
-{
-	float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
-	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
-}
-
-void AXMBPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest,
-	float TimeServerReceivedClientRequest)
-{
-	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;//从客户端向服务器发送RPC请求已经过去的时间
-
-	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);//服务器将请求发送回请求的时间 + 花费的时间
-
-	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
-}
 
 float AXMBPlayerController::GetServerTime()
 {
@@ -231,17 +245,53 @@ void AXMBPlayerController::OnMatchStateSet(FName State)
 {
 	MatchState = State;
 
-	if (MatchState == MatchState::InProgress)
+	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
+	else if (MatchState == MatchState::Cooldown)
 	{
-		HandleMatchHasStarted();
+		HandleCooldown();
 	}
+
 }
 
 void AXMBPlayerController::OnRep_MatchState()
 {
-	if (MatchState == MatchState::InProgress)
+	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
+	else if (MatchState == MatchState::Cooldown)
 	{
-		HandleMatchHasStarted();
+		HandleCooldown();
+	}
+}
+
+void AXMBPlayerController::HandleMatchHasStarted()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	if (XMBHUD)
+	{
+		if (XMBHUD->CharacterOverlayWidget == nullptr) XMBHUD->AddCharacterOverlayWidget();
+		if (XMBHUD->AnnouncementWidget)//if (XMBHUD->AnnouncementWidget)
+		{
+			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void AXMBPlayerController::HandleCooldown()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	if(XMBHUD)
+	{
+		XMBHUD->CharacterOverlayWidget->RemoveFromParent();
+		bool bHUDValid = XMBHUD->AnnouncementWidget
+		&& XMBHUD->AnnouncementWidget->AnnouncementText
+		&& XMBHUD->AnnouncementWidget->InfoText;
+		
+		if (bHUDValid)//if (XMBHUD->AnnouncementWidget)
+		{
+			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Visible);
+			FString AnnouncementText("New Match Starts In:");
+			XMBHUD->AnnouncementWidget->AnnouncementText->SetText(FText::FromString(AnnouncementText));
+			XMBHUD->AnnouncementWidget->InfoText->SetText(FText());
+		}
 	}
 }
 
@@ -262,19 +312,22 @@ void AXMBPlayerController::PollInit()
 	}
 }
 
-void AXMBPlayerController::HandleMatchHasStarted()
+
+void AXMBPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
 {
-	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
-	if (XMBHUD)
-	{
-		XMBHUD->AddCharacterOverlayWidget();
-		if (XMBHUD->AnnouncementWidget)
-		{
-			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
+	float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
 }
 
+void AXMBPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest,
+	float TimeServerReceivedClientRequest)
+{
+	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;//从客户端向服务器发送RPC请求已经过去的时间
+
+	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);//服务器将请求发送回请求的时间 + 花费的时间
+
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
 
 void AXMBPlayerController::ServerCheckMatchState_Implementation()
 {
@@ -284,21 +337,19 @@ void AXMBPlayerController::ServerCheckMatchState_Implementation()
 		WarmupTime = GameMode->WarmupTime;
 		MatchTime = GameMode->MatchTime;
 		LevelStartingTime = GameMode->LevelStartingTime;
+		CooldownTime = GameMode->CooldownTime;
 		MatchState = GameMode->GetMatchState();
-		ClientJoinMidgame(MatchState,WarmupTime,MatchTime,LevelStartingTime);
+		ClientJoinMidgame(MatchState,WarmupTime,MatchTime,LevelStartingTime,CooldownTime);
 	}
 	
-	if (XMBHUD && MatchState == MatchState::WaitingToStart)
-	{
-		XMBHUD->AddAnnouncement();
-	}
 }
 
-void AXMBPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,float WarmUp,float Match,float StartingTime)
+void AXMBPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,float WarmUp,float Match,float StartingTime,float InCooldownTime)
 {
 	WarmupTime = WarmUp;
 	MatchTime = Match;
 	LevelStartingTime = StartingTime;
+	CooldownTime = InCooldownTime;
 	MatchState = StateOfMatch;
 	OnMatchStateSet(MatchState);
 
@@ -308,18 +359,5 @@ void AXMBPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,f
 	}
 }
 
-void AXMBPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
-{
-	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
-	bool bHUDValid = XMBHUD 
-	&& XMBHUD->AnnouncementWidget
-	&& XMBHUD->AnnouncementWidget->WarmupTime;
-	if(bHUDValid)
-	{
-		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
-		int32 Seconds = CountdownTime - Minutes * 60;
-		
-		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
-		XMBHUD->AnnouncementWidget->WarmupTime->SetText(FText::FromString(CountdownText));
-	}
-}
+
+

@@ -7,6 +7,12 @@
 #include "GameFramework/GameMode.h"
 #include "BlasterGameMode.generated.h"
 
+//自定义匹配状态
+namespace  MatchState
+{
+	extern XMBBLASTER_API const FName Cooldown;//比赛时间结束，将决出胜者并停止游戏并停止游戏
+}
+
 /**
  * 
  */
@@ -22,12 +28,17 @@ public:
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
 
 	UPROPERTY(EditDefaultsOnly)
-	float WarmupTime = 10.f;//等待时间
+	float WarmupTime = 5.f;//等待时间
 
 	UPROPERTY(EditDefaultsOnly)
-	float MatchTime = 120.f;//本局游戏时间
+	float MatchTime = 10.f;//本局游戏时间
+
+	UPROPERTY(EditDefaultsOnly)
+	float CooldownTime = 5.f;
 
 	float LevelStartingTime = 0.f;
+
+	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 	
 protected:
 	virtual void BeginPlay() override;

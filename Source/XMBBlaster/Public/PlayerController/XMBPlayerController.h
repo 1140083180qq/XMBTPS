@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+
 #include "UI/HUD/XMBHUD.h"
 #include "XMBPlayerController.generated.h"
+
+class ABlasterGameMode;
 
 /**
  * 
@@ -61,20 +64,22 @@ protected:
 	void PollInit();
 
 	void HandleMatchHasStarted();
+	void HandleCooldown();
 	
 	UFUNCTION(Server,Reliable)
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client,Reliable)
-	void ClientJoinMidgame(FName StateOfMatch,float WarmUp,float Match,float StartingTime);
+	void ClientJoinMidgame(FName StateOfMatch,float WarmUp,float Match,float StartingTime,float InCooldownTime);
 	
 private:
 	UPROPERTY()
 	AXMBHUD* XMBHUD;
 
-	float MatchTime = 0.f;
 	uint32 CountdownInt = 0;
+	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
+	float CooldownTime = 0.f;
 	float LevelStartingTime = 0.f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
@@ -92,7 +97,9 @@ private:
 	float HUDMaxHealth;
 	float HUDScore;
 	int32 HUDDefeats;
-	
+
+	UPROPERTY()
+	ABlasterGameMode* BlasterGameMode;
 	
 };
 
