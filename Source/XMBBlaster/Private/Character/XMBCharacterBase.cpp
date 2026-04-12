@@ -16,98 +16,156 @@
 #include "XMBBlaster/XMBBlaster.h"
 
 
+/**
+ * @brief 构造函数 - 初始化角色所有组件和默认参数
+ *
+ * 【组件初始化顺序与逻辑】：
+ * 1. 网络更新频率设置：66Hz（高优先级）/ 33Hz（最低保障）
+ * 2. 相机臂(CameraBoom)：附加到Mesh上，长度600，跟随控制器旋转
+ *    - bUsePawnControlRotation=true 使相机臂随鼠标转动
+ * 3. 跟随相机(FollowCamera)：附加到CameraBoom末端，不独立旋转
+ * 4. 角色移动设置：bOrientRotationYaw=false + OrientRotationToMovement=true
+ *    - 组合效果：角色身体朝移动方向转，但相机可自由环视（第三人称标准配置）
+ * 5. 碰撞通道配置：Mesh和Capsule忽略Camera通道，防止阻挡视线
+ * 6. VisibilityBasedAnimTickOption = AlwaysTickPoseAndRefreshBones
+ *    - 即使不可见也持续刷新骨骼姿态，确保远程代理角色的动画正确
+ */
 AXMBCharacterBase::AXMBCharacterBase()
 {
+	// 禁用默认Tick，由子组件自行处理每帧更新
 	PrimaryActorTick.bCanEverTick = false;
+	
+	// 网络同步频率：最高66Hz，最低33Hz（平衡带宽与流畅度）
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 	
-	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;//生成策略
+	// 当生成位置有碰撞时，尝试调整位置但强制生成（不丢弃武器等关键对象）
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
+	/* ====== 相机系统 ====== */
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
-	CameraBoom->TargetArmLength = 600.f;
-	CameraBoom->bUsePawnControlRotation = true;
-	
+	CameraBoom->TargetArmLength = 600.f;              // 相机距角色600单位
+ CameraBoom->bUsePawnControlRotation = true;      // 相机臂跟随玩家视角控制旋转
+
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = false;
+	FollowCamera->bUsePawnControlRotation = false;   // 相机本身不独立旋转，完全依赖相机臂
 
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	/* ====== 移动配置 ====== */
+	bUseControllerRotationYaw = false;               // 不用控制器直接控制身体朝向
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 身体朝向移动方向（横移走）
 
+	/* ====== UI组件 ====== */
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetMesh());
 
+	/* ====== 功能组件（启用网络复制） ====== */
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
-	CombatComponent->SetIsReplicated(true);
+	CombatComponent->SetIsReplicated(true);          // 战斗状态需要网络同步
 
 	UIComponent = CreateDefaultSubobject<UUIComponent>(TEXT("UIComponent"));
-	UIComponent->SetIsReplicated(true);
-	
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 650.f);
+	UIComponent->SetIsReplicated(true);             // UI状态需要网络同步
 
-	//解决角色阻挡相机
+	/* ====== 移动能力配置 ====== */
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;  // 允许蹲伏
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 650.f); // Z轴旋转速度650°/s
+
+	/* ====== 碰撞通道优化 ====== */
+	// 解决角色模型阻挡相机的问题：让Capsule和Mesh对Camera通道无响应
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);     // 设置为骨骼网格体类型
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);  // Mesh不阻挡相机
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // Mesh参与可见性射线检测
 	
-	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-	
-	
-	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	/* ====== 初始状态 ====== */
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;       // 初始不在转身
 
+	// 始终更新动画姿态和骨骼，即使角色在屏幕外（保证Simulated Proxy动画准确）
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-                            
-                            	// GetMesh()->bOnlyAllowAutonomousTickPose = true;
-	// DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));//需要设置溶解材质时再启用这里//同时也需要把MulticastElim_Implementation里的溶解调用注释关闭
 }
 
+/**
+ * @brief 游戏开始时初始化
+ *
+ * 【执行逻辑】：
+ * 1. 更新HUD生命值显示（从Health变量读取初始值）
+ * 2. 仅在服务器(HasAuthority)上绑定伤害回调：
+ *    - OnTakeAnyDamage是UE内置委托，当此Actor受到任意伤害时触发
+ *    - 绑定ReceiveDamage函数来处理伤害逻辑
+ *    - 为什么只在服务器？因为伤害结算、生命值修改、淘汰判断都需要权威性
+ */
 void AXMBCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UpdateHUDHealth();
+	UpdateHUDHealth();  // 初始化时将当前生命值同步到HUD
 	
+	// 仅服务器绑定伤害事件，确保伤害计算的权威性
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &AXMBCharacterBase::ReceiveDamage);
 	}
 }
 
+/**
+ * @brief 每帧调用
+ *
+ * 【三个核心功能的帧驱动】：
+ * 1. RotateInPlace: 处理本地玩家的AimOffset和远程代理的转身判断
+ * 2. HideCameraIfCharacterClose: 防止相机穿入角色模型内部
+ * 3. PollInit: 延迟获取PlayerState引用（因为BeginPlay时可能还未就绪）
+ */
 void AXMBCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	RotateInPlace(DeltaSeconds);
-	
-	HideCameraIfCharacterClose();
-
-	PollInit();//TODO:转换为定时器
+	RotateInPlace(DeltaSeconds);        // 核心动画逻辑
+	HideCameraIfCharacterClose();       // 相机防穿透
+	PollInit();                         // TODO: 可改为定时器实现
 }
 
+/**
+ * @brief 注册网络复制属性
+ *
+ * 【复制条件说明】：
+ * - OverlappingWeapon: COND_OwnerOnly → 仅复制给拥有者客户端
+ *   原因：只有拾取武器的玩家需要看到提示UI，其他玩家无需知道
+ * - Health / MaxHealth: 所有客户端都需看到他人血量变化
+ * - bDisableGameplay: 同步游戏禁用状态
+ */
 void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon,COND_OwnerOnly);//添加一个条件，只能让Owner同步。触发时也只能让Owner看到
-	DOREPLIFETIME(AXMBCharacterBase,Health);
-	DOREPLIFETIME(AXMBCharacterBase,MaxHealth);
-	DOREPLIFETIME(AXMBCharacterBase,bDisableGameplay);
+	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(AXMBCharacterBase, Health);
+	DOREPLIFETIME(AXMBCharacterBase, MaxHealth);
+	DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
 }
 
+/**
+ * @brief 角色销毁时的清理工作
+ *
+ * 【销毁逻辑】：
+ * 1. 销毁淘汰特效组件（如果存在）
+ * 2. 判断是否在游戏中：
+ *    - 若比赛未进行中(InProgress)且持有武器，则销毁武器
+ *    - 原因：非比赛中死亡后不需要保留武器
+ */
 void AXMBCharacterBase::Destroyed()
 {
 	Super::Destroyed();
 
+	// 清理淘汰机器人特效组件
 	if (ElimBotComponent)
 	{
 		ElimBotComponent->DestroyComponent();
 	}
 
+	// 仅在非进行中的比赛状态下销毁装备的武器
 	AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
-	bool bmatchNotInProgress = BlasterGameState && BlasterGameState->GetMatchState() != MatchState::InProgress;//通过GameMode来判断是否处于游戏中，若不处于游戏中死亡后则销毁武器
+	bool bmatchNotInProgress = BlasterGameState && BlasterGameState->GetMatchState() != MatchState::InProgress;
 	
 	if (CombatComponent && CombatComponent->EquippedWeapon && bmatchNotInProgress)
 	{
@@ -115,120 +173,230 @@ void AXMBCharacterBase::Destroyed()
 	}
 }
 
+/**
+ * @brief 组件初始化完成后的回调
+ *
+ * 在所有组件CreateDefaultSubobject完成后调用，
+ * 将Owner指针传递给CombatComponent和UIComponent，
+ * 使它们能够反向访问角色数据。
+ */
 void AXMBCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	// 将自身指针传递给子组件，建立双向引用
 	if (CombatComponent)
 	{
 		CombatComponent->Owner = this;
 	}
-
 	if (UIComponent)
 	{
 		UIComponent->Owner = this;
 	}
 }
 
+/**
+ * @brief 计算瞄准偏移(AimOffset) - 本地玩家专用
+ *
+ * 【核心算法原理】：
+ * 
+ * AimOffset解决的问题：当玩家静止站立但转动视角时，
+ * 上半身需要朝向瞄准方向，而下半身保持不动。
+ * 这通过AO_Yaw值传递给动画蓝图的混合空间来实现。
+ *
+ * 【两种状态的分支处理】：
+ * ┌─────────────────────────────────────────────────────┐
+ * │ 状态1: 静止站立 (Speed==0 && !bIsInAir)            │
+ * │  - 允许根骨骼旋转(bRotateRootBone=true)            │
+ * │  - 计算CurrentAimRotation vs StartingAimRotation差值│
+ * │  - AO_Yaw = 差值的Yaw分量                          │
+ * │  - 调用TurnInPlace()处理大角度转身                 │
+ * └─────────────────────────────────────────────────────┘
+ * ┌─────────────────────────────────────────────────────┐
+ * │ 状态2: 移动中或空中 (Speed>0 || bIsInAir)           │
+ * │  - 禁止根骨骼旋转                                   │
+ * │  - 重置锚点StartingAimRotation为当前朝向            │
+ * │  - AO_Yaw归零（移动时不使用瞄准偏移）               │
+ * │  - TurningInPlace重置为NotTurning                   │
+ * └─────────────────────────────────────────────────────┘
+ *
+ * 最后统一调用CalculateAO_Pitch()计算俯仰角
+ *
+ * @param DeltaTime - 帧间隔时间，用于TurnInPlace插值
+ */
 void AXMBCharacterBase::AimOffset(float DeltaTime)
 {
+	// 无武器时不需要计算瞄准偏移
 	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr) return;
+
 	float Speed = CalculateSpeed();
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
 
-	if (Speed == 0.f && !bIsInAir)//确保处于站立状态
+	/* ====== 状态1: 静止站立 ====== */
+	if (Speed == 0.f && !bIsInAir)
 	{
-		bRotateRootBone = true;//允许根骨骼旋转
-		FRotator CurrentAimRotation = FRotator(0.f	, GetBaseAimRotation().Yaw, 0.f);//获取当前相机瞄准方向的 Yaw
-		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation,StartingAimRotation);//DeltaAimRotation当前瞄准方向相对于锚点的差值
-		AO_Yaw = DeltaAimRotation.Yaw;
+		bRotateRootBone = true;  // 允许根骨骼参与旋转
+		
+		// 获取当前相机瞄准方向的纯Yaw旋转（去除Pitch和Roll）
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		
+		// 计算当前瞄准方向相对于锚点(上次停止移动时的方向)的差值
+		// NormalizedDeltaRotator返回[-180,180]范围的最短路径差值
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+		
+		AO_Yaw = DeltaAimRotation.Yaw;  // 提取水平偏移量
+		
+		// 未在转身时，记录当前偏移量用于插值起始点
 		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
 		{
-			InterpAO_Yaw = AO_Yaw;//当角色没有转身时，将插值设置为当前的旋转量
+			InterpAO_Yaw = AO_Yaw;
 		}
+		
 		bUseControllerRotationYaw = true;
-		TurnInPlace(DeltaTime);
+		TurnInPlace(DeltaTime);  // 处理是否需要播放转身动画
 	}
-	if (Speed > 0.f	|| bIsInAir)
+	/* ====== 状态2: 移动中或空中 ====== */
+	else if (Speed > 0.f || bIsInAir)
 	{
-		bRotateRootBone = false;
+		bRotateRootBone = false;  // 移动时禁止根骨骼旋转（使用移动动画 blendspace）
+		
+		// 更新锚点为当前朝向，下次停止移动时以此为新基准
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
-		AO_Yaw = 0.f;
+		
+		AO_Yaw = 0.f;  // 移动时清零偏移
 		bUseControllerRotationYaw = true;
-		TurningInPlace = ETurningInPlace::ETIP_NotTurning;//有速度or在空中则不旋转
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;  // 移动中不算转身
 	}
 	
-	CalculateAO_Pitch();
+	CalculateAO_Pitch();  // 统一计算俯仰角
 }
 
+/**
+ * @brief 计算俯仰角(Pitch)用于上下瞄准动画
+ *
+ * 【Pitch值不一致问题】：
+ * GetBaseAimRotation().Pitch 在不同环境下返回不同范围：
+ * - 本地客户端: 返回 [-90, 90] （正常范围）
+ * - 远程代理(SimulatedProxy): 可能返回 [270, 360) 表示向下看
+ *
+ * 【解决方法】：将 [270, 360) 映射到 [-90, 0)
+ * 公式: AO_Pitch = MapClamp(Value, [270,360] → [-90,0])
+ */
 void AXMBCharacterBase::CalculateAO_Pitch()
 {
-	//GetBaseAimRotation().Pitch 在本地客户端直接返回 [-90, 90]
-	//但在 Simulated Proxy（其他玩家的角色）上，Pitch 值可能是 [270, 360)（表示往下看）而非 [-90, 0)。这个转换确保远程角色也使用 [-90, 90] 的统一范围。
 	AO_Pitch = GetBaseAimRotation().Pitch;
+	
+	// 仅对远程代理角色做范围转换（本地客户端已经是正确的 [-90,90]）
 	if (AO_Pitch > 90.f && !IsLocallyControlled())
 	{
-		//将Pitch从[270, 360) 转换为[-90,0)
-		FVector2D InRange(270.f, 360.f);
-		FVector2D OutRange(-90.f,0.f);
+		FVector2D InRange(270.f, 360.f);   // 输入范围：UE特殊编码的下看角度
+		FVector2D OutRange(-90.f, 0.f);     // 输出范围：标准的下看负角度
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 	}
 }
 
+/**
+ * @brief 计算角色水平移动速度（忽略Z轴）
+ *
+ * @return 水平速度标量值
+ *
+ * 使用场景：判断角色是否在移动、准心散布计算、动画混合空间输入
+ */
 float AXMBCharacterBase::CalculateSpeed()
 {
 	FVector Velocity = GetVelocity();
-	Velocity.Z = 0.f;
+	Velocity.Z = 0.f;  // 忽略跳跃/下落的垂直分量
 	return Velocity.Size();
 }
 
+/**
+ * @brief 原地转身处理逻辑
+ *
+ * 【转身判定算法】：
+ * 
+ * AO_Yaw 表示当前视角偏离正前方的角度：
+ * - AO_Yaw > 90°  →  视角右偏超过90°  →  需要向右转身
+ * - AO_Yaw < -90° →  视角左偏超过90°  →  需要向左转身
+ *
+ * 【转身插值过程】：
+ * 1. 判定转身方向后，使用 FInterpTo 将 AO_Yaw 平滑插回 0
+ * 2. 插值速率 4.0f，使转身动画自然过渡
+ * 3. 当 |AO_Yaw| < 15° 时认为转身完成：
+ *    - 重置TurningInPlace为NotTurning
+ *    - 更新锚点StartingAimRotation为当前朝向
+ *    - 这样下一帧就不会再进入转身分支
+ *
+ * @param DeltaTime - 用于FInterpTo插值
+ */
 void AXMBCharacterBase::TurnInPlace(float DeltaTime)
 {
-	// AO_Yaw > 90°  →  TurningInPlace = Right  →  播放右转动画
-	//AO_Yaw < -90°  →  TurningInPlace = Left  →  播放左转动画
-	
-	// UE_LOG(LogTemp, Warning, TEXT("AO_Yaw: %f"), AO_Yaw)
-	if (AO_Yaw > 90.f)//玩家视角转向右边90
+	/* ====== 判定转身方向 ====== */
+	if (AO_Yaw > 90.f)  // 视角右偏超过90度
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Right;
 	}
-	else if (AO_Yaw < -90.f)//玩家视角转向左边90
+	else if (AO_Yaw < -90.f)  // 视角左偏超过90度
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Left;
 	}
+	
+	/* ====== 执行转身插值 ====== */
 	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
 	{
-		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);//转身过程中：AO_Yaw 通过插值逐渐回到 0
+		// AO_Yaw 通过插值逐渐回归0，使上半身平滑转回正前方
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);
 		AO_Yaw = InterpAO_Yaw;
-		if (FMath::Abs(AO_Yaw) < 15.f)//|AO_Yaw| < 15°  →  停止转身，更新锚点
+		
+		// |AO_Yaw| < 15° 时判定转身完成
+		if (FMath::Abs(AO_Yaw) < 15.f)
 		{
-			TurningInPlace = ETurningInPlace::ETIP_NotTurning;//则停止旋转
-			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);//并且将当前瞄准的方向设置为起始方向
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			// 更新锚点：将当前瞄准方向设为新的基准方向
+			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		}
 	}
 }
 
+/**
+ * @brief 远程代理角色的转身判断（替代AimOffset）
+ *
+ * 【为什么需要这个函数】：
+ * AimOffset依赖GetBaseAimRotation()获取相机方向，
+ * 但远程代理角色(SimulatedProxy)没有本地相机信息！
+ *
+ * 【解决方案】：使用帧间的Actor旋转差来推断是否在转身
+ *
+ * 【算法原理】：
+ * 1. 保存上一帧的旋转(ProxyRotationLastFrame)
+ * 2. 获取当前帧的旋转(ProxyRotation)
+ * 3. 计算两帧之间的Yaw差值(ProxyYaw)
+ * 4. 如果 |ProxyYaw| > TurnThreshold(0.5°)，说明角色在转身
+ *    - ProxyYaw > 0 → 向右转
+ *    - ProxyYaw < 0 → 向左转
+ * 5. 定时触发(每0.25秒检查一次)，避免过度计算
+ */
 void AXMBCharacterBase::SimProxiesTurn()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
-	
+
 	bRotateRootBone = false;
 	float Speed = CalculateSpeed();
+
+	// 移动中不判定转身
 	if (Speed > 0.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 		return;
 	}
 
-	
+	// 记录帧间旋转数据
 	ProxyRotationLastFrame = ProxyRotation;
 	ProxyRotation = GetActorRotation();
+	// 计算这一帧相对于上一帧的Yaw变化量
 	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 
-	UE_LOG(LogTemp, Warning, TEXT("ProxyYaw: %f"), ProxyYaw);
-	
-	// ... 设置 TurningInPlace
-	if (FMath::Abs(ProxyYaw) > TurnThreshold)
+	// 根据旋转量判断转身方向
+	if (FMath::Abs(ProxyYaw) > TurnThreshold)  // 超过阈值才认为是转身
 	{
 		if (ProxyYaw > TurnThreshold)
 		{
@@ -247,43 +415,67 @@ void AXMBCharacterBase::SimProxiesTurn()
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
+/**
+ * @brief 防止相机穿入角色模型内部
+ *
+ * 【问题】：当相机距离角色太近（如贴墙后退）时，相机会穿入角色体内
+ *
+ * 【解决方案】：
+ * 计算相机与角色位置的距离，小于阈值(CameraThreshold=200)时：
+ * - 隐藏角色网格体(GetMesh→SetVisibility(false))
+ * - 设置武器网格体对拥有者不可见(bOwnerNoSee=true)
+ *
+ * 距离恢复正常后恢复可见性
+ *
+ * 注意：仅对本地控制的玩家生效（!IsLocallyControlled直接返回）
+ */
 void AXMBCharacterBase::HideCameraIfCharacterClose()
 {
-	if (!IsLocallyControlled()) return;
+	if (!IsLocallyControlled()) return;  // 只处理本地玩家
 
+	// 判断相机到角色的距离
 	if ((FollowCamera->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold)
 	{
-		//隐藏摄像机
+		// 太近了：隐藏角色模型和武器
 		GetMesh()->SetVisibility(false);
 		if (CombatComponent && CombatComponent->GetEquippedWeapon() && CombatComponent->EquippedWeapon->GetWeaponMesh())
 		{
-			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;//bOwnerNoSee的作用是控制该组件是否对拥有者（Owner）不可见
+			// bOwnerNoSee=true 让拥有者看不到自己的武器（第一人称效果）
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
 	}
 	else
 	{
+		// 距离恢复：重新显示
 		GetMesh()->SetVisibility(true);
 		if (CombatComponent && CombatComponent->GetEquippedWeapon() && CombatComponent->EquippedWeapon->GetWeaponMesh())
 		{
-			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;//bOwnerNoSee的作用是控制该组件是否对拥有者（Owner）不可见
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
 }
 
-
-
+/** @return 准心射线命中的目标位置（从CombatComponent获取） */
 FVector AXMBCharacterBase::GetHitTarget() const
 {
 	if (CombatComponent == nullptr) return FVector();
 	return CombatComponent->HitTarget;
 }
 
+/** @return 当前装备的武器 */
 AWeaponBase* AXMBCharacterBase::GetEquippedWeapon()
 {
 	if (CombatComponent == nullptr) return nullptr;
 	return CombatComponent->EquippedWeapon;
 }
 
+/**
+ * @brief 播放开火蒙太奇动画
+ *
+ * @param bAiming - 是否处于瞄准状态，决定跳转到哪个Section
+ * - true → "RifleAim" Section（瞄准开火动画）
+ * - false → "RifleHip" Section（腰射开火动画）
+ */
 void AXMBCharacterBase::PlayFireMontage(bool bAiming)
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -298,6 +490,7 @@ void AXMBCharacterBase::PlayFireMontage(bool bAiming)
 	}
 }
 
+/** @brief 播放淘汰(死亡)蒙太奇动画 */
 void AXMBCharacterBase::PlayElimMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -307,6 +500,13 @@ void AXMBCharacterBase::PlayElimMontage()
 	}
 }
 
+/**
+ * @brief 播放换弹蒙太奇动画
+ *
+ * 根据武器类型选择对应的动画Section：
+ * - 突击步枪 → "Rifle" Section
+ * - 未来可扩展其他武器类型
+ */
 void AXMBCharacterBase::PlayReloadMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -328,6 +528,7 @@ void AXMBCharacterBase::PlayReloadMontage()
 	}
 }
 
+/** @brief 播放受击反应动画（"FromFront" Section） */
 void AXMBCharacterBase::PlayHitReactMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -341,52 +542,103 @@ void AXMBCharacterBase::PlayHitReactMontage()
 	}
 }
 
+/**
+ * @brief 接收伤害的处理函数（绑定在OnTakeAnyDamage委托上）
+ *
+ * 【伤害处理链路】：
+ * 1. 扣减生命值：Health = Clamp(Health - Damage, 0, MaxHealth)
+ * 2. 更新HUD生命值显示
+ * 3. 播放受击反应动画
+ * 4. 判断是否死亡(Health == 0):
+ *    - 是 → 获取GameMode → 调用PlayerEliminated()处理淘汰
+ *      - 传入受害者控制器(this->Controller)
+ *      - 传入攻击者控制器(InstigatorController)
+ *
+ * 【为什么不用RPC而是用变量复制】：
+ * 伤害是高频事件，每个RPC都消耗带宽。使用Replicated变量+OnRep回调更经济
+ *
+ * @param DamagedActor - 受伤的Actor（即this）
+ * @param Damage - 伤害数值
+ * @param DamageType - 伤害类型（子弹、爆炸等）
+ * @param InstigatorController - 造成伤害者的控制器
+ * @param DmaageCauser - 造成伤害的来源Actor（如子弹）
+ */
 void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatorController, AActor* DmaageCauser)
 {
+	// 扣减生命值并限制在[0, MaxHealth]范围内
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
-	UpdateHUDHealth();
-	PlayHitReactMontage();
+	
+	UpdateHUDHealth();       // 同步HUD显示
+	PlayHitReactMontage();   // 播放受击动画
 
+	// 生命值归零 → 触发淘汰流程
 	if (Health == 0.f)
 	{
 		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 		if (BlasterGameMode)
 		{
+			// 缓存控制器引用（避免每次都Cast）
 			XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
 			AXMBPlayerController* AttackController = Cast<AXMBPlayerController>(InstigatorController);
+			
+			// 由GameMode统一处理淘汰逻辑（加分、通知等）
 			BlasterGameMode->PlayerEliminated(this, XMBPlayerController, AttackController);
 		}
 	}
-	
 }
 
 
-
+/**
+ * @brief 装备按钮按下处理
+ *
+ * 【网络逻辑】：
+ * - 有权限(HasAuthority) → 直接在服务器执行EquipWeapon
+ * - 无权限(客户端) → 调用ServerRPC请求服务器执行
+ * 这确保了装备操作的安全性（防止客户端作弊）
+ */
 void AXMBCharacterBase::EquipButtonPressed()
 {
 	if (CombatComponent)
 	{
-		//有权则在服务器上运行
 		if (HasAuthority())
 		{
+			// 服务器端：直接装备
 			CombatComponent->EquipWeapon(OverlappingWeapon);
 		}
 		else
 		{
+			// 客户端：发送RPC请求服务器装备
 			ServerEquipButtonPressed();
 		}
 	}
 }
 
+/**
+ * @brief 设置重叠武器（当进入/离开武器拾取范围时调用）
+ *
+ * 【逻辑说明】：
+ * 1. 先隐藏旧武器的拾取Widget（如果有）
+ * 2. 更新OverlappingWeapon指针
+ * 3. 如果是本地控制的玩家，显示新武器的拾取Widget
+ *
+ * 此函数在服务器被AreaSphere的重叠事件触发，
+ * 由于OverlappingWeapon标记了ReplicatedUsing，
+ * 变化会自动同步到拥有者客户端。
+ *
+ * @param Weapon - 新的重叠武器指针（离开时为nullptr）
+ */
 void AXMBCharacterBase::SetOverlappingWeapon(AWeaponBase* Weapon)
 {
+	// 隐藏旧武器的拾取提示
 	if (OverlappingWeapon)
 	{
 		OverlappingWeapon->ShowPickupWidget(false);
 	}
 	
 	OverlappingWeapon = Weapon;
+	
+	// 仅本地玩家能看到拾取UI
 	if (IsLocallyControlled())
 	{
 		if (OverlappingWeapon)
@@ -396,51 +648,89 @@ void AXMBCharacterBase::SetOverlappingWeapon(AWeaponBase* Weapon)
 	}
 }
 
+/**
+ * @brief OverlappingWeapon网络复制回调
+ *
+ * 【问题】：OnRep回调只传入新值，不知道旧值是什么
+ * 【解决方案】：传入LastWeapon参数保存旧值引用
+ * 
+ * 回调逻辑：
+ * - 新武器不为空 → 显示拾取Widget
+ * - 旧武器不为空 → 隐藏旧武器的Widget
+ *
+ * @param LastWeapon - 复制前的旧武器（自动传入）
+ */
 void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
 {
-	//如果重叠结束，此处的OverlappingWeapon未nullptr，则无法设置ShowPickupWidget
-	//所以需要一个用来存储武器的变量，于是可以传入LastWeapon
+	// 显示新武器的拾取Widget
 	if (OverlappingWeapon)
 	{
 		OverlappingWeapon->ShowPickupWidget(true);
 	}
+	// 隐藏旧武器的拾取Widget
 	if (LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
 }
 
+/**
+ * @brief 网络移动数据复制回调
+ *
+ * 当服务器的角色位置/旋转同步到客户端时自动触发：
+ * 1. 调用SimProxiesTurn()判断远程代理是否在转身
+ * 2. 重置移动复制计时器（用于RotateInPlace中的定时检查）
+ */
 void AXMBCharacterBase::OnRep_ReplicatedMovement()
 {
 	Super::OnRep_ReplicatedMovement();
 	
-	SimProxiesTurn();
-	TimeSinceLastMovementReplication = 0.f;
+	SimProxiesTurn();                    // 处理远程代理转身
+	TimeSinceLastMovementReplication = 0.f;  // 重置计时器
 }
 
 
-
+/** @brief 生命值变化的网络回调：更新HUD + 播放受击动画 */
 void AXMBCharacterBase::OnRep_Health()
 {
 	UpdateHUDHealth();
 	PlayHitReactMontage();
 }
 
+/** @brief 最大生命值变化的网络回调（预留扩展） */
 void AXMBCharacterBase::OnRep_MaxHealth()
 {
 }
 
 
-
+/**
+ * @brief 更新HUD上的生命值显示
+ *
+ * 【缓存模式】：XMBPlayerController可能还未就绪（尤其是游戏刚开始时）
+ * 所以使用延迟获取模式：每次调用都尝试Cast，成功后缓存
+ */
 void AXMBCharacterBase::UpdateHUDHealth()
 {
+	// 尝试获取PlayerController（带缓存，避免重复Cast）
 	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
 	if (XMBPlayerController)
 	{
-		XMBPlayerController->SetHUDHealth(Health,MaxHealth);
+		// 将当前生命值和最大生命值传给Controller去更新HUD Widget
+		XMBPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }
 
+/**
+ * @brief 轮询初始化（延迟获取PlayerState）
+ *
+ * 【为什么要Poll而不是在BeginPlay中直接获取】：
+ * BeginPlay时PlayerState可能还未完全初始化（特别是联机情况下）
+ * 所以放在Tick中轮询，直到获取成功为止。
+ *
+ * bDoOnce标志确保只执行一次初始化：
+ * - 获取PlayerState成功后设为false
+ * - AddToScore(0)和AddToDefeats(0)触发一次HUD初始化
+ */
 void AXMBCharacterBase::PollInit()
 {
 	if (XMBPlayerState == nullptr)
@@ -449,94 +739,141 @@ void AXMBCharacterBase::PollInit()
 		if (XMBPlayerState)
 		{
 			bDoOnce = false;
+			// 用0值触发一次更新，确保HUD显示正确的初始值
 			XMBPlayerState->AddToScore(0.f);
 			XMBPlayerState->AddToDefeats(0);
 		}
 	}
 }
 
+/**
+ * @brief 统一的原地旋转入口
+ *
+ * 【根据角色类型分发不同的处理方式】：
+ *
+ * ┌──────────────────────────────────────────────────────┐
+ * │ 本地控制的角色 (ROLE > SimulatedProxy):             │
+ * │   → 使用 AimOffset()                                │
+ * │   原因：有本地相机信息，可以直接计算瞄准偏移         │
+ * ├──────────────────────────────────────────────────────┤
+ * │ 远程代理角色 (SimulatedProxy 或更低):               │
+ * │   → 使用 SimProxiesTurn()                           │
+ * │   原因：没有相机，只能通过帧间旋转差推断转身         │
+ * │   每0.25秒手动触发一次OnRep_ReplicatedMovement       │
+ * └──────────────────────────────────────────────────────┘
+ *
+ * 两类角色都会调用CalculateAO_Pitch()计算俯仰角
+ *
+ * @param DeltaSeconds - 帧间隔时间
+ */
 void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
 {
-	// if (bDisableGameplay)
-	// {
-	// 	bUseControllerRotationYaw = false;
-	// 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-	// 	return;
-	// }
-	
+	// 本地控制的角色：使用基于相机的AimOffset
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
 	{
 		AimOffset(DeltaSeconds);
 	}
 	else
 	{
+		// 远程代理角色：定时模拟OnRep触发SimProxiesTurn
 		TimeSinceLastMovementReplication += DeltaSeconds;
 		if (TimeSinceLastMovementReplication > 0.25f)
 		{
-			OnRep_ReplicatedMovement();
+			OnRep_ReplicatedMovement();  // 手动触发以刷新代理转身状态
 		}
-		CalculateAO_Pitch();
+		CalculateAO_Pitch();  // 远程角色也需要Pitch值
 	}
 }
 
+/**
+ * @brief 淘汰（击杀）处理 - 仅在服务器调用
+ *
+ * 【淘汰完整流程】：
+ * 1. 掉落已装备的武器(CombatComponent->EquippedWeapon->Dropped())
+ * 2. 多播淘汰效果(MulticastElim) → 所有客户端执行视觉表现
+ * 3. 启动重生倒计时(ElimDelay=3秒)
+ *    - 计时结束后调用ElimTimerFinished → GameMode.RequestRespawn
+ */
 void AXMBCharacterBase::Elim()
 {
-	//武器掉落
+	// 步骤1：掉落武器
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
 		CombatComponent->EquippedWeapon->Dropped();
 	}
 	
+	// 步骤2：多播淘汰效果到所有客户端
 	MulticastElim();
+	
+	// 步骤3：启动重生计时器
 	GetWorldTimerManager().SetTimer(
 		ElimTimer,
 		this,
 		&AXMBCharacterBase::ElimTimerFinished,
-		ElimDelay);
+		ElimDelay  // 默认3秒后重生
+	);
 }
 
+/**
+ * @brief 多播淘汰效果的实现（在所有客户端执行）
+ *
+ * 【视觉效果清单】：
+ * 1. HUD弹药清零
+ * 2. 设置bElimmed标志（影响动画蓝图行为）
+ * 3. 播放淘汰蒙太奇动画
+ * 4. 溶解效果（当前已注释掉，需要配置材质后启用）
+ * 5. 释放开火按钮（防止淘汰后继续射击）
+ * 6. 禁用角色移动组件
+ * 7. 禁用玩家输入（TODO: 保留摄像机旋转能力）
+ * 8. 禁用碰撞（防止其他角色与尸体交互）
+ * 9. 生成回收机器人和音效
+ */
 void AXMBCharacterBase::MulticastElim_Implementation()
 {
+	// HUD弹药显示清零
 	if (XMBPlayerController)
 	{
 		XMBPlayerController->SetHUDWeaponAmmo(0);
 	}
 	
+	// 标记为已淘汰状态
 	bElimmed = true;
-	PlayElimMontage();
+	PlayElimMontage();  // 播放淘汰动画
 
-	//溶解效果的调用
-	// if (DissolveMaterialInstance)
-	// {
-	// 	DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this);
-	// 	GetMesh()->SetMaterial(0,DynamicDissolveMaterialInstance);
-	//
-	// 	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),0.55f);
-	// 	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
-	// }
-	// StartDissolve();
+	// ====== 溶解效果（已注释，需要配置溶解材质后启用）======
+	/*
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this);
+		GetMesh()->SetMaterial(0,DynamicDissolveMaterialInstance);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),0.55f);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"),200.f);
+	}
+	StartDissolve();
+	*/
 
+	// 释放开火按钮状态
 	if (CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
 	}
 
-	//让角色的MovementComponent失效
+	// 禁用移动（角色不能再移动或物理模拟）
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
+	
+	// 禁用玩家输入
+	// TODO: 保留摄像机旋转能力，目前完全禁止了输入
 	if (XMBPlayerController)
 	{
-		//TODO:角色死亡后能转动摄像机但是无法进行其他输入
-		DisableInput(XMBPlayerController);//禁用输入
+		DisableInput(XMBPlayerController);
 	}
-	// bDisableGameplay = true;//TODO:判断是否需要在此处将其设置为true
 	
-	
-	//禁用碰撞
+	// 禁用碰撞（尸体不会阻挡其他角色或投射物）
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	//生成回收机器人
+	// 生成淘汰回收机器人特效（在角色上方200单位处）
 	if (ElimBotEffect)
 	{
 		FVector ElimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f);
@@ -545,41 +882,62 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 			ElimBotEffect,
 			ElimBotSpawnPoint,
 			GetActorRotation()
-			);
+		);
 	}
 
+	// 播放淘汰音效
 	if (ElimBotSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(
 			this,
 			ElimBotSound,
 			GetActorLocation()
-			);
+		);
 	}
 	
 }
 
+/**
+ * @brief 淘汰计时器结束回调
+ *
+ * 请求GameMode重生角色：
+ * - GameMode.Reset()恢复角色属性
+ * - GameMode.Destroy()销毁旧角色Actor
+ * - GameMode RestartPlayerAtPlayerStart() 在随机PlayerStart处重生
+ */
 void AXMBCharacterBase::ElimTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 	if (BlasterGameMode)
 	{
-		bDoOnce = true;
-		BlasterGameMode->RequestRespawn(this,Controller);
+		bDoOnce = true;  // 重置PollInit标志供新角色使用
+		BlasterGameMode->RequestRespawn(this, Controller);
 	}
 }
 
+/**
+ * @brief 更新溶解材质参数（Timeline回调）
+ *
+ * @param DissolveValue - Timeline当前输出的溶解度值(0~1)
+ * 0=完全不溶解（实体），1=完全溶解（透明消失）
+ */
 void AXMBCharacterBase::UpdateDissolveMaterial(float DissolveValue)
 {
 	if (DynamicDissolveMaterialInstance)
 	{
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"),DissolveValue);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
 	}
 }
 
+/**
+ * @brief 开始溶解效果
+ *
+ * 将溶解曲线(DissolveCurve)绑定到Timeline组件上，
+ * Timeline播放时会逐帧调用UpdateDissolveMaterial更新材质
+ */
 void AXMBCharacterBase::StartDissolve()
 {
-	DissolveTrack.BindDynamic(this,&AXMBCharacterBase::UpdateDissolveMaterial);
+	DissolveTrack.BindDynamic(this, &AXMBCharacterBase::UpdateDissolveMaterial);
 	if (DissolveCurve && DissolveTimeline)
 	{
 		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
@@ -587,38 +945,54 @@ void AXMBCharacterBase::StartDissolve()
 	}
 }
 
+/**
+ * @brief 重写Jump - 增加蹲伏解除逻辑
+ *
+ * UE默认Jump不考虑蹲伏状态。此处增强：
+ * - 已蹲伏 → 取消蹲伏(UnCrouch)
+ * - 未蹲伏 → 正常跳跃(Super::Jump)
+ */
 void AXMBCharacterBase::Jump()
 {
 	if (bIsCrouched)
 	{
-		UnCrouch();
+		UnCrouch();  // 蹲伏状态下按跳跃键取消蹲伏
 	}
 	else
 	{
-		Super::Jump();
+		Super::Jump();  // 否则正常跳跃
 	}
 }
 
-//连接服务器需要实现_Implementation
+/**
+ * @brief 装备按钮的服务器RPC实现
+ *
+ * RPC的_Implementation后缀是UE的要求：
+ * - Server前缀的函数必须以_Server_Implementation形式定义
+ * - 此函数仅在服务器上执行
+ * - 不需要检查Authority，因为UE保证只有服务器才会收到
+ */
 void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
 {
-	//不用检查Authority因为仅在Server执行
 	if (CombatComponent)
 	{
 		CombatComponent->EquipWeapon(OverlappingWeapon);
 	}
 }
 
+/** 开火按钮按下 → 通知CombatComponent */
 void AXMBCharacterBase::FireButtonPressed()
 {
 	CombatComponent->FireButtonPressed(true);
 }
 
+/** 开火按钮释放 → 通知CombatComponent */
 void AXMBCharacterBase::FireButtonReleased()
 {
 	CombatComponent->FireButtonPressed(false);
 }
 
+/** 蹲伏按钮切换（已蹲伏→取消，未蹲伏→蹲下）*/
 void AXMBCharacterBase::CrouchButtonPressed()
 {
 	if (bIsCrouched)
@@ -631,26 +1005,31 @@ void AXMBCharacterBase::CrouchButtonPressed()
 	}
 }
 
+/** 瞄准按钮按下 → 通知CombatComponent开启瞄准 */
 void AXMBCharacterBase::AimButtonPressed()
 {
 	if (CombatComponent) CombatComponent->SetAiming(true);
 }
 
+/** 瞄准按钮释放 → 通知CombatComponent关闭瞄准 */
 void AXMBCharacterBase::AimButtonReleased()
 {
 	if (CombatComponent) CombatComponent->SetAiming(false);
 }
 
+/** 肩射按钮按下 → 通知CombatComponent开启肩射 */
 void AXMBCharacterBase::ShoulderAimButtonPressed()
 {
 	if (CombatComponent) CombatComponent->SetShoulderAiming(true);
 }
 
+/** 肩射按钮释放 → 通知CombatComponent关闭肩射 */
 void AXMBCharacterBase::ShoulderAimButtonReleased()
 {
 	if (CombatComponent) CombatComponent->SetShoulderAiming(false);
 }
 
+/** 换弹按钮按下 → 通知CombatComponent触发换弹 */
 void AXMBCharacterBase::ReloadButtonPressed()
 {
 	if (CombatComponent)
@@ -659,22 +1038,25 @@ void AXMBCharacterBase::ReloadButtonPressed()
 	}
 }
 
+/** @return 是否已装备武器 */
 bool AXMBCharacterBase::IsWeaponEquipped()
 {
 	return (CombatComponent && CombatComponent->EquippedWeapon);
 }
 
+/** @return 是否正在瞄准 */
 bool AXMBCharacterBase::IsAiming()
 {
 	return (CombatComponent && CombatComponent->bAiming);
 }
 
+/** @return 是否正在肩射 */
 bool AXMBCharacterBase::IsShoulderAiming()
 {
 	return (CombatComponent && CombatComponent->bShoulderAiming);
 }
 
-
+/** @return 当前战斗状态（换弹/空闲等） */
 ECombatState AXMBCharacterBase::GetCombatState() const
 {
 	if (CombatComponent == nullptr) return ECombatState::ECS_MAX;

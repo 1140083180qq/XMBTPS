@@ -13,133 +13,241 @@
 #include "CombatComponent.generated.h"
 
 class AXMBCharacterBase;
+
+/** 射线检测长度（80000单位） */
 #define TRACE_LENGTH 80000;
 
-
+/**
+ * @class UCombatComponent
+ * @brief 战斗组件
+ * 
+ * 管理角色的所有战斗相关功能：
+ * - 武器装备与切换
+ * - 瞄准状态（正常瞄准、肩射瞄准）
+ * - 开火控制（全自动/半自动）
+ * - 换弹逻辑
+ * - 弹药管理
+ * - 准心射线检测
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class XMBBLASTER_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
-	UCombatComponent();
+public:
+	/** 声明友元类，允许角色直接访问私有成员 */
 	friend class AXMBCharacterBase;
+	
+	/** 构造函数，初始化默认值 */
+	UCombatComponent();
+	
+	/** 设置网络复制属性 */
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	/**
+	 * @brief 装备武器
+	 * @param WeaponToEquip - 要装备的武器指针
+	 * 将武器附加到角色身上并设置相关状态
+	 */
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
-	/*XMBUITEST*/
-	// 【新增】提供只读访问，安全获取已装备武器
-	FORCEINLINE AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
-	FORCEINLINE bool IsAiming() const { return bAiming; }
-	FORCEINLINE bool IsShoulderAiming() const { return bShoulderAiming; }
-	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
-	/*XMBUITEST*/
-
+	
+	/** 触发换弹流程 */
 	void Reload();
 
+	/**
+	 * @brief 完成换弹（蓝图可调用）
+	 * 播放完换弹动画后调用，更新弹药数量和战斗状态
+	 */
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
 	
+	/**
+	 * @brief 设置开火按钮状态
+	 * @param bPressed - true为按下，false为释放
+	 */
 	void FireButtonPressed(bool bPressed);
+
 protected:
+	/** 组件初始化 */
 	virtual void BeginPlay() override;
+	
+	/** 每帧更新，处理持续开火逻辑 */
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/**
+	 * @brief 设置瞄准状态
+	 * @param bIsAiming - 是否正在瞄准
+	 */
 	void SetAiming(bool bIsAiming);
-	UFUNCTION(Server,Reliable)
+	
+	/** 服务器RPC：设置瞄准状态 */
+	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool bIsAiming);
 	
+	/**
+	 * @brief 设置肩射瞄准状态
+	 * @param bIsShoulderAiming - 是否正在肩射
+	 */
 	void SetShoulderAiming(bool bIsShoulderAiming);
-	UFUNCTION(Server,Reliable)
+	
+	/** 服务器RPC：设置肩射瞄准状态 */
+	UFUNCTION(Server, Reliable)
 	void ServerSetShoulderAiming(bool bIsShoulderAiming);
 
+	/** 装备武器变化时的回调 */
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	
+	/** 执行开火逻辑 */
 	void Fire();
 
-	
-
-	//到第五章第四节的一半为止，这一部分仅可以从客户端调用服务器执行，别的客户端看不见;以及在服务器调用且执行，客户端看不见
-	//server表示从客户端上调用并在服务器上执行//非常重要的同步需要Reliable传到服务器
+	/**
+	 * @brief 服务器RPC：执行开火
+	 * @param TraceHitTarget - 射线检测命中的目标位置（使用网络量化压缩的向量类型以节省带宽）
+	 */
+	// 仅从客户端调用服务器执行，其他客户端不可见；在服务器调用并执行时，客户端也不可见
+	// Server表示从客户端上调用并在服务器上执行；非常重要的同步需要Reliable传到服务器
 	UFUNCTION(Server, Reliable)//TODO:需要了解FVector_NetQuantize这一个类型对于网络复制的作用
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
+	/**
+	 * @brief 多播开火效果
+	 * @param TraceHitTarget - 命中目标位置
+	 * 在所有客户端上显示开火特效
+	 */
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
+	/**
+	 * @brief 从准心发射射线检测
+	 * @param TraceHitResult - 输出的射线检测结果
+	 * 设置UIComponent以便绘制射线命中点
+	 */
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
-	UFUNCTION(Server,Reliable)
+	/** 服务器RPC：请求换弹 */
+	UFUNCTION(Server, Reliable)
 	void ServerReload();
 
+	/** 处理换弹逻辑的具体实现 */
 	void HandleReload();
 
+	/**
+	 * @return 计算需要补充的弹药数量
+	 */
 	int32 AmountToReload();
 
 private:
+	/** 拥有此组件的角色指针 */
 	UPROPERTY()
 	AXMBCharacterBase* Owner;
 
-	UPROPERTY(Replicatedusing = OnRep_EquippedWeapon)//这里需要设置复制，否则在进行武器装备仅会在服务器执行，客户端不执行(Character内目前仅有HasAuthority进行判断)
+	/** 当前装备的武器（需复制） */
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeaponBase* EquippedWeapon;
 
+	/** 是否处于瞄准状态（网络复制） */
 	UPROPERTY(Replicated)
 	bool bAiming;
+	
+	/** 是否处于肩射瞄准状态（网络复制） */
 	UPROPERTY(Replicated)
 	bool bShoulderAiming;
+	
+	/** 是否按住开火按钮（网络复制） */
 	UPROPERTY(Replicated)
 	bool bFireButtonPressed;
 
+	/** 基础移动速度（非瞄准状态） */
 	UPROPERTY(EditAnywhere)
 	float BaseWalkSpeed;
+	
+	/** 瞄准时的移动速度 */
 	UPROPERTY(EditAnywhere)
 	float AimWalkSpeed;
+	
+	/** 肩射瞄准时的移动速度 */
 	UPROPERTY(EditAnywhere)
 	float ShoulderAimWalkSpeed;
 
+	/** 缓存的玩家控制器 */
 	UPROPERTY()
 	AXMBPlayerController* XMBController;
 
+	/** 缓存的HUD引用 */
 	UPROPERTY()
 	AXMBHUD* HUD;
 
+	/** 当前准心射线命中的目标位置 */
 	FVector HitTarget;
 
 	/*
 	 * 控制开火
 	 */
 
-	FTimerHandle FireTimer;
-	
-	bool bCanFire = true;//当武器开枪时，设置这个为false;当武器可以开枪时，设置这个为True。由Timer进行控制
-
+	/** 启动开火计时器 */
 	void StartFireTimer();
+	
+	/** 开火计时器结束回调 */
 	void FireTimerFinished();
 
+	/**
+	 * @return 当前是否可以开火（检查弹药、冷却、状态等）
+	 */
 	bool CanFire();
 
-	//存储已装备武器的弹药
+	/** 开火冷却计时器句柄 */
+	FTimerHandle FireTimer;
+	
+	/** 
+	 * 是否可以开火的标志
+	 * 开枪时设为false，由计时器回调重新设为true
+	 */
+	bool bCanFire = true;
+
+	/*
+	 * 弹药相关
+	*/
+
+	/** 携带弹药变化时的回调 */
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+	
+	/** 携带的备用弹药量（网络复制） */
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
 
-	UFUNCTION()
-	void OnRep_CarriedAmmo();
-
-	TMap<EWeaponType, int32> CarriedAmmoMap;
-
+	/** 游戏开始时每种武器的初始弹药量 */
 	UPROPERTY(EditAnywhere)
 	int32 StartingArAmmo = 30;
 
-	//开局时初始化角色身上所携带武器类型的对应弹药数量
+	/** 不同武器类型与其对应携带弹药数量的映射表 */
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	/** 初始化角色所携带各武器类型的弹药数量 */
 	void InitializeCarriedAmmo();
 
+	/** 当前战斗状态（空闲/换弹等） */
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
 
+	/** 战斗状态变化时的回调 */
 	UFUNCTION()
 	void OnRep_CombatState();
 
+	/** 更新HUD上的弹药显示值 */
 	void UpdateAmmoValues();
+
+public:
+	/** @return 当前装备的武器 */
+	FORCEINLINE AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
+	
+	/** @return 是否正在瞄准 */
+	FORCEINLINE bool IsAiming() const { return bAiming; }
+	
+	/** @return 是否正在肩射瞄准 */
+	FORCEINLINE bool IsShoulderAiming() const { return bShoulderAiming; }
+	
+	/** @return 是否按住开火按钮 */
+	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
 };
-
-

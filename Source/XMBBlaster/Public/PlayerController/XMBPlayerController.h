@@ -20,24 +20,26 @@ class XMBBLASTER_API AXMBPlayerController : public APlayerController
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
-	
-	void SetHUDHealth(float Health, float MaxHealth);
-	void SetHUDScore(float Score);
 	virtual void OnPossess(APawn* InPawn) override;
-	void SetHUDDefeats(int32 Defeats);
-	void SetHUDWeaponAmmo(int32 Ammo);
-	void SetHUDCarriedAmmo(int32 Ammo);
-	void SetHUDMatchCountdown(float CountdownTime);
-	void SetHUDAnnouncementCountdown(float CountdownTime);
-
-	virtual float GetServerTime();//Synced with server world clock
-	virtual void ReceivedPlayer() override;//Sync with server clock as soon as possible
-	
-	void OnMatchStateSet(FName State);
-
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	void SetHUDHealth(float Health, float MaxHealth);//设置生命
+	void SetHUDScore(float Score);//设置得分
+	void SetHUDDefeats(int32 Defeats);//设置击败数
+	void SetHUDWeaponAmmo(int32 Ammo);//设置武器子弹
+	void SetHUDCarriedAmmo(int32 Ammo);//设置鞋带的子弹
+	void SetHUDMatchCountdown(float CountdownTime);//设置比赛计时
+	void SetHUDAnnouncementCountdown(float CountdownTime);//设置热身时的计时
+
+	virtual float GetServerTime();//本地与服务器的延迟(因为请求发送返回都需要时间)
+	virtual void ReceivedPlayer() override;//从本地客户端中获取到时间
+	
+	void OnMatchStateSet(FName State);//更改MatchState时的设置
+
+	
 protected:
 	virtual void BeginPlay() override;
+	
 	void SetHUDTime();
 
 	/*

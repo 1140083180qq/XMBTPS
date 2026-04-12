@@ -1,1 +1,17 @@
-﻿#include "GameTypes/CombatState.h"
+﻿
+// ============================================================
+// @file CombatState.cpp
+// @brief 战斗状态枚举的源文件（空实现）
+//
+// 【说明】：ECombatState 是在 CombatState.h 中定义的枚举类，
+// 使用 UENUM(BlueprintType) 宏声明，由 UE5 的反射系统自动处理。
+// 此 .cpp 文件仅用于包含头文件以满足编译单元的要求。
+// 枚举值本身不需要任何函数实现代码。
+//
+// 【枚举值列表】：
+// - ECS_Unoccupied: 空闲状态，可以执行所有战斗操作（开火/换弹等）
+// - ECS_Reloading:   换弹中，正在播放换弹动画，禁止其他战斗操作
+// - ECS_MAX:        枚举最大值占位符（UE5 枚举标准写法）
+// ============================================================
+
+#include "GameTypes/CombatState.h"

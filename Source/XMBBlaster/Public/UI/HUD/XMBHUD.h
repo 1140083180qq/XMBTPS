@@ -35,7 +35,9 @@ class XMBBLASTER_API AXMBHUD : public AHUD
 public:
 	virtual void DrawHUD() override;
 
-	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
+	void AddCharacterOverlayWidget();
+	
+	void AddAnnouncement();
 
 	UPROPERTY(EditAnywhere,Category = "Player States")
 	TSubclassOf<UUserWidget> CharacterOverlayWidgetClass;
@@ -43,26 +45,24 @@ public:
 	UPROPERTY()
 	UCharacterOverlayWidget* CharacterOverlayWidget;
 	
-	void AddCharacterOverlayWidget();
-
-	
 	UPROPERTY(EditAnywhere, Category = "Announcements")
 	TSubclassOf<UUserWidget> AnnouncementWidgetClass;
 
 	UPROPERTY()
 	UAnnouncementWidget* AnnouncementWidget;
 
-	void AddAnnouncement();
-
 protected:
 	virtual void BeginPlay() override;
 	
 private:
-	FHUDPackage HUDPackage;
-	
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportContent,FVector2D Spread, FLinearColor CrosshairColor);
 
+	FHUDPackage HUDPackage;
+
 	UPROPERTY(EditAnywhere)
-	float CrosshaitSpreadMax = 16.f;
-	
+	float CrosshairSpreadMax = 16.f;
+
+
+public:
+	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
 };
