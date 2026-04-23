@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Actor/Projectile.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "ProjectileBullet.generated.h"
 
 /**
@@ -17,6 +18,7 @@ class XMBBLASTER_API AProjectileBullet : public AProjectile
 	GENERATED_BODY()
 
 public:
+	AProjectileBullet();
 
 protected:
 	/**

@@ -141,7 +141,7 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AXMBCharacterBase, Health);
 	DOREPLIFETIME(AXMBCharacterBase, MaxHealth);
-	DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
+	// DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
 }
 
 /**
@@ -522,6 +522,9 @@ void AXMBCharacterBase::PlayReloadMontage()
 		case EWeaponType::EWT_AssaultRifle:
 			SectionName = FName("Rifle");
 			break;
+		case EWeaponType::EWT_RocketLauncher:
+			SectionName = FName("Rifle");//TODO:制作火箭的蒙太奇动画
+			break;	
 		}
 
 		AnimInstance->Montage_JumpToSection(SectionName);
@@ -852,12 +855,15 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 	StartDissolve();
 	*/
 
+	
+	
 	// 释放开火按钮状态
 	if (CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
 	}
 
+	bDisableGameplay = true;
 	// 禁用移动（角色不能再移动或物理模拟）
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();

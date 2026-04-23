@@ -12,7 +12,8 @@ UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
 	/** 突击步枪（默认武器类型） */
-	EWT_AssaultRifle UMETA(DisplayName = "DefaultRigle"),
+	EWT_AssaultRifle UMETA(DisplayName = "AssaultRifle"),
+	EWT_RocketLauncher UMETA(DisplayName = "RocketLauncher"),
 
 	/** 枚举最大值占位符 */
 	EWT_MAX UMETA(DisplayName = "DefaultMAX")

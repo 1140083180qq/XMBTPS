@@ -48,8 +48,11 @@
  */
 AWeaponBase::AWeaponBase()
 {
+	PrimaryActorTick.bCanEverTick = false;
 	// 启用 Actor 级别的网络复制，使本对象的 Replicated 变量能在网络间同步
 	bReplicates = true;
+	SetReplicateMovement(true);
+	
 
 	// 创建武器的骨骼网格体组件作为根组件
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));

@@ -21,6 +21,13 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
+AProjectileBullet::AProjectileBullet()
+{
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	ProjectileMovementComponent->SetIsReplicated(true);
+}
+
 /**
  * @brief 碰撞回调 - 子弹击中目标时应用伤害并触发销毁/特效
  *

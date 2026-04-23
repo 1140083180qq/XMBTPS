@@ -103,9 +103,9 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);   // 阻挡骨骼网格体（角色）
 
 	// 创建投射物移动组件（引擎内置的弹道运动解算器）
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	// ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	// 投射物旋转方向跟随速度方向（子弹始终"向前"飞）
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	// ProjectileMovementComponent->bRotationFollowsVelocity = true;
 
 	// 注：不使用 InitialLifeSpan 做超时销毁，改为碰撞即销毁的模式
 }

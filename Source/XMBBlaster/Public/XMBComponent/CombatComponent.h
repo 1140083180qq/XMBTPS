@@ -217,9 +217,13 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
 
-	/** 游戏开始时每种武器的初始弹药量 */
+	//步枪弹药
 	UPROPERTY(EditAnywhere)
 	int32 StartingArAmmo = 30;
+
+	//火箭弹药
+	UPROPERTY(EditAnywhere)
+	int32 StartingRocketAmmo = 20;
 
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
