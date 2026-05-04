@@ -15,7 +15,7 @@
 class AXMBCharacterBase;
 
 /** 射线检测长度（80000单位） */
-#define TRACE_LENGTH 80000;
+
 
 /**
  * @class UCombatComponent
@@ -223,7 +223,16 @@ private:
 
 	//火箭弹药
 	UPROPERTY(EditAnywhere)
-	int32 StartingRocketAmmo = 20;
+	int32 StartingRocketAmmo = 0;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingPistolAmmo = 0;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingSMGAmmo = 0;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingShotGunAmmo = 0;
 
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;

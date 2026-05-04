@@ -524,6 +524,15 @@ void AXMBCharacterBase::PlayReloadMontage()
 			break;
 		case EWeaponType::EWT_RocketLauncher:
 			SectionName = FName("Rifle");//TODO:制作火箭的蒙太奇动画
+			break;
+		case EWeaponType::EWT_Pistol:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_SubmachineGun:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_ShotGun:
+			SectionName = FName("Rifle");
 			break;	
 		}
 
