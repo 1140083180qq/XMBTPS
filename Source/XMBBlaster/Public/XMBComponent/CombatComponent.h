@@ -234,6 +234,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 StartingShotGunAmmo = 0;
 
+	UPROPERTY(EditAnywhere)
+	int32 StartingSniperAmmo = 0;
+
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 

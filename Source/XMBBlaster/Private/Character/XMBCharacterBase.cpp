@@ -533,6 +533,9 @@ void AXMBCharacterBase::PlayReloadMontage()
 			break;
 		case EWeaponType::EWT_ShotGun:
 			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_SniperRifle:
+			SectionName = FName("Rifle");
 			break;	
 		}
 
@@ -908,6 +911,16 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 			ElimBotSound,
 			GetActorLocation()
 		);
+	}
+
+	bool bHideSniperScope = CombatComponent 
+		&& CombatComponent->bAiming
+		&& CombatComponent->EquippedWeapon
+		&& CombatComponent->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	
+	if (IsLocallyControlled() && bHideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
 	}
 	
 }

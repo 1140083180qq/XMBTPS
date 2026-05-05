@@ -71,6 +71,11 @@ public:
 	bool bDisableGameplay = false;//TODO:这个变量仅用来设置禁止使用技能以及用来设置游戏开始前的弹药不消耗(但是可以开枪)
 
 	virtual void Destroyed() override;
+
+	//设置狙击枪开镜
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
+	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

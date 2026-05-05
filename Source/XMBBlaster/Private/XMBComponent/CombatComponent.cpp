@@ -545,6 +545,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, StartingPistolAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SubmachineGun, StartingSMGAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_ShotGun, StartingShotGunAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
 }
 
 /**
@@ -561,12 +562,20 @@ void UCombatComponent::InitializeCarriedAmmo()
  */
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	if (Owner == nullptr || EquippedWeapon == nullptr) return;
+	
 	bAiming = bIsAiming;
 	ServerSetAiming(bIsAiming); // 通知服务器更新
 	// 本地立即调整移动速度（预测性执行，减少输入延迟感知）
 	if (Owner)
 	{
 		Owner->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+
+	//狙击枪瞄准处理
+	if (Owner->IsLocallyControlled() && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+	{
+		Owner->ShowSniperScopeWidget(bIsAiming);
 	}
 }
 
