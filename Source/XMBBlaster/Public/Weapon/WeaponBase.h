@@ -156,6 +156,11 @@ public:
 	/** 装备武器时的音效 */
 	UPROPERTY(EditAnywhere)
 	USoundCue* EquipSound;
+
+	/*
+	 * 自定义深度
+	 */
+	void EnableCustomDepth(bool bEnable);
 	
 protected:
 	/** 游戏开始时初始化 */

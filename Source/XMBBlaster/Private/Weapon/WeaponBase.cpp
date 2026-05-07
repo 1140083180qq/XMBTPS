@@ -1,51 +1,10 @@
 
-// ============================================================
-// @file WeaponBase.cpp
-// @brief 武器基类实现 - 所有武器的父类，处理通用武器逻辑
-//
-// 【核心功能概述】：
-// 本类是武器系统的基类（AProjectileWeapon 等子类的父），负责：
-// 1. 武器的组件初始化（骨骼网格体/碰撞球体/拾取UI）
-// 2. 武器状态机管理（Initial → Equipped → Dropped 三态转换）
-// 3. 武器碰撞拾取系统（AreaSphere 检测玩家接近并显示拾取提示）
-// 4. 弹药系统管理（弹夹内Ammo/MagCapacity容量/SpendRound消耗）
-// 5. 开火逻辑（播放开火动画 + 抛出弹壳 + 扣除弹药）
-// 6. 准心纹理配置（5向十字准心：Center/Left/Right/Top/Bottom）
-// 7. 网络同步（WeaponState/Ammo 的 ReplicatedUsing 回调）
-// ============================================================
-
 #include "Weapon/WeaponBase.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/XMBCharacterBase.h"
 #include "PlayerController/XMBPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
-
-/**
- * @brief 构造函数 - 初始化武器的所有子组件
- *
- * 【组件创建与配置流程】：
- *
- * 1. bReplicates = true
- *    声明此 Actor 支持网络复制。只有设置了此标志，
- *    该 Actor 的 Replicated 变量才会在网络间同步。
- *    这是所有需要多客户端可见的 Actor 的基础设置。
- *
- * 2. WeaponMesh (USkeletalMeshComponent) - 武器骨骼网格体
- *    作为根组件（SetRootComponent），包含武器的3D模型。
- *    碰撞响应配置：
- *    - 对所有通道设为 Block（可被射线检测命中）
- *    - 对 Pawn 通道设为 Ignore（角色不会推开武器）
- *    - 初始禁用碰撞（NoCollision），装备后由状态机控制
- *
- * 3. AreaSphere (USphereComponent) - 拾取检测球体
- *    附加到根组件上，用于检测玩家是否靠近武器以便拾取。
- *    初始忽略所有碰撞通道，在 BeginPlay 中由服务器启用 Pawn 重叠检测。
- *
- * 4. PickupWidget (UWidgetComponent) - 拾取提示UI
- *    附加到根组件上，显示"按E拾取"之类的提示文字。
- *    默认隐藏（BeginPlay 中设置），当玩家进入 AreaSphere 时显示。
- */
 AWeaponBase::AWeaponBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -76,6 +35,11 @@ AWeaponBase::AWeaponBase()
 	// 创建拾取提示 Widget 组件（如"按E拾取"文字提示）
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
+
+	//设置自定义深度
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
+	WeaponMesh->MarkRenderStateDirty();
+	EnableCustomDepth(true);
 }
 
 /**
@@ -94,6 +58,14 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 }
 
 
+void AWeaponBase::EnableCustomDepth(bool bEnable)
+{
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetRenderCustomDepth(bEnable);
+		
+	}
+}
 
 /**
  * @brief 游戏开始时初始化武器的碰撞和UI状态
@@ -258,6 +230,9 @@ void AWeaponBase::SetWeaponState(EWeaponState State)
 		WeaponMesh->SetSimulatePhysics(false);      // 关闭物理模拟
 		WeaponMesh->SetEnableGravity(false);         // 关闭重力
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭碰撞
+
+		EnableCustomDepth(false);
+		
 		break;
 	case EWeaponState::EWS_Dropped:
 		// 丢弃状态下仅在服务器端重新开启拾取碰撞（避免客户端冲突）
@@ -269,6 +244,11 @@ void AWeaponBase::SetWeaponState(EWeaponState State)
 		WeaponMesh->SetSimulatePhysics(true);       // 启用物理模拟（可被推动、弹跳）
 		WeaponMesh->SetEnableGravity(true);          // 启用重力（自然下落）
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 启用完整碰撞
+
+		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+		WeaponMesh->MarkRenderStateDirty();
+		EnableCustomDepth(true);
+		
 		break;
 	}
 }
@@ -293,11 +273,17 @@ void AWeaponBase::OnRep_WeaponState()
 		WeaponMesh->SetSimulatePhysics(false);
 		WeaponMesh->SetEnableGravity(false);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+		EnableCustomDepth(false);
 		break;
 	case EWeaponState::EWS_Dropped:
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		
+		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+		WeaponMesh->MarkRenderStateDirty();
+		EnableCustomDepth(true);
 		break;
 	}
 }
