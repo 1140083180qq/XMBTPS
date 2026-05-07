@@ -67,6 +67,16 @@ public:
 	 */
 	void FireButtonPressed(bool bPressed);
 
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+
+	/** 多播RPC：通知所有客户端执行霰弹枪装填结束动画跳转 */
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastJumpToShotgunEnd();
+
+	/** 霰弹枪装填动画跳转到结束Section的内部实现（不涉及网络） */
+	void JumpToShotgunEnd();
+
 protected:
 	/** 组件初始化 */
 	virtual void BeginPlay() override;
@@ -237,6 +247,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 StartingSniperAmmo = 0;
 
+	UPROPERTY(EditAnywhere)
+	int32 StartingGrenadeLauncherAmmo = 0;
+
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
@@ -253,6 +266,11 @@ private:
 
 	/** 更新HUD上的弹药显示值 */
 	void UpdateAmmoValues();
+
+	void UpdateShotgunAmmoValues();
+
+	/** 霰弹枪装填防重入：记录上一次成功执行 UpdateShotgunAmmoValues 的帧号 */
+	int64 ShotgunReloadFrameCounter = -1;
 
 public:
 	/** @return 当前装备的武器 */

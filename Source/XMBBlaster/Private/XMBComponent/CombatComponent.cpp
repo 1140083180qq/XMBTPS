@@ -221,8 +221,10 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 void UCombatComponent::Reload()
 {
 	// 必须有备用弹药且当前未处于换弹状态才能发起换弹
-	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading && !EquippedWeapon->IsAmmoFull())
 	{
+		//判断当前弹夹是否为最大装填
+		
 		ServerReload();
 	}
 }
@@ -247,13 +249,118 @@ void UCombatComponent::FinishReloading()
 	{
 		// 重置战斗状态为空闲
 		CombatState = ECombatState::ECS_Unoccupied;
-		// 执行弹药数值转移：备用弹药 -> 弹夹
-		UpdateAmmoValues();
+		// ★ 霰弹枪的弹药转移已在 ShotgunShellReload → UpdateShotgunAmoValues 中逐发完成
+		//   此处仅对非霰弹枪执行全量弹药转移（一次性装填所有弹药）
+		if (EquippedWeapon == nullptr || EquippedWeapon->GetWeaponType() != EWeaponType::EWT_ShotGun)
+		{
+			UpdateAmmoValues();
+		}
 	}
 	// 换弹完成后如果开火按钮仍被按住，自动恢复开火
 	if(bFireButtonPressed)
 	{
 		Fire();
+	}
+}
+
+/**
+ * @brief 执行弹药数值的实际转移（换弹完成时调用）
+ *
+ * 【数据流转过程】：
+ * 1. 计算 ReloadAmount = 本次可补充的弹药数（调用 AmountToReload）
+ * 2. 从 CarriedAmmoMap 中扣除对应的备用弹药量
+ * 3. 更新本地 CarriedAmmo 变量
+ * 4. 更新 HUD 上的携带弹药显示
+ * 5. 调用武器 AddAmmo 将弹药加入弹夹（参数取负数表示增加）
+ *
+ * 【注意】：此函数仅在服务器端调用（由 HasAuthority 保护或仅在 FinishReloading 中调用）
+ * 弹药的变化通过 OnRep_Ammo 和 OnRep_CarriedAmmo 同步到客户端
+ */
+void UCombatComponent::UpdateAmmoValues()
+{
+	if (Owner == nullptr || EquippedWeapon == nullptr) return;
+
+	// 计算本次实际要转移多少弹药
+	int32 ReloadAmount = AmountToReload();
+
+	// 从备用弹药库中扣除对应数量
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= ReloadAmount;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()]; // 更新本地缓存
+	}
+
+	// 更新 HUD 显示
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+
+	// AddAmmo 传入负数表示增加弹夹内的弹药（内部用 clamp 限制上限）
+	EquippedWeapon->AddAmmo(-ReloadAmount);
+}
+
+void UCombatComponent::UpdateShotgunAmmoValues()
+{
+	// ★ 防重入保护：同一帧内只允许执行一次，防止多重调用路径导致多发装填
+	if (GFrameCounter == ShotgunReloadFrameCounter) return;
+
+	// ★ 防御性检查：仅在换弹状态且装备霰弹枪时执行
+	if (Owner == nullptr || EquippedWeapon == nullptr || CombatState != ECombatState::ECS_Reloading || EquippedWeapon->GetWeaponType() != EWeaponType::EWT_ShotGun) return;
+
+	// ★ 防御性检查：确保备用弹药充足且弹夹未满
+	if (CarriedAmmo <= 0 || EquippedWeapon->IsAmmoFull()) return;
+
+	// 记录本次执行帧号（在所有前置检查通过后）
+	ShotgunReloadFrameCounter = GFrameCounter;
+
+	// 扣减1发备用弹药
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= 1;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()]; // 更新本地缓存
+	}
+	
+	// 更新 HUD 显示
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+	
+	// 弹夹增加1发弹药（AddAmmo传入负数表示增加）
+	EquippedWeapon->AddAmmo(-1);
+	bCanFire = true;
+	
+	// 检查是否需要结束装填（弹夹满或备用耗尽）
+	if (EquippedWeapon->IsAmmoFull() || CarriedAmmo == 0)
+	{
+		MulticastJumpToShotgunEnd();
+	}
+}
+
+void UCombatComponent::JumpToShotgunEnd()
+{
+	// ★ 纯本地动画操作：调用 Character 的 SniperReload 执行 Montage_JumpToSection
+	//   SniperReload 内置 Montage_IsPlaying 检查 + 必要时 Montage_Play 重播机制，
+	//   能正确处理客户端 Montage 状态与服务端不同步的情况
+	if (Owner)
+	{
+		Owner->SniperReload(FName("ShotgunEnd"), false);
+	}
+}
+
+void UCombatComponent::MulticastJumpToShotgunEnd_Implementation()
+{
+	JumpToShotgunEnd();
+}
+
+void UCombatComponent::ShotgunShellReload()
+{
+	if (Owner && Owner->HasAuthority())
+	{
+		UpdateShotgunAmmoValues();
 	}
 }
 
@@ -461,6 +568,18 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	{
 		XMBController->SetHUDCarriedAmmo(CarriedAmmo); // 更新HUD携带弹药显示
 	}
+
+	// ★ 修复：仅服务器端控制霰弹枪装填动画跳转
+	//   Client端通过Replication接收CarriedAmmo变化即可，不需要本地干预动画状态
+	bool bJumpToShotgunEnd = Owner->HasAuthority()
+		&& CombatState == ECombatState::ECS_Reloading 
+		&& EquippedWeapon != nullptr 
+		&& EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun 
+		&& CarriedAmmo == 0;
+	if (bJumpToShotgunEnd)
+	{
+		MulticastJumpToShotgunEnd();
+	}
 }
 
 /**
@@ -490,43 +609,6 @@ void UCombatComponent::OnRep_CombatState()
 	}
 }
 
-/**
- * @brief 执行弹药数值的实际转移（换弹完成时调用）
- *
- * 【数据流转过程】：
- * 1. 计算 ReloadAmount = 本次可补充的弹药数（调用 AmountToReload）
- * 2. 从 CarriedAmmoMap 中扣除对应的备用弹药量
- * 3. 更新本地 CarriedAmmo 变量
- * 4. 更新 HUD 上的携带弹药显示
- * 5. 调用武器 AddAmmo 将弹药加入弹夹（参数取负数表示增加）
- *
- * 【注意】：此函数仅在服务器端调用（由 HasAuthority 保护或仅在 FinishReloading 中调用）
- * 弹药的变化通过 OnRep_Ammo 和 OnRep_CarriedAmmo 同步到客户端
- */
-void UCombatComponent::UpdateAmmoValues()
-{
-	if (Owner == nullptr || EquippedWeapon == nullptr) return;
-
-	// 计算本次实际要转移多少弹药
-	int32 ReloadAmount = AmountToReload();
-
-	// 从备用弹药库中扣除对应数量
-	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
-	{
-		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= ReloadAmount;
-		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()]; // 更新本地缓存
-	}
-
-	// 更新 HUD 显示
-	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
-	if (XMBController)
-	{
-		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
-	}
-
-	// AddAmmo 传入负数表示增加弹夹内的弹药（内部用 clamp 限制上限）
-	EquippedWeapon->AddAmmo(-ReloadAmount);
-}
 
 
 /**
@@ -546,6 +628,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SubmachineGun, StartingSMGAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_ShotGun, StartingShotGunAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher, StartingGrenadeLauncherAmmo);
 }
 
 /**
@@ -699,6 +782,8 @@ bool UCombatComponent::CanFire()
 {
 	if (EquippedWeapon == nullptr) return false;
 
+	if (!EquippedWeapon->IsAmmoEmply() && bCanFire && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun) return true;
+
 	// 三条件与运算：有弹药 AND 冷却结束 AND 未在换弹
 	return !EquippedWeapon->IsAmmoEmply() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
@@ -750,6 +835,9 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	}
 }
 
+
+
+
 /**
  * @brief 服务器RPC实现 - 执行开火逻辑的服务器端
  * @param TraceHitTarget - 客户端发送的命中目标位置（FVector_NetQuantize 网络压缩向量）
@@ -787,6 +875,15 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
+
+	if (Owner && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun)
+	{
+		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
+		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
+		CombatState = ECombatState::ECS_Unoccupied;
+		return;
+	}
+	
 	// 再次确认战斗状态合法，防止换弹期间误触发出开火
 	if (Owner && CombatState == ECombatState::ECS_Unoccupied)
 	{

@@ -13,7 +13,7 @@
 #include "GameTypes/WeaponTypes.h"
 
 
-//TODO:
+//TODO:BUG:在客户端进行开枪后，装填时子弹会一次装两颗,而且在客户端开火时会有两条弹道
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);

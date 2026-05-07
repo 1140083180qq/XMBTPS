@@ -25,6 +25,7 @@
 
 #include "Actor/Projectile.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Character/XMBCharacterBase.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -151,6 +152,15 @@ void AProjectile::BeginPlay()
 	}
 }
 
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer,
+		this,
+		&AProjectile::DestroyTimerFinished,
+		DestroyTime);
+}
+
 /**
  * @brief 碰撞事件回调 - 当投射物的碰撞盒与其他物体发生碰撞时调用
  *
@@ -175,6 +185,46 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 {
 	// 销毁投射物，同时触发 Destroyed() 中的命中特效和音效生成
 	Destroyed();
+}
+
+void AProjectile::SpawnTrailSystem()
+{
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false);
+	}
+}
+
+void AProjectile::ExplodeDamage()
+{
+	APawn* FiringPawn = GetInstigator();
+	if (FiringPawn && HasAuthority())
+	{
+		AController* FiringController = FiringPawn->GetController();
+		if (FiringController)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(
+				this,
+				BaseDamage,//基础伤害
+				MiniDamage,//最小伤害
+				GetActorLocation(),//中心
+				InRadius,//内环半径
+				OutRadius,//外环半径
+				1.f,//伤害衰减
+				UDamageType::StaticClass(),//伤害类型
+				TArray<AActor*>(),//忽略的Actor组
+				this,//伤害的制造者
+				FiringController//instigator的控制器
+				);
+		}
+	}
 }
 
 /**
@@ -234,4 +284,10 @@ void AProjectile::Destroyed()
 			GetActorLocation()
 		);
 	}
+}
+
+
+void AProjectile::DestroyTimerFinished()
+{
+	Destroy();
 }

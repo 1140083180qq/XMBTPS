@@ -10,13 +10,13 @@
 
 void AShotGun::Fire(const FVector& HitTarget)
 {
-	AWeaponBase::Fire(HitTarget);
-
+	// AWeaponBase::Fire(HitTarget);
+	AWeaponBase::Fire(FVector());
+	
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (OwnerPawn == nullptr) return;
 	AController* InstigatorController =  OwnerPawn->GetController();
 	
-
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
 	if (MuzzleFlashSocket)//为何不能在这里直接检查InstigatorController
 	{
@@ -61,7 +61,6 @@ void AShotGun::Fire(const FVector& HitTarget)
 					FMath::FRandRange(-5.f, .5f)
 					);
 			}
-			
 		}
 
 		for (auto HitPair :HitMap)

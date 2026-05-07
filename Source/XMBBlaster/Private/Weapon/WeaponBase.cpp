@@ -329,7 +329,11 @@ void AWeaponBase::OnRep_Ammo()
 {
 	// 惰性获取或复用缓存的拥有者角色引用
 	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
-
+	// ★ 通过 Multicast RPC 广播霰弹枪装填动画跳转，确保所有客户端同步
+	if (HasAuthority() && XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull())
+	{
+		XMBOwnerCharacter->GetCombatComponent()->MulticastJumpToShotgunEnd();
+	}
 	SetHUDAmmo(); // 更新HUD上的弹药数值显示
 }
 
@@ -500,3 +504,10 @@ bool AWeaponBase::IsAmmoEmply()
 {
 	return Ammo <= 0; // 注意：原代码此处方法名拼写为 Emply（应为 Empty），保持不变
 }
+
+bool AWeaponBase::IsAmmoFull()
+{
+	return Ammo == MagCapacity;
+}
+
+

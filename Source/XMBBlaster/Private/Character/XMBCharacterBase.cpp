@@ -510,12 +510,11 @@ void AXMBCharacterBase::PlayElimMontage()
 void AXMBCharacterBase::PlayReloadMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
-
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && ReloadMontage)
+	
+	if ( ReloadMontage && SniperReloadMontage)//AnimInstance &&
 	{
-		AnimInstance->Montage_Play(ReloadMontage);
 		FName SectionName;
+		bool bIsSniper = false;
 
 		switch (CombatComponent->EquippedWeapon->GetWeaponType())
 		{
@@ -523,24 +522,52 @@ void AXMBCharacterBase::PlayReloadMontage()
 			SectionName = FName("Rifle");
 			break;
 		case EWeaponType::EWT_RocketLauncher:
-			SectionName = FName("Rifle");//TODO:制作火箭的蒙太奇动画
+			SectionName = FName("RocketLauncher");//TODO:制作火箭的蒙太奇动画
 			break;
 		case EWeaponType::EWT_Pistol:
-			SectionName = FName("Rifle");
+			SectionName = FName("Pistol");
 			break;
 		case EWeaponType::EWT_SubmachineGun:
-			SectionName = FName("Rifle");
+			SectionName = FName("Pistol");
 			break;
 		case EWeaponType::EWT_ShotGun:
-			SectionName = FName("Rifle");
+			SectionName = FName("ShotGun");
 			break;
 		case EWeaponType::EWT_SniperRifle:
-			SectionName = FName("Rifle");
+			SectionName = FName("SniperRifle");
+			bIsSniper = true;
+			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			SectionName = FName("GrenadeLauncher");
 			break;	
 		}
 
-		AnimInstance->Montage_JumpToSection(SectionName);
+		SniperReload(SectionName,bIsSniper);
+		
+		// AnimInstance->Montage_Play(ReloadMontage);
+		// AnimInstance->Montage_JumpToSection(SectionName);
 	}
+}
+
+void AXMBCharacterBase::SniperReload(FName SectionName, bool bIsSniper)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance == nullptr) return;
+
+	// 选择目标蒙太奇
+	UAnimMontage* TargetMontage = bIsSniper ? SniperReloadMontage : ReloadMontage;
+	if (TargetMontage == nullptr) return;
+
+	// ★ 关键修复：仅在蒙太奇未播放时才 Montage_Play
+	//   如果直接 Montage_Play 会停止当前正在播放的旧 Montage 实例，
+	//   导致旧 Montage 中尚未到达的 FinishReloading AnimNotify 永远丢失！
+	//   后果：CombatState 卡死在 ECS_Reloading（无法开火）+ 动画时序混乱（弹药异常扣减）
+	if (!AnimInstance->Montage_IsPlaying(TargetMontage))
+	{
+		AnimInstance->Montage_Play(TargetMontage);
+	}
+	
+	AnimInstance->Montage_JumpToSection(SectionName);
 }
 
 /** @brief 播放受击反应动画（"FromFront" Section） */

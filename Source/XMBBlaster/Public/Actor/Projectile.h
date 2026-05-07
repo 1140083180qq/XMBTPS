@@ -7,6 +7,8 @@
 #include "Sound/SoundCue.h"
 #include "Projectile.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 /**
  * @class AProjectile
  * @brief 投射物基类
@@ -30,6 +32,13 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+
+	void StartDestroyTimer();
+	void DestroyTimerFinished();
+
+	void SpawnTrailSystem();
+
+	void ExplodeDamage();
 	
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
@@ -53,12 +62,30 @@ protected:
 	//投射物移动组件
 	UPROPERTY(VisibleAnywhere)//将组件于子类内继承并实现，可以转化为自定义的ProjectileMovement
 	UProjectileMovementComponent* ProjectileMovementComponent;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* TrailSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* TrailSystemComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* ProjectileMesh;
+
+	//将来设置成先判断是否为投射物
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "DamageRadius")
+	float InRadius;//伤害内环的距离
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "DamageRadius")
+	float OutRadius;//伤害外环的距离
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "DamageRadius")
+	float BaseDamage;//基础伤害
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "DamageRadius")
+	float MiniDamage;//最小伤害
 	
 private:
-	
-
-	
-
 	/** 
 	 * @brief 飞行轨迹特效（粒子系统）
 	 */
@@ -71,6 +98,11 @@ private:
 	 */
 	UPROPERTY()
 	UParticleSystemComponent* TracerComponent;
+
+	FTimerHandle DestroyTimer;
+
+	UPROPERTY(EditAnywhere)
+	float DestroyTime = 3.f;
 
 
 

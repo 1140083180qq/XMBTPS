@@ -93,6 +93,8 @@ public:
 	/** @return 弹药是否耗尽 */
 	bool IsAmmoEmply();
 
+	bool IsAmmoFull();
+
 	/**
 	 * 武器准心纹理配置
 	 * 不同武器可以有不同的准心外观

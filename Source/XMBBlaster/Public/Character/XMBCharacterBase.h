@@ -44,9 +44,13 @@ public:
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
+	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	/*XMBUITEST*/
 	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
 	/*XMBUITEST*/
+	/*--------- RELOADTEST----------*/
+	void SniperReload(FName SectionName, bool bIsSniper);
+	/*---------RELOADTEST----------*/
 
 	AWeaponBase* GetEquippedWeapon();
 
@@ -159,7 +163,9 @@ private:
 	UAnimMontage* ElimMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ReloadMontage;
-	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* SniperReloadMontage;
+
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
 	float AO_Pitch;
@@ -252,6 +258,5 @@ private:
 	AXMBPlayerState* XMBPlayerState;
 	
 };
-
 
 
