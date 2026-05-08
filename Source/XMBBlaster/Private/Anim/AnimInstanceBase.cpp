@@ -253,10 +253,13 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	// 模块6: 功能开关控制
 	// ════════════════════════════════════════
 	// 换弹期间禁用左手 FABRIK IK（换弹动画有自己的预设手部动作，不需要IK覆盖）
-	bUseFABRIK = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	// bUseFABRIK = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 	// 换弹期间或游戏禁用期间禁用 AimOffset（避免与换弹动画冲突）
-	bUseAimOffset = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
+	// bUseAimOffset = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
 	// 换弹期间或游戏禁用期间禁用右手旋转调整
-	bTransformRightHand = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
-
+	// bTransformRightHand = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
+	bUseFABRIK = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+	bUseAimOffset = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !XMBCharacter->GetDisableGameplay();
+	bTransformRightHand = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !XMBCharacter->GetDisableGameplay();
+	
 }

@@ -57,6 +57,7 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayElimMontage();
 	void PlayReloadMontage();
+	void PlayThrowGrenadeMontage();
 
 	FVector GetHitTarget() const;
 
@@ -101,6 +102,8 @@ protected:
 	void ShoulderAimButtonReleased();
 	UFUNCTION(BlueprintCallable)
 	void ReloadButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void GrenadeButtonPressed();
 
 	UFUNCTION(BlueprintCallable)
 	void AimOffset(float DeltaTime);
@@ -165,7 +168,9 @@ private:
 	UAnimMontage* ReloadMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* SniperReloadMontage;
-
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ThrowGrenadeMontage;
+	
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
 	float AO_Pitch;

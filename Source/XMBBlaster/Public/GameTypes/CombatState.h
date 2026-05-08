@@ -17,6 +17,9 @@ enum class ECombatState : uint8
 	/** 换弹中：正在播放换弹动画，禁止其他操作 */
 	ECS_Reloading UMETA(DisplayName = "Reloading"),
 
+	//投掷手雷
+	ECS_ThrowingGrenade UMETA(DisplayName = "Throwing Grenade"),
+
 	/** 枚举最大值占位符 */
 	ECS_MAX UMETA(DisplayName = "DefaultMAX")
 };

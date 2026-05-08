@@ -500,6 +500,29 @@ void AXMBCharacterBase::PlayElimMontage()
 	}
 }
 
+void AXMBCharacterBase::PlayThrowGrenadeMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ThrowGrenadeMontage)
+	{
+		AnimInstance->Montage_Play(ThrowGrenadeMontage);
+	}
+}
+
+/** @brief 播放受击反应动画（"FromFront" Section） */
+void AXMBCharacterBase::PlayHitReactMontage()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName("FromFront");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
 /**
  * @brief 播放换弹蒙太奇动画
  *
@@ -570,19 +593,7 @@ void AXMBCharacterBase::SniperReload(FName SectionName, bool bIsSniper)
 	AnimInstance->Montage_JumpToSection(SectionName);
 }
 
-/** @brief 播放受击反应动画（"FromFront" Section） */
-void AXMBCharacterBase::PlayHitReactMontage()
-{
-	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && HitReactMontage)
-	{
-		AnimInstance->Montage_Play(HitReactMontage);
-		FName SectionName("FromFront");
-		AnimInstance->Montage_JumpToSection(SectionName);
-	}
-}
 
 /**
  * @brief 接收伤害的处理函数（绑定在OnTakeAnyDamage委托上）
@@ -1090,6 +1101,14 @@ void AXMBCharacterBase::ReloadButtonPressed()
 	if (CombatComponent)
 	{
 		CombatComponent->Reload();
+	}
+}
+
+void AXMBCharacterBase::GrenadeButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->ThrowGrenade();
 	}
 }
 

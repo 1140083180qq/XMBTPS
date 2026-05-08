@@ -77,6 +77,9 @@ public:
 	/** 霰弹枪装填动画跳转到结束Section的内部实现（不涉及网络） */
 	void JumpToShotgunEnd();
 
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
+
 protected:
 	/** 组件初始化 */
 	virtual void BeginPlay() override;
@@ -147,6 +150,21 @@ protected:
 	 */
 	int32 AmountToReload();
 
+	void ThrowGrenade();
+
+	UFUNCTION(Server,Reliable)
+	void ServerThrowGrenade();
+
+	void DropEquippedWeapon();
+
+	void AttachActorToRightHand(AActor* ActorToAttach);
+	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+
+	void PlayEquipWeaponSound();
+
+	void ReloadEmptyWeapon();
+	
 private:
 	/** 拥有此组件的角色指针 */
 	UPROPERTY()
@@ -285,3 +303,4 @@ public:
 	/** @return 是否按住开火按钮 */
 	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
 };
+

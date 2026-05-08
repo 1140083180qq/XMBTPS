@@ -222,6 +222,7 @@ void UCombatComponent::Reload()
 {
 	// 必须有备用弹药且当前未处于换弹状态才能发起换弹
 	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading && !EquippedWeapon->IsAmmoFull())
+	// if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Unoccupied && !EquippedWeapon->IsAmmoFull())
 	{
 		//判断当前弹夹是否为最大装填
 		
@@ -351,6 +352,40 @@ void UCombatComponent::JumpToShotgunEnd()
 	}
 }
 
+void UCombatComponent::ThrowGrenadeFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	AttachActorToRightHand(EquippedWeapon);
+}
+
+void UCombatComponent::ThrowGrenade()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Owner)
+	{
+		Owner->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
+	}
+	if (Owner && !Owner->HasAuthority())
+	{
+		ServerThrowGrenade();
+	}
+
+}
+
+
+
+void UCombatComponent::ServerThrowGrenade_Implementation()
+{
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Owner)
+	{
+		Owner->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
+	}
+}
+
 void UCombatComponent::MulticastJumpToShotgunEnd_Implementation()
 {
 	JumpToShotgunEnd();
@@ -453,33 +488,74 @@ int32 UCombatComponent::AmountToReload()
 void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 {
 	if (Owner == nullptr || WeaponToEquip == nullptr) return;
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	// 如果已经持有武器，先让旧武器掉落到地面
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->Dropped();
-	}
+	DropEquippedWeapon();
 
 	// 保存新武器引用并设置为"已装备"状态
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
-	// 将武器 Attach 到角色右手骨骼插槽
-	const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-	if (HandSocket)
-	{
-		HandSocket->AttachActor(EquippedWeapon, Owner->GetMesh());
-	}
+	AttachActorToRightHand(EquippedWeapon);
 
 	// SetOwner 是引擎内置的网络复制函数，
 	// 执行后不管Client还是Server都会同步 Owner 信息
 	EquippedWeapon->SetWeaponOwner(Owner);
 	EquippedWeapon->SetHUDAmmo(); // 更新HUD上显示的弹夹弹药数
 
+	UpdateCarriedAmmo();
+	PlayEquipWeaponSound();
+	ReloadEmptyWeapon();
+
+	// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
+	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Owner->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::DropEquippedWeapon()
+{
+	// 如果已经持有武器，先让旧武器掉落到地面
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+	}
+}
+
+void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach)
+{
+	if (Owner == nullptr || ActorToAttach == nullptr || Owner->GetMesh() == nullptr) return;
+	// 将武器 Attach 到角色右手骨骼插槽
+	const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	if (HandSocket)
+	{
+		HandSocket->AttachActor(ActorToAttach, Owner->GetMesh());
+	}
+}
+
+void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
+{
+	if (Owner == nullptr || ActorToAttach == nullptr || Owner->GetMesh() == nullptr || EquippedWeapon == nullptr) return;
+
+	//手枪与SMG冲锋枪
+	bool bUsePistolSocket = EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Pistol || EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SubmachineGun;
+	
+	// 将武器 Attach 到角色右手骨骼插槽
+	FName SocketName = bUsePistolSocket ? FName("PistolSocket") : FName("LeftHandSocket");
+	const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(SocketName);
+	if (HandSocket)
+	{
+		HandSocket->AttachActor(ActorToAttach, Owner->GetMesh());
+	}
+}
+
+void UCombatComponent::UpdateCarriedAmmo()
+{
+	if (EquippedWeapon == nullptr) return;
+	
 	// 从弹药映射表中获取该类型的备用弹药量并显示在HUD
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
-		CarriedAmmo = CarriedAmmoMap[WeaponToEquip->GetWeaponType()];
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 
 	// 更新HUD上的携带弹药数显示
@@ -488,25 +564,27 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	{
 		XMBController->SetHUDCarriedAmmo(CarriedAmmo);
 	}
+}
 
+void UCombatComponent::PlayEquipWeaponSound()
+{
 	// 播放装备音效
-	if (EquippedWeapon->EquipSound)
+	if (Owner && EquippedWeapon && EquippedWeapon->EquipSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(
 			this,
 			EquippedWeapon->EquipSound,
 			Owner->GetActorLocation());
 	}
+}
 
+void UCombatComponent::ReloadEmptyWeapon()
+{
 	// 如果装备时弹夹已空，自动触发换弹
-	if (EquippedWeapon->IsAmmoEmply())
+	if (EquippedWeapon && EquippedWeapon->IsAmmoEmply())
 	{
 		Reload();
 	}
-
-	// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
-	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Owner->bUseControllerRotationYaw = true;
 }
 
 /**
@@ -528,27 +606,16 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Owner)
 	{
-
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-		// 在客户端上将武器Attach到角色骨骼
-		const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-		if (HandSocket)
-		{
-			HandSocket->AttachActor(EquippedWeapon, Owner->GetMesh());
-		}
+		
+		AttachActorToRightHand(EquippedWeapon);
 
 		// 同步切换朝向模式
 		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Owner->bUseControllerRotationYaw = true;
 
 		// 播放装备音效
-		if (EquippedWeapon->EquipSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(
-				this,
-				EquippedWeapon->EquipSound,
-				Owner->GetActorLocation());
-		}
+		PlayEquipWeaponSound();
 	}
 }
 
@@ -604,6 +671,13 @@ void UCombatComponent::OnRep_CombatState()
 		if(bFireButtonPressed)
 		{
 			Fire();
+		}
+		break;
+	case ECombatState::ECS_ThrowingGrenade:
+		if (Owner && !Owner->IsLocallyControlled())
+		{
+			Owner->PlayThrowGrenadeMontage();
+			AttachActorToLeftHand(EquippedWeapon);
 		}
 		break;
 	}
@@ -760,10 +834,7 @@ void UCombatComponent::FireTimerFinished()
 	}
 
 	// 自动换弹：冷却结束时若弹夹为空，尝试换弹
-	if (GetEquippedWeapon()->IsAmmoEmply())
-	{
-		Reload();
-	}
+	ReloadEmptyWeapon();
 }
 
 /**
@@ -891,3 +962,4 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
 	}
 }
+
