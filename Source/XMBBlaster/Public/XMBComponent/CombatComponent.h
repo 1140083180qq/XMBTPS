@@ -12,6 +12,7 @@
 
 #include "CombatComponent.generated.h"
 
+class AProjectile;
 class AXMBCharacterBase;
 
 /** 射线检测长度（80000单位） */
@@ -79,6 +80,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
+
+	UFUNCTION(Reliable,Server)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 protected:
 	/** 组件初始化 */
@@ -164,6 +168,15 @@ protected:
 	void PlayEquipWeaponSound();
 
 	void ReloadEmptyWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void ShowAttachedGrenade(bool bShowGrenade);
+
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectile> GrenadeClass;
 	
 private:
 	/** 拥有此组件的角色指针 */
@@ -208,6 +221,8 @@ private:
 
 	/** 当前准心射线命中的目标位置 */
 	FVector HitTarget;
+
+	
 
 	/*
 	 * 控制开火

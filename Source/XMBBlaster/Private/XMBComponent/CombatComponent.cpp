@@ -22,6 +22,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Actor/Projectile.h"
 
 
 /**
@@ -221,7 +222,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 void UCombatComponent::Reload()
 {
 	// 必须有备用弹药且当前未处于换弹状态才能发起换弹
-	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading && !EquippedWeapon->IsAmmoFull())
+	if (CarriedAmmo > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon && !EquippedWeapon->IsAmmoFull())
 	// if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Unoccupied && !EquippedWeapon->IsAmmoFull())
 	{
 		//判断当前弹夹是否为最大装填
@@ -358,21 +359,24 @@ void UCombatComponent::ThrowGrenadeFinished()
 	AttachActorToRightHand(EquippedWeapon);
 }
 
+
+
 void UCombatComponent::ThrowGrenade()
 {
-	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	if (CombatState != ECombatState::ECS_Unoccupied || EquippedWeapon == nullptr) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Owner)
 	{
 		Owner->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
+		ShowAttachedGrenade(true);
 	}
 	if (Owner && !Owner->HasAuthority())
 	{
 		ServerThrowGrenade();
 	}
-
 }
+
 
 
 
@@ -383,6 +387,15 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	{
 		Owner->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
+		ShowAttachedGrenade(true);
+	}
+}
+
+void UCombatComponent::ShowAttachedGrenade(bool bShowGrenade)
+{
+	if (Owner && Owner->GetAttachedGrenade())
+	{
+		Owner->GetAttachedGrenade()->SetVisibility(bShowGrenade);
 	}
 }
 
@@ -587,6 +600,8 @@ void UCombatComponent::ReloadEmptyWeapon()
 	}
 }
 
+
+
 /**
  * @brief 装备武器变化的网络回调 - 当 EquippedWeapon 在服务器端被修改时，客户端自动调用
  *
@@ -659,6 +674,7 @@ void UCombatComponent::OnRep_CarriedAmmo()
  *   如果换弹结束时开火按钮仍被按住，自动恢复开火（无缝衔接）
  *   这保证了换弹后的操作连续性
  */
+//TODO:修复此处的bug，问题出现在当玩家受到伤害后，state会自动变成reloading
 void UCombatComponent::OnRep_CombatState()
 {
 	switch (CombatState)
@@ -678,11 +694,42 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Owner->PlayThrowGrenadeMontage();
 			AttachActorToLeftHand(EquippedWeapon);
+			ShowAttachedGrenade(true);
 		}
 		break;
 	}
 }
 
+
+void UCombatComponent::LaunchGrenade()
+{
+	ShowAttachedGrenade(false);
+	if (Owner && Owner->IsLocallyControlled())
+	{
+		ServerLaunchGrenade(HitTarget);
+	} 
+}
+
+void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target)
+{
+	if (Owner && GrenadeClass && Owner->GetAttachedGrenade())
+	{
+		const FVector StartingLocation = Owner->GetAttachedGrenade()->GetComponentLocation();
+		FVector ToTarget = Target - StartingLocation;//获取手雷丢出的朝向
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = Owner;
+		SpawnParams.Instigator = Owner;
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			World->SpawnActor<AProjectile>(
+				GrenadeClass,
+				StartingLocation,
+				ToTarget.Rotation(),
+				SpawnParams);
+		}
+	}
+}
 
 
 /**

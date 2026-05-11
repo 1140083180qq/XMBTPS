@@ -45,6 +45,7 @@ public:
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
+	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	/*XMBUITEST*/
 	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
 	/*XMBUITEST*/
@@ -261,6 +262,13 @@ private:
 
 	UPROPERTY()
 	AXMBPlayerState* XMBPlayerState;
+
+	/*
+	 * Grenade
+	 */
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* AttachedGrenade;
 	
 };
 

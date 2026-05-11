@@ -83,6 +83,10 @@ AXMBCharacterBase::AXMBCharacterBase()
 
 	// 始终更新动画姿态和骨骼，即使角色在屏幕外（保证Simulated Proxy动画准确）
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+
+	AttachedGrenade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
+	AttachedGrenade->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 /**
@@ -105,6 +109,11 @@ void AXMBCharacterBase::BeginPlay()
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &AXMBCharacterBase::ReceiveDamage);
+	}
+
+	if (AttachedGrenade)
+	{
+		AttachedGrenade->SetVisibility(false);
 	}
 }
 
