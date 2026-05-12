@@ -45,6 +45,8 @@ UCombatComponent::UCombatComponent()
 }
 
 
+
+
 /**
  * @brief 组件初始化 - 在游戏开始时调用
  *
@@ -688,6 +690,22 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	}
 }
 
+//TODO:了解一下控制器与HUD，为什么需要通过获取控制器来更新HUD，有什么方便的作用吗
+void UCombatComponent::PickupAmmo(EWeaponType InWeaponType, int32 AmmoAmount)
+{
+	if (CarriedAmmoMap.Contains(InWeaponType))
+	{
+		CarriedAmmoMap[InWeaponType] = FMath::Clamp(CarriedAmmoMap[InWeaponType] + AmmoAmount, 0, MaxCarriedAmmo);
+
+		UpdateCarriedAmmo();
+	}
+
+	if (EquippedWeapon && EquippedWeapon->IsAmmoEmply() && EquippedWeapon->GetWeaponType() == InWeaponType)
+	{
+		Reload();
+	}
+}
+
 /**
  * @brief 战斗状态变化的网络回调 - 当 CombatState 在服务器端被修改时调用
  *
@@ -852,6 +870,7 @@ void UCombatComponent::ServerSetShoulderAiming_Implementation(bool bIsShoulderAi
 		Owner->GetCharacterMovement()->MaxWalkSpeed = bIsShoulderAiming ? ShoulderAimWalkSpeed : BaseWalkSpeed;
 	}
 }
+
 
 
 

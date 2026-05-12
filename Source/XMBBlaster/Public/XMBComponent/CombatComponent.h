@@ -84,6 +84,8 @@ public:
 	UFUNCTION(Reliable,Server)
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
+	void PickupAmmo(EWeaponType InWeaponType, int32 AmmoAmount);
+
 protected:
 	/** 组件初始化 */
 	virtual void BeginPlay() override;
@@ -291,6 +293,9 @@ private:
 
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere)
+	int32 MaxCarriedAmmo = 999;
 
 	/** 初始化角色所携带各武器类型的弹药数量 */
 	void InitializeCarriedAmmo();
