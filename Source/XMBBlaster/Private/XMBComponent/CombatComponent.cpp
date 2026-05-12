@@ -118,6 +118,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	// COND_OwnerOnly: 仅向拥有此组件的客户端同步，不广播给其他玩家（节省带宽+安全考虑）
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UCombatComponent, CombatState);
+	DOREPLIFETIME(UCombatComponent, Grenades);
 
 }
 
@@ -342,6 +343,8 @@ void UCombatComponent::UpdateShotgunAmmoValues()
 	}
 }
 
+
+
 void UCombatComponent::JumpToShotgunEnd()
 {
 	// ★ 纯本地动画操作：调用 Character 的 SniperReload 执行 Montage_JumpToSection
@@ -363,6 +366,7 @@ void UCombatComponent::ThrowGrenadeFinished()
 
 void UCombatComponent::ThrowGrenade()
 {
+	if (Grenades == 0) return;
 	if (CombatState != ECombatState::ECS_Unoccupied || EquippedWeapon == nullptr) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Owner)
@@ -375,13 +379,25 @@ void UCombatComponent::ThrowGrenade()
 	{
 		ServerThrowGrenade();
 	}
+	
+	if (Owner && Owner->HasAuthority())
+	{
+		
+	}
 }
 
-
-
+void UCombatComponent::UpdateHUDGrenades()
+{
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDGrenades(Grenades);
+	}
+}
 
 void UCombatComponent::ServerThrowGrenade_Implementation()
 {
+	if (Grenades == 0) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Owner)
 	{
@@ -389,6 +405,14 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 		AttachActorToLeftHand(EquippedWeapon);
 		ShowAttachedGrenade(true);
 	}
+	Grenades = FMath::Clamp(Grenades - 1, 0, MaxGrenades);
+	UpdateHUDGrenades();
+}
+
+
+void UCombatComponent::OnRep_Grenades()
+{
+	UpdateHUDGrenades();
 }
 
 void UCombatComponent::ShowAttachedGrenade(bool bShowGrenade)
@@ -674,7 +698,7 @@ void UCombatComponent::OnRep_CarriedAmmo()
  *   如果换弹结束时开火按钮仍被按住，自动恢复开火（无缝衔接）
  *   这保证了换弹后的操作连续性
  */
-//TODO:修复此处的bug，问题出现在当玩家受到伤害后，state会自动变成reloading
+//TODO:修复此处的bug，问题出现在当玩家受到伤害后，state会自动变成reloading//检查函数ServerThrowGrenade_Implementation
 void UCombatComponent::OnRep_CombatState()
 {
 	switch (CombatState)
@@ -751,6 +775,8 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher, StartingGrenadeLauncherAmmo);
 }
+
+
 
 /**
  * @brief 设置正常瞄准状态

@@ -47,6 +47,8 @@ public:
 	void SetbIsChange(bool InChange) { bIsChange = InChange; }
 	/*XMBUITEST*/
 
+	
+
 protected:
 	/** 组件初始化 */
 	virtual void BeginPlay() override;
@@ -134,5 +136,7 @@ private:
 	
 	/** 是否为本地控制器拥有的角色（仅本地玩家需要更新准心和FOV） */
 	bool bIsLocalControllered = false;
+
+	
 
 };

@@ -368,6 +368,23 @@ void AXMBPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 	}
 }
 
+void AXMBPlayerController::SetHUDGrenades(int32 Grenades)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	bool bHUDValid = XMBHUD 
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->GrenadeText;
+	if(bHUDValid)
+	{
+		FString GrenadesText = FString::Printf(TEXT("%d"),Grenades);
+		XMBHUD->CharacterOverlayWidget->GrenadeText->SetText(FText::FromString(GrenadesText));
+	}
+	else
+	{
+		HUDGrenades = Grenades;
+	}
+}
+
 /**
  * @brief 检查是否需要进行服务器时间同步
  * @param DeltaSeconds - 本帧的时间增量
@@ -601,6 +618,13 @@ void AXMBPlayerController::PollInit()
 				SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
 				SetHUDScore(HUDScore);                   // 恢复分数显示
 				SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
+
+				AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(GetPawn());
+				if (BlasterCharacter && BlasterCharacter->GetCombatComponent())
+				{
+					// SetHUDGrenades(HUDGrenades);
+					SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
+				}
 			}
 		}
 	}

@@ -628,6 +628,8 @@ void AXMBCharacterBase::SniperReload(FName SectionName, bool bIsSniper)
 void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatorController, AActor* DmaageCauser)
 {
+	if (bElimmed) return;
+	
 	// 扣减生命值并限制在[0, MaxHealth]范围内
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	

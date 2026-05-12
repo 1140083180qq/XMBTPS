@@ -325,3 +325,4 @@ void UUIComponent::InterpFOV(float DeltaTime)
 		Owner->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
+

@@ -283,11 +283,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 StartingGrenadeLauncherAmmo = 0;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
+	int32 Grenades = 20;
+	
+	UPROPERTY(EditAnywhere)
+	int32 MaxGrenades = 98;
+
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	/** 初始化角色所携带各武器类型的弹药数量 */
 	void InitializeCarriedAmmo();
+
+	UFUNCTION()
+	void OnRep_Grenades();
 
 	/** 当前战斗状态（空闲/换弹等） */
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
@@ -301,6 +310,8 @@ private:
 	void UpdateAmmoValues();
 
 	void UpdateShotgunAmmoValues();
+
+	void UpdateHUDGrenades();
 
 	/** 霰弹枪装填防重入：记录上一次成功执行 UpdateShotgunAmmoValues 的帧号 */
 	int64 ShotgunReloadFrameCounter = -1;
@@ -317,5 +328,7 @@ public:
 	
 	/** @return 是否按住开火按钮 */
 	FORCEINLINE bool IsFireButtonPressed() const { return bFireButtonPressed; }
+
+	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 };
 

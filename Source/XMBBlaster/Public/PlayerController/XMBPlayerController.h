@@ -30,6 +30,7 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);//设置鞋带的子弹
 	void SetHUDMatchCountdown(float CountdownTime);//设置比赛计时
 	void SetHUDAnnouncementCountdown(float CountdownTime);//设置热身时的计时
+	void SetHUDGrenades(int32 Grenades);
 
 	virtual float GetServerTime();//本地与服务器的延迟(因为请求发送返回都需要时间)
 	virtual void ReceivedPlayer() override;//从本地客户端中获取到时间
@@ -99,6 +100,7 @@ private:
 	float HUDMaxHealth;
 	float HUDScore;
 	int32 HUDDefeats;
+	int32 HUDGrenades;
 
 	UPROPERTY()
 	ABlasterGameMode* BlasterGameMode;
