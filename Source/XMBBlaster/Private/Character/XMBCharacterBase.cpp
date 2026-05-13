@@ -645,8 +645,12 @@ void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	
 	UpdateHUDHealth();       // 同步HUD显示
-	PlayHitReactMontage();   // 播放受击动画
 
+	if (GetCombatState() != ECombatState::ECS_Reloading)
+	{
+		PlayHitReactMontage();   // 播放受击动画
+	}
+	
 	// 生命值归零 → 触发淘汰流程
 	if (Health == 0.f)
 	{

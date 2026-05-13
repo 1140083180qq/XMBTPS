@@ -716,7 +716,7 @@ void UCombatComponent::PickupAmmo(EWeaponType InWeaponType, int32 AmmoAmount)
  *   如果换弹结束时开火按钮仍被按住，自动恢复开火（无缝衔接）
  *   这保证了换弹后的操作连续性
  */
-//TODO:修复此处的bug，问题出现在当玩家受到伤害后，state会自动变成reloading//检查函数ServerThrowGrenade_Implementation
+//TODO:修复此处的bug，当玩家正在换弹时，玩家受到伤害后，无法再正常开火。
 void UCombatComponent::OnRep_CombatState()
 {
 	switch (CombatState)
