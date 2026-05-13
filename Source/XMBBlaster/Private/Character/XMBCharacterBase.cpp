@@ -210,6 +210,8 @@ void AXMBCharacterBase::PostInitializeComponents()
 	if (BuffComponent)
 	{
 		BuffComponent->Owner = this;
+		BuffComponent->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed, GetCharacterMovement()->MaxWalkSpeedCrouched);
+		BuffComponent->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
 	}
 }
 

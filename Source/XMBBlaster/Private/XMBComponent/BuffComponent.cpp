@@ -3,7 +3,7 @@
 #include "XMBComponent/BuffComponent.h"
 
 #include "Character/XMBCharacterBase.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
 
 UBuffComponent::UBuffComponent()
 {
@@ -47,5 +47,92 @@ void UBuffComponent::HealRampUp(float DeltaTime)
 		bHealing = false;
 		AmountToHeal = 0.f;
 	}
-	
+}
+
+
+void UBuffComponent::SetInitialSpeeds(float BaseSpeed, float CrouchSpeed)
+{
+	InitialBaseSpeed = BaseSpeed;
+	InitialCrouchSpeed = CrouchSpeed;
+}
+
+
+void UBuffComponent::SpeedBuff(float InBuffBaseSpeed, float InBuffCrouchSpeed, float InBuffTime)
+{
+	if (Owner == nullptr) return;
+
+	Owner->GetWorldTimerManager().SetTimer(
+		SpeedBuffTimer,
+		this,
+		&UBuffComponent::ResetSpeeds,
+		InBuffTime);
+
+	if (Owner->GetCharacterMovement())
+	{
+		Owner->GetCharacterMovement()->MaxWalkSpeed = InBuffBaseSpeed;
+		Owner->GetCharacterMovement()->MaxWalkSpeedCrouched = InBuffCrouchSpeed;
+	}
+	MulticastSpeedBuff(InBuffBaseSpeed,InBuffCrouchSpeed);
+}
+
+
+void UBuffComponent::MulticastSpeedBuff_Implementation(float InBuffBaseSpeed, float InBuffCrouchSpeed)
+{
+	if (Owner->GetCharacterMovement() && Owner)
+	{
+		Owner->GetCharacterMovement()->MaxWalkSpeed = InBuffBaseSpeed;
+		Owner->GetCharacterMovement()->MaxWalkSpeedCrouched = InBuffCrouchSpeed;
+	}
+}
+
+
+void UBuffComponent::ResetSpeeds()
+{
+	if (Owner == nullptr || Owner->GetCharacterMovement() == nullptr) return;
+
+	Owner->GetCharacterMovement()->MaxWalkSpeed = InitialBaseSpeed;
+	Owner->GetCharacterMovement()->MaxWalkSpeedCrouched = InitialCrouchSpeed;
+	MulticastSpeedBuff(InitialBaseSpeed,InitialCrouchSpeed);
+}
+
+
+void UBuffComponent::SetInitialJumpVelocity(float ZVelocity)
+{
+	InitialJumpVelocity = ZVelocity;
+}
+
+
+void UBuffComponent::JumpBuff(float InBuffJumpVelocity, float InBuffTime)
+{
+	if (Owner == nullptr) return;
+
+	Owner->GetWorldTimerManager().SetTimer(
+		JumpBuffTimer,
+		this,
+		&UBuffComponent::ResetJumpZVelocity,
+		InBuffTime);
+
+	if (Owner->GetCharacterMovement())
+	{
+		Owner->GetCharacterMovement()->JumpZVelocity = InBuffJumpVelocity;
+	}
+	MulticastJumpBuff_Implementation(InBuffJumpVelocity);
+}
+
+void UBuffComponent::MulticastJumpBuff_Implementation(float InBuffJumpVelocity)
+{
+	if (Owner->GetCharacterMovement() && Owner)
+	{
+		Owner->GetCharacterMovement()->JumpZVelocity = InBuffJumpVelocity;
+	}
+}
+
+
+void UBuffComponent::ResetJumpZVelocity()
+{
+	if (Owner->GetCharacterMovement() && Owner)
+	{
+		Owner->GetCharacterMovement()->JumpZVelocity = InitialJumpVelocity;
+	}
+	MulticastJumpBuff_Implementation(InitialJumpVelocity);
 }
