@@ -155,6 +155,8 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION(AXMBCharacterBase, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AXMBCharacterBase, Health);
 	DOREPLIFETIME(AXMBCharacterBase, MaxHealth);
+	DOREPLIFETIME(AXMBCharacterBase, Shield);
+	DOREPLIFETIME(AXMBCharacterBase, MaxShield);
 	// DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
 }
 
@@ -779,8 +781,22 @@ void AXMBCharacterBase::OnRep_Health(float LastHealth)
 	}
 }
 
+
+void AXMBCharacterBase::OnRep_Shield(float LastShield)
+{
+	UpdateHUDShield();
+	if (Shield < LastShield)
+	{
+		PlayHitReactMontage();
+	}
+}
+
+
 /** @brief 最大生命值变化的网络回调（预留扩展） */
 void AXMBCharacterBase::OnRep_MaxHealth()
+{
+}
+void AXMBCharacterBase::OnRep_MaxShield()
 {
 }
 
@@ -799,6 +815,16 @@ void AXMBCharacterBase::UpdateHUDHealth()
 	{
 		// 将当前生命值和最大生命值传给Controller去更新HUD Widget
 		XMBPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
+void AXMBCharacterBase::UpdateHUDShield()
+{
+	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
+	if (XMBPlayerController)
+	{
+		// 将当前生命值和最大生命值传给Controller去更新HUD Widget
+		XMBPlayerController->SetHUDShield(Shield, MaxShield);
 	}
 }
 

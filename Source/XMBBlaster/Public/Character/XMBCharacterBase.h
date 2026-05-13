@@ -87,6 +87,9 @@ public:
 
 	UFUNCTION()
 	void UpdateHUDHealth();
+
+	UFUNCTION()
+	void UpdateHUDShield();
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -214,11 +217,23 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player States")
 	float Health = 100.f;
 
+	UPROPERTY(ReplicatedUsing = OnRep_MaxShield,VisibleAnywhere,Category = "Player States")
+	float MaxShield = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Shield, VisibleAnywhere, Category = "Player States")
+	float Shield = 100.f;
+
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
 	UFUNCTION()
 	void OnRep_MaxHealth();
+
+	UFUNCTION()
+	void OnRep_Shield(float LastShield);
+
+	UFUNCTION()
+	void OnRep_MaxShield();
 
 	UPROPERTY()
 	AXMBPlayerController* XMBPlayerController;

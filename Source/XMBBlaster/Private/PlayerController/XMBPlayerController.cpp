@@ -143,6 +143,32 @@ void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	}
 }
 
+void AXMBPlayerController::SetHUDShield(float Shield, float MaxShield)
+{
+	// 惰性获取或复用缓存的 HUD 引用
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+
+	// 验证 HUD 及其子 Widget 是否全部有效（链式空指针检查）
+	bool bHUDValid = XMBHUD &&XMBHUD->CharacterOverlayWidget &&
+			XMBHUD->CharacterOverlayWidget->ShieldBar && XMBHUD->CharacterOverlayWidget->ShieldText;
+	if (bHUDValid)
+	{
+		// 计算血量百分比并设置到 ProgressBar 组件
+		const float HealthPercent = Shield / MaxShield;
+		XMBHUD->CharacterOverlayWidget->ShieldBar->SetPercent(HealthPercent);
+		// 格式化文字为 "当前/最大" 形式（向上取整避免显示0血时的误导）
+		FString ShieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		XMBHUD->CharacterOverlayWidget->ShieldText->SetText(FText::FromString(ShieldText));
+	}
+	else
+	{
+		// Widget 尚未创建完成，暂存数值等待 PollInit 延迟重试
+		bInitializeCharcterOverlay = true;
+		HUdShield = Shield;
+		HUDMaxShield = MaxShield;
+	}
+}
+
 /**
  * @brief 更新HUD上的得分显示
  * @param Score - 当前分数
@@ -616,6 +642,7 @@ void AXMBPlayerController::PollInit()
 			{
 				// 使用之前暂存的值恢复所有 HUD 数据
 				SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
+				SetHUDShield(HUdShield,HUDMaxShield);//盾量
 				SetHUDScore(HUDScore);                   // 恢复分数显示
 				SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
 

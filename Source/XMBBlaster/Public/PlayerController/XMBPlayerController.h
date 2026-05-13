@@ -24,6 +24,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void SetHUDHealth(float Health, float MaxHealth);//设置生命
+	void SetHUDShield(float Shield, float MaxShield);
 	void SetHUDScore(float Score);//设置得分
 	void SetHUDDefeats(int32 Defeats);//设置击败数
 	void SetHUDWeaponAmmo(int32 Ammo);//设置武器子弹
@@ -98,9 +99,11 @@ private:
 
 	float HUdHealth;
 	float HUDMaxHealth;
-	float HUDScore;
-	int32 HUDDefeats;
+	float HUDScore;//击杀
+	int32 HUDDefeats;//死亡
 	int32 HUDGrenades;
+	float HUdShield;
+	float HUDMaxShield;
 
 	UPROPERTY()
 	ABlasterGameMode* BlasterGameMode;
