@@ -6,6 +6,8 @@
 #include "PickupActorBase.generated.h"
 
 class USphereComponent;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class XMBBLASTER_API APickupActorBase : public AActor
@@ -36,6 +38,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* PickupMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	UNiagaraComponent* PickupEffectComponent;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* PickupEffect;
 
 };
 

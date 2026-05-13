@@ -14,6 +14,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "XMBBlaster/XMBBlaster.h"
+#include "Sound/SoundCue.h"
+#include "XMBComponent/BuffComponent.h"
 
 
 /**
@@ -87,6 +89,9 @@ AXMBCharacterBase::AXMBCharacterBase()
 	AttachedGrenade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
 	AttachedGrenade->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
 	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
+	BuffComponent->SetIsReplicated(true);
 }
 
 /**
@@ -201,6 +206,10 @@ void AXMBCharacterBase::PostInitializeComponents()
 	if (UIComponent)
 	{
 		UIComponent->Owner = this;
+	}
+	if (BuffComponent)
+	{
+		BuffComponent->Owner = this;
 	}
 }
 
@@ -755,10 +764,13 @@ void AXMBCharacterBase::OnRep_ReplicatedMovement()
 
 
 /** @brief 生命值变化的网络回调：更新HUD + 播放受击动画 */
-void AXMBCharacterBase::OnRep_Health()
+void AXMBCharacterBase::OnRep_Health(float LastHealth)
 {
 	UpdateHUDHealth();
-	PlayHitReactMontage();
+	if (Health < LastHealth)
+	{
+		PlayHitReactMontage();
+	}
 }
 
 /** @brief 最大生命值变化的网络回调（预留扩展） */

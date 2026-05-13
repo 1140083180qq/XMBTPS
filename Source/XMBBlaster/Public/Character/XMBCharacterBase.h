@@ -14,6 +14,7 @@
 
 #include "XMBCharacterBase.generated.h"
 
+class UBuffComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class UCombatComponent;
@@ -41,13 +42,15 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE void SetHealth(float Amount) { Health = Amount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
-	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	/*XMBUITEST*/
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
+	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	/*XMBUITEST*/
 	/*--------- RELOADTEST----------*/
 	void SniperReload(FName SectionName, bool bIsSniper);
@@ -81,6 +84,9 @@ public:
 	//设置狙击枪开镜
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
+
+	UFUNCTION()
+	void UpdateHUDHealth();
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -124,8 +130,7 @@ protected:
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
 
-	UFUNCTION()
-	void UpdateHUDHealth();
+	
 
 	/*
 	 * 此处要放在Tick内，因为无法及时更新HUD。TODO:尝试使用计时器
@@ -152,6 +157,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UUIComponent* UIComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UBuffComponent* BuffComponent;
 
 	UFUNCTION(Server,Reliable)//需要了解RPC的可靠与不可靠执行，出现不可靠执行的几种情形。知道解决不可靠执行的几种办法。
 	void ServerEquipButtonPressed();
@@ -207,7 +215,7 @@ private:
 	float Health = 100.f;
 
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float LastHealth);
 
 	UFUNCTION()
 	void OnRep_MaxHealth();
