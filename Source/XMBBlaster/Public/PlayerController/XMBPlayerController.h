@@ -105,6 +105,12 @@ private:
 	float HUdShield;
 	float HUDMaxShield;
 
+	bool bInitializeHealth = false;
+	bool bInitializeScore = false;
+	bool bInitializeDefeats = false;
+	bool bInitializeGrenades = false;
+	bool bInitializeShield = false;
+
 	UPROPERTY()
 	ABlasterGameMode* BlasterGameMode;
 	

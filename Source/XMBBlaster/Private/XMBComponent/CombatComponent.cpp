@@ -358,6 +358,18 @@ void UCombatComponent::JumpToShotgunEnd()
 	}
 }
 
+
+void UCombatComponent::UpdateHUDGrenades()
+{
+	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
+	if (XMBController)
+	{
+		XMBController->SetHUDGrenades(Grenades);
+	}
+}
+
+
+//TODO:当player处于reloading时，使用这个手雷会不会有影响
 void UCombatComponent::ThrowGrenadeFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
@@ -365,13 +377,13 @@ void UCombatComponent::ThrowGrenadeFinished()
 }
 
 
-
 void UCombatComponent::ThrowGrenade()
 {
 	if (Grenades == 0) return;
 	if (CombatState != ECombatState::ECS_Unoccupied || EquippedWeapon == nullptr) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
-	if (Owner)
+	bGrenadeLaunched = false;  // 重置发射标记：手雷尚未 Spawn
+	if (Owner && Owner->IsLocallyControlled())
 	{
 		Owner->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
@@ -384,16 +396,8 @@ void UCombatComponent::ThrowGrenade()
 	
 	if (Owner && Owner->HasAuthority())
 	{
-		
-	}
-}
-
-void UCombatComponent::UpdateHUDGrenades()
-{
-	XMBController = XMBController == nullptr ? Cast<AXMBPlayerController>(Owner->Controller) : XMBController;
-	if (XMBController)
-	{
-		XMBController->SetHUDGrenades(Grenades);
+		Grenades = FMath::Clamp(Grenades - 1, 0, MaxGrenades);
+		UpdateHUDGrenades();
 	}
 }
 
@@ -401,6 +405,7 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 {
 	if (Grenades == 0) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
+	bGrenadeLaunched = false;  // 重置发射标记：手雷尚未 Spawn
 	if (Owner)
 	{
 		Owner->PlayThrowGrenadeMontage();
@@ -410,6 +415,8 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	Grenades = FMath::Clamp(Grenades - 1, 0, MaxGrenades);
 	UpdateHUDGrenades();
 }
+
+
 
 
 void UCombatComponent::OnRep_Grenades()
@@ -716,7 +723,7 @@ void UCombatComponent::PickupAmmo(EWeaponType InWeaponType, int32 AmmoAmount)
  *   如果换弹结束时开火按钮仍被按住，自动恢复开火（无缝衔接）
  *   这保证了换弹后的操作连续性
  */
-//TODO:修复此处的bug，当玩家正在换弹时，玩家受到伤害后，无法再正常开火。
+//TODO:修复此处的bug，玩家拾取武器,被手雷炸了之后就无法进行任何操作
 void UCombatComponent::OnRep_CombatState()
 {
 	switch (CombatState)
@@ -740,6 +747,7 @@ void UCombatComponent::OnRep_CombatState()
 		}
 		break;
 	}
+	
 }
 
 
@@ -769,6 +777,7 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 				StartingLocation,
 				ToTarget.Rotation(),
 				SpawnParams);
+			bGrenadeLaunched = true;  // 手雷已实际生成，标记为已发射
 		}
 	}
 }

@@ -291,6 +291,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 MaxGrenades = 98;
 
+	/** 手雷发射标记：LaunchGrenade AnimNotify 触发后设为 true
+	 *  用于受击打断时判断是否需要补偿手雷数量：
+	 *  - false = 手雷尚未 Spawn → 需要补偿 Grenades+=1
+	 *  - true  = 手雷已 Spawn   → 不补偿（手雷已实际生成）
+	 */
+	bool bGrenadeLaunched = false;
+
 	/** 不同武器类型与其对应携带弹药数量的映射表 */
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 

@@ -109,6 +109,7 @@ void AXMBCharacterBase::BeginPlay()
 	Super::BeginPlay();
 
 	UpdateHUDHealth();  // 初始化时将当前生命值同步到HUD
+	UpdateHUDShield();
 	
 	// 仅服务器绑定伤害事件，确保伤害计算的权威性
 	if (HasAuthority())
@@ -536,7 +537,42 @@ void AXMBCharacterBase::PlayHitReactMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 
+	// ★ 受击中断保护 [核心修复位置]
+	//   PlayHitReactMontage 是唯一入口，被3处调用：
+	//   ① ReceiveDamage()       - 服务器端处理伤害
+	//   ② OnRep_Health()        - 客户端收到生命值变化
+	//   ③ OnRep_Shield()        - 客户端收到护盾值变化
+	//
+	//   Montage_Play(HitReactMontage) 会替换当前正在播放的 Montage，
+	//   导致其 AnimNotify（ThrowGrenadeFinished / FinishReloading）永远不触发 →
+	//   CombatState 永久锁死 → 玩家无法操作。
+	//
+	//   必须在替换 Montage 前强制恢复非空闲状态，且此逻辑必须在
+	//   PlayHitReactMontage 内部而非调用方，才能覆盖所有3个调用路径！
+	if (CombatComponent->CombatState == ECombatState::ECS_ThrowingGrenade)
+	{
+		// 手雷投掷被打断：恢复空闲 + 武器回右手
+		CombatComponent->ThrowGrenadeFinished();
+		// 仅在手雷尚未实际 Spawn 时才补偿数量
+		// bGrenadeLaunched 由 ServerLaunchGrenade_Implementation 在手雷生成后置 true
+		if (!CombatComponent->bGrenadeLaunched)
+		{
+			// ThrowGrenade/ServerThrowGrenade 已执行 Grenades-=1，
+			// 但 LaunchGrenade 的 AnimNotify 不会触发 → 手雷不会 Spawn
+			CombatComponent->Grenades = FMath::Clamp(CombatComponent->Grenades + 1, 0, CombatComponent->MaxGrenades);
+			CombatComponent->UpdateHUDGrenades();  // Replicated变量同步到所有客户端
+		}
+	}
+	else if (CombatComponent->CombatState == ECombatState::ECS_Reloading)
+	{
+		// 换弹被打断：仅重置状态为空闲
+		CombatComponent->CombatState = ECombatState::ECS_Unoccupied;
+	}
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	//TODO:停止玩家当前的蒙太奇动画
+	
 	if (AnimInstance && HitReactMontage)
 	{
 		AnimInstance->Montage_Play(HitReactMontage);
@@ -642,16 +678,33 @@ void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	AController* InstigatorController, AActor* DmaageCauser)
 {
 	if (bElimmed) return;
+
+	float DamageToHealth = Damage;
+
+	if (Shield > 0.f)
+	{
+		if (Shield >= Damage)
+		{
+			Shield = FMath::Clamp(Shield - Damage, 0.f, MaxShield);
+			DamageToHealth = 0;
+		}
+		else
+		{
+			Shield = 0.f;
+			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
+		}
+	}
+	
 	
 	// 扣减生命值并限制在[0, MaxHealth]范围内
-	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
 	
 	UpdateHUDHealth();       // 同步HUD显示
+	UpdateHUDShield();
 
-	if (GetCombatState() != ECombatState::ECS_Reloading)
-	{
-		PlayHitReactMontage();   // 播放受击动画
-	}
+
+	PlayHitReactMontage();   // 播放受击动画（内部含非空闲状态恢复保护）
+	
 	
 	// 生命值归零 → 触发淘汰流程
 	if (Health == 0.f)

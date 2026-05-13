@@ -96,10 +96,9 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 	CheckTimeSync(DeltaSeconds); // 检查时间同步
 
 	// 如果 CharacterOverlayWidget 还没准备好，每帧尝试初始化
-	if (bInitializeCharcterOverlay)
-	{
+	// if (bInitializeCharcterOverlay)
 		PollInit();
-	}
+	// }
 }
 
 
@@ -137,7 +136,8 @@ void AXMBPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	else
 	{
 		// Widget 尚未创建完成，暂存数值等待 PollInit 延迟重试
-		bInitializeCharcterOverlay = true;
+		// bInitializeCharcterOverlay = true;
+		bInitializeHealth = true;
 		HUdHealth = Health;
 		HUDMaxHealth = MaxHealth;
 	}
@@ -163,7 +163,7 @@ void AXMBPlayerController::SetHUDShield(float Shield, float MaxShield)
 	else
 	{
 		// Widget 尚未创建完成，暂存数值等待 PollInit 延迟重试
-		bInitializeCharcterOverlay = true;
+		bInitializeShield = true;
 		HUdShield = Shield;
 		HUDMaxShield = MaxShield;
 	}
@@ -190,7 +190,7 @@ void AXMBPlayerController::SetHUDScore(float Score)
 	}
 	else
 	{
-		bInitializeCharcterOverlay = true;
+		bInitializeScore = true;
 		HUDScore = Score; // 暂存分数值
 	}
 	
@@ -213,7 +213,7 @@ void AXMBPlayerController::SetHUDDefeats(int32 Defeats)
 	}
 	else
 	{
-		bInitializeCharcterOverlay = true;
+		bInitializeDefeats = true;
 		HUDDefeats = Defeats;
 	}
 }
@@ -407,6 +407,7 @@ void AXMBPlayerController::SetHUDGrenades(int32 Grenades)
 	}
 	else
 	{
+		bInitializeGrenades = true;
 		HUDGrenades = Grenades;
 	}
 }
@@ -641,16 +642,20 @@ void AXMBPlayerController::PollInit()
 			if (CharacterOverlayWidget)
 			{
 				// 使用之前暂存的值恢复所有 HUD 数据
-				SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
-				SetHUDShield(HUdShield,HUDMaxShield);//盾量
-				SetHUDScore(HUDScore);                   // 恢复分数显示
-				SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
+				// if (bInitializeHealth) SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
+				// if (bInitializeShield) SetHUDShield(HUdShield,HUDMaxShield);//盾量
+				if (bInitializeScore) SetHUDScore(HUDScore);                   // 恢复分数显示
+				if (bInitializeDefeats) SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
 
+				SetHUDHealth(HUdHealth, HUDMaxHealth);
+				SetHUDShield(HUdShield,HUDMaxShield);
+
+				
 				AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(GetPawn());
 				if (BlasterCharacter && BlasterCharacter->GetCombatComponent())
 				{
 					// SetHUDGrenades(HUDGrenades);
-					SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
+					if (bInitializeGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
 				}
 			}
 		}
