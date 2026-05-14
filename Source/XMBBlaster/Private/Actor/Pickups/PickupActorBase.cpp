@@ -45,7 +45,10 @@ void APickupActorBase::BeginPlay()
 
 	if (HasAuthority())
 	{
-		OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APickupActorBase::OnSphereOverlap);
+		GetWorldTimerManager().SetTimer(BindOverlapTimer,
+			this,
+			&APickupActorBase::BindOverlapTimerFinished,
+			BindOverlapTime);
 	}
 }
 
@@ -63,6 +66,11 @@ void APickupActorBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	
+}
+
+void APickupActorBase::BindOverlapTimerFinished()
+{
+	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APickupActorBase::OnSphereOverlap);
 }
 
 void APickupActorBase::Destroyed()
