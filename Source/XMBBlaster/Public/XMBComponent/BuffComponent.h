@@ -26,11 +26,13 @@ public:
 
 	void JumpBuff(float InBuffJumpVelocity, float InBuffTime);
 	void SetInitialJumpVelocity(float ZVelocity);
-	
+
+	void ReplenishShield(float InShieldAmount, float InReplenishTime);
 	
 protected:
 	virtual void BeginPlay() override;
 	void HealRampUp(float DeltaTime);
+	void ShieldRampUp(float DeltaTime);
 	
 private:
 
@@ -68,4 +70,13 @@ private:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastJumpBuff(float InBuffJumpVelocity);
+
+	/*
+	 * Shield Buff
+	 */
+
+	bool bReplenishingShield = false;
+	float ShieldReplenishRate = 0.f;
+	float ShieldReplenishAmount = 0.f;
+	
 };

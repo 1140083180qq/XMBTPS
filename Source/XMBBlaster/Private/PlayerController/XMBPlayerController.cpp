@@ -154,10 +154,10 @@ void AXMBPlayerController::SetHUDShield(float Shield, float MaxShield)
 	if (bHUDValid)
 	{
 		// 计算血量百分比并设置到 ProgressBar 组件
-		const float HealthPercent = Shield / MaxShield;
-		XMBHUD->CharacterOverlayWidget->ShieldBar->SetPercent(HealthPercent);
+		const float ShieldPercent = Shield / MaxShield;
+		XMBHUD->CharacterOverlayWidget->ShieldBar->SetPercent(ShieldPercent);
 		// 格式化文字为 "当前/最大" 形式（向上取整避免显示0血时的误导）
-		FString ShieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		FString ShieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));//XMBTODO:此处在拾取了护盾后，恢复完后会导致护盾值莫名多了1
 		XMBHUD->CharacterOverlayWidget->ShieldText->SetText(FText::FromString(ShieldText));
 	}
 	else
