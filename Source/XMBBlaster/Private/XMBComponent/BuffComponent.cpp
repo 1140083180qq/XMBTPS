@@ -151,7 +151,7 @@ void UBuffComponent::ShieldRampUp(float DeltaTime)
 {
 	if (!bReplenishingShield || Owner == nullptr || Owner->IsElimmed()) return;
 
-	const float ReplenishThisFrame = ShieldReplenishRate * DeltaTime;
+	const float ReplenishThisFrame = FMath::Min(ShieldReplenishRate * DeltaTime, ShieldReplenishAmount);
 	Owner->SetShield(FMath::Clamp(Owner->GetShield() + ReplenishThisFrame, 0.f , Owner->GetMaxShield()));
 	Owner->UpdateHUDShield();
 	ShieldReplenishAmount -= ReplenishThisFrame;
