@@ -21,6 +21,7 @@ enum class EWeaponState : uint8
 	EWS_Initial UMETA(DisplayName = "Initial State"),     // 初始状态
 	EWS_Equipped UMETA(DisplayName = "Equipped"),         // 已装备状态
 	EWS_Dropped UMETA(DisplayName = "Dropped"),           // 已丢弃状态
+	EWS_EquippedSecondary UMETA(DisplayName = "Equipped Secondary"),           // 已丢弃状态
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")             // 最大值占位符
 };
 
@@ -207,6 +208,8 @@ private:
 
 
 	bool bDestroyWeapon = false;
+
+	void OnEquippedSecondary();
 	
 public:
 	/** @return 碰撞球体组件 */

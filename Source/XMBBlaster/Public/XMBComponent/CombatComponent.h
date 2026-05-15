@@ -102,6 +102,9 @@ protected:
 	UFUNCTION()/** 装备武器变化时的回调 */
 	void OnRep_EquippedWeapon();
 
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
+	
 	void DropEquippedWeapon();/*丢弃武器*/
 
 
@@ -152,6 +155,8 @@ protected:
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	
 	void AttachActorToLeftHand(AActor* ActorToAttach);
+
+	void AttachActorToBackpack(AActor* ActorToAttach);
 	
 	UFUNCTION(BlueprintCallable)/*显示手雷*/
 	void ShowAttachedGrenade(bool bShowGrenade);
@@ -161,8 +166,11 @@ protected:
 
 
 	
-	void PlayEquipWeaponSound();/*播放装备武器的音效*/
+	void PlayEquipWeaponSound(AWeaponBase* WeaponToEquip);/*播放装备武器的音效*/
 
+	void EquipPrimaryWeapon(AWeaponBase* WeaponToEquip);
+
+	void EquipSecondaryWeapon(AWeaponBase* WeaponToEquip);
 	
 
 private:
@@ -172,6 +180,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)/** 当前装备的武器（需复制） */
 	AWeaponBase* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
+	AWeaponBase* SecondaryWeapon;
 
 	UPROPERTY(EditAnywhere)/*角色出生时默认携带武器*/
 	TSubclassOf<AWeaponBase> DefaultWeaponClass;
@@ -318,4 +329,5 @@ public:
 
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 };
+
 

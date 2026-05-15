@@ -703,16 +703,17 @@ void AXMBCharacterBase::EquipButtonPressed()
 {
 	if (CombatComponent)
 	{
-		if (HasAuthority())
-		{
-			// 服务器端：直接装备
-			CombatComponent->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			// 客户端：发送RPC请求服务器装备
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
+		// if (HasAuthority())
+		// {
+		// 	// 服务器端：直接装备
+		// 	CombatComponent->EquipWeapon(OverlappingWeapon);
+		// }
+		// else
+		// {
+		// 	// 客户端：发送RPC请求服务器装备
+		// 	ServerEquipButtonPressed();
+		// }
 	}
 }
 

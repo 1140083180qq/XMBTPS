@@ -250,6 +250,10 @@ void AWeaponBase::SetWeaponState(EWeaponState State)
 		EnableCustomDepth(true);
 		
 		break;
+	case EWeaponState::EWS_EquippedSecondary:
+		OnEquippedSecondary();
+		break;
+		
 	}
 }
 
@@ -302,6 +306,8 @@ void AWeaponBase::SpendRound()
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity); // 扣除1发并钳制在有效范围
 	SetHUDAmmo(); // 更新HUD弹药显示
 }
+
+
 
 /**
  * @brief 弹药数量变化的网络回调 - 当 Ammo 在服务器端被修改时，客户端自动调用更新HUD
@@ -496,4 +502,24 @@ bool AWeaponBase::IsAmmoFull()
 	return Ammo == MagCapacity;
 }
 
+
+void AWeaponBase::OnEquippedSecondary()
+{
+	ShowPickupWidget(false);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (WeaponType == EWeaponType::EWT_SubmachineGun)
+	{
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	}
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+		WeaponMesh->MarkRenderStateDirty();
+	}
+}
 

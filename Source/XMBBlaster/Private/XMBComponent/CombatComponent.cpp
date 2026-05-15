@@ -69,6 +69,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, bShoulderAiming);
 	DOREPLIFETIME(UCombatComponent, bFireButtonPressed);
@@ -199,28 +200,50 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	if (Owner == nullptr || WeaponToEquip == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	DropEquippedWeapon();
-
-	// 保存新武器引用并设置为"已装备"状态
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-
-	AttachActorToRightHand(EquippedWeapon);
-
-	// SetOwner 是引擎内置的网络复制函数，
-	// 执行后不管Client还是Server都会同步 Owner 信息
-	EquippedWeapon->SetWeaponOwner(Owner);
-	EquippedWeapon->SetHUDAmmo(); // 更新HUD上显示的弹夹弹药数
-
-	UpdateCarriedAmmo();
-	PlayEquipWeaponSound();
-	ReloadEmptyWeapon();
-
+	//将武器装备到另一个插槽
+	if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+	{
+		EquipSecondaryWeapon(WeaponToEquip);
+	}
+	else
+	{
+		EquipPrimaryWeapon(WeaponToEquip);
+	}
+	
+	
 	// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
 	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Owner->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::EquipPrimaryWeapon(AWeaponBase* WeaponToEquip)
+{
+	if (WeaponToEquip == nullptr) return;
+	DropEquippedWeapon();
+	
+	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	AttachActorToRightHand(EquippedWeapon);
+	
+	EquippedWeapon->SetWeaponOwner(Owner);
+	EquippedWeapon->SetHUDAmmo(); // 更新HUD上显示的弹夹弹药数
+
+	UpdateCarriedAmmo();
+	PlayEquipWeaponSound(WeaponToEquip);
+	ReloadEmptyWeapon();
+}
+
+void UCombatComponent::EquipSecondaryWeapon(AWeaponBase* WeaponToEquip)
+{
+	if (WeaponToEquip == nullptr) return;
+	SecondaryWeapon = WeaponToEquip;
+	// SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	AttachActorToBackpack(WeaponToEquip);
+	PlayEquipWeaponSound(WeaponToEquip);
+	SecondaryWeapon->SetWeaponOwner(Owner);
+}
 
 void UCombatComponent::SpawnDefaultWeapon()
 {
@@ -237,6 +260,7 @@ void UCombatComponent::SpawnDefaultWeapon()
 	}
 }
 
+
 void UCombatComponent::DropEquippedWeapon()
 {
 	// 如果已经持有武器，先让旧武器掉落到地面
@@ -245,6 +269,7 @@ void UCombatComponent::DropEquippedWeapon()
 		EquippedWeapon->Dropped();
 	}
 }
+
 
 /**
  * @brief 装备武器变化的网络回调 - 当 EquippedWeapon 在服务器端被修改时，客户端自动调用
@@ -274,7 +299,17 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Owner->bUseControllerRotationYaw = true;
 
 		// 播放装备音效
-		PlayEquipWeaponSound();
+		PlayEquipWeaponSound(EquippedWeapon);
+	}
+}
+
+void UCombatComponent::OnRep_SecondaryWeapon()
+{
+	if (SecondaryWeapon && Owner)
+	{
+		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+		AttachActorToBackpack(SecondaryWeapon);
+		PlayEquipWeaponSound(EquippedWeapon);
 	}
 }
 
@@ -938,6 +973,16 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
 	}
 }
 
+void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach)
+{
+	if (Owner == nullptr || Owner->GetMesh() == nullptr || ActorToAttach == nullptr) return;
+	const USkeletalMeshSocket* BackpackSocket = Owner->GetMesh()->GetSocketByName(FName("BackpackSocket"));
+	if (BackpackSocket)
+	{
+		BackpackSocket->AttachActor(ActorToAttach, Owner->GetMesh());
+	}
+}
+
 
 
 
@@ -1023,17 +1068,20 @@ void UCombatComponent::ServerSetShoulderAiming_Implementation(bool bIsShoulderAi
 
 
 
-void UCombatComponent::PlayEquipWeaponSound()
+void UCombatComponent::PlayEquipWeaponSound(AWeaponBase* WeaponToEquip)
 {
 	// 播放装备音效
-	if (Owner && EquippedWeapon && EquippedWeapon->EquipSound)
+	if (Owner && WeaponToEquip && WeaponToEquip->EquipSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(
 			this,
-			EquippedWeapon->EquipSound,
+			WeaponToEquip->EquipSound,
 			Owner->GetActorLocation());
 	}
 }
+
+
+
 
 /**
  * @brief 战斗状态变化的网络回调 - 当 CombatState 在服务器端被修改时调用
