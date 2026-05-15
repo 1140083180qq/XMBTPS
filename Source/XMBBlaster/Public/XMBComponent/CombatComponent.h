@@ -31,6 +31,8 @@ public:
 	 */
 	void EquipWeapon(AWeaponBase* WeaponToEquip);/*** @brief 装备武器*/
 
+	void SwapWeapons();
+
 	void SpawnDefaultWeapon();
 	
 	/*
@@ -107,7 +109,7 @@ protected:
 	
 	void DropEquippedWeapon();/*丢弃武器*/
 
-
+	bool ShouldSwapWeapons();
 	
 	/*
 	 * 开火
@@ -313,6 +315,7 @@ private:
 	void UpdateHUDGrenades();/*更新HUD手雷*/
 	
 	int64 ShotgunReloadFrameCounter = -1;/** 霰弹枪装填防重入：记录上一次成功执行 UpdateShotgunAmmoValues 的帧号 */
+
 
 public:
 	/** @return 当前装备的武器 */

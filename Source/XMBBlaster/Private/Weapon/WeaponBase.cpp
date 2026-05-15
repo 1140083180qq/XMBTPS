@@ -111,6 +111,7 @@ void AWeaponBase::BeginPlay()
 
 
 
+
 /**
  * @brief 开火方法（虚函数，子类可重写扩展功能）
  * @param HitTarget - 射线检测到的命中目标位置坐标
@@ -180,6 +181,7 @@ void AWeaponBase::SetWeaponOwner(ACharacter* Character)
 	InstigatorPawn = Cast<APawn>(GetOwner()); // 缓存为Pawn类型供伤害系统使用
 }
 
+
 /**
  * @brief 显示或隐藏拾取提示Widget
  * @param bShowWidget - true显示，false隐藏
@@ -193,6 +195,7 @@ void AWeaponBase::ShowPickupWidget(bool bShowWidget)
 		PickupWidget->SetVisibility(bShowWidget);
 	}
 }
+
 
 /**
  * @brief 设置武器状态并执行对应的状态转换操作
@@ -219,36 +222,18 @@ void AWeaponBase::ShowPickupWidget(bool bShowWidget)
 void AWeaponBase::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State; // 先更新状态值（会触发网络复制）
+	OnWeaponStateSet();
+}
 
+void AWeaponBase::OnWeaponStateSet()
+{
 	switch (WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
-		// 装备状态下禁用拾取相关功能
-		ShowPickupWidget(false);                    // 隐藏拾取提示
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭拾取检测
-		// 武器变为"附着模式"：无物理、无重力、无碰撞
-		WeaponMesh->SetSimulatePhysics(false);      // 关闭物理模拟
-		WeaponMesh->SetEnableGravity(false);         // 关闭重力
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭碰撞
-
-		EnableCustomDepth(false);
-		
+		OnEquippedState();
 		break;
 	case EWeaponState::EWS_Dropped:
-		// 丢弃状态下仅在服务器端重新开启拾取碰撞（避免客户端冲突）
-		if (HasAuthority())
-		{
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 仅射线检测（不物理碰撞）
-		}
-		// 武器变为"物理模式"：可落地、可碰撞
-		WeaponMesh->SetSimulatePhysics(true);       // 启用物理模拟（可被推动、弹跳）
-		WeaponMesh->SetEnableGravity(true);          // 启用重力（自然下落）
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 启用完整碰撞
-
-		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
-		WeaponMesh->MarkRenderStateDirty();
-		EnableCustomDepth(true);
-		
+		OnDroppedState();
 		break;
 	case EWeaponState::EWS_EquippedSecondary:
 		OnEquippedSecondary();
@@ -270,27 +255,61 @@ void AWeaponBase::SetWeaponState(EWeaponState State)
  */
 void AWeaponBase::OnRep_WeaponState()
 {
-	switch (WeaponState)
-	{
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		WeaponMesh->SetSimulatePhysics(false);
-		WeaponMesh->SetEnableGravity(false);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		
-		EnableCustomDepth(false);
-		break;
-	case EWeaponState::EWS_Dropped:
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		
-		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
-		WeaponMesh->MarkRenderStateDirty();
-		EnableCustomDepth(true);
-		break;
-	}
+	OnWeaponStateSet();
 }
+
+void AWeaponBase::OnEquippedState()
+{
+	// 装备状态下禁用拾取相关功能
+	ShowPickupWidget(false);                    // 隐藏拾取提示
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭拾取检测
+	// 武器变为"附着模式"：无物理、无重力、无碰撞
+	WeaponMesh->SetSimulatePhysics(false);      // 关闭物理模拟
+	WeaponMesh->SetEnableGravity(false);         // 关闭重力
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭碰撞
+	EnableCustomDepth(false);
+}
+
+void AWeaponBase::OnDroppedState()
+{
+	// 丢弃状态下仅在服务器端重新开启拾取碰撞（避免客户端冲突）
+	if (HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 仅射线检测（不物理碰撞）
+	}
+	// 武器变为"物理模式"：可落地、可碰撞
+	WeaponMesh->SetSimulatePhysics(true);       // 启用物理模拟（可被推动、弹跳）
+	WeaponMesh->SetEnableGravity(true);          // 启用重力（自然下落）
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 启用完整碰撞
+
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+	WeaponMesh->MarkRenderStateDirty();
+	EnableCustomDepth(true);
+}
+
+void AWeaponBase::OnEquippedSecondary()
+{
+	ShowPickupWidget(false);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// if (WeaponType == EWeaponType::EWT_SubmachineGun)
+	// {
+	// 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	// 	WeaponMesh->SetEnableGravity(true);
+	// 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	// }
+	EnableCustomDepth(true);
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+		WeaponMesh->MarkRenderStateDirty();
+	}
+	
+}
+
+
 
 /**
  * @brief 消耗一发弹药 - 开火时调用
@@ -355,10 +374,13 @@ void AWeaponBase::OnRep_Owner()
 	}
 	else
 	{
-		// 获得了新拥有者，立即更新其HUD弹药显示
-		SetHUDAmmo();
+		XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(Owner) : XMBOwnerCharacter;
+		if (XMBOwnerCharacter && XMBOwnerCharacter->GetEquippedWeapon() && XMBOwnerCharacter->GetEquippedWeapon() == this)
+		{
+			// 获得了新拥有者，立即更新其HUD弹药显示
+			SetHUDAmmo();
+		}
 	}
-
 }
 
 /**
@@ -503,23 +525,5 @@ bool AWeaponBase::IsAmmoFull()
 }
 
 
-void AWeaponBase::OnEquippedSecondary()
-{
-	ShowPickupWidget(false);
-	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponMesh->SetSimulatePhysics(false);
-	WeaponMesh->SetEnableGravity(false);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	if (WeaponType == EWeaponType::EWT_SubmachineGun)
-	{
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	}
-	if (WeaponMesh)
-	{
-		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
-		WeaponMesh->MarkRenderStateDirty();
-	}
-}
+
 

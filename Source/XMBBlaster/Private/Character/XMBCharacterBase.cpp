@@ -125,6 +125,8 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	// DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
 }
 
+
+
 /** @brief 角色销毁时的清理工作*/
 void AXMBCharacterBase::Destroyed()
 {
@@ -729,7 +731,14 @@ void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		if (OverlappingWeapon)
+		{
+			CombatComponent->EquipWeapon(OverlappingWeapon);
+		}
+		else if (CombatComponent->ShouldSwapWeapons())
+		{
+			CombatComponent->SwapWeapons();
+		}
 	}
 }
 
@@ -835,6 +844,36 @@ void AXMBCharacterBase::PollInit()
 
 
 
+
+void AXMBCharacterBase::DropOrDestroyWeapon(AWeaponBase* Weapon)
+{
+	if (Weapon == nullptr) return;
+	if (Weapon->GetWeaponDestroy())
+	{
+		Weapon->Destroy();
+	}
+	else
+	{
+		Weapon->Dropped();
+	}
+}
+
+void AXMBCharacterBase::DropOrDestroyWeapons()
+{
+	if (CombatComponent)
+	{
+		if (CombatComponent->EquippedWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->EquippedWeapon);
+		}
+		if (CombatComponent->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->SecondaryWeapon);
+		}
+	}
+}
+
+
 /**
  * @brief 淘汰（击杀）处理 - 仅在服务器调用
  *
@@ -847,17 +886,7 @@ void AXMBCharacterBase::PollInit()
 void AXMBCharacterBase::Elim()
 {
 	// 步骤1：掉落武器
-	if (CombatComponent && CombatComponent->EquippedWeapon)
-	{
-		if (CombatComponent->EquippedWeapon->GetWeaponDestroy())
-		{
-			CombatComponent->EquippedWeapon->Destroy();
-		}
-		else
-		{
-			CombatComponent->EquippedWeapon->Dropped();
-		}
-	}
+	DropOrDestroyWeapons();
 	
 	// 步骤2：多播淘汰效果到所有客户端
 	MulticastElim();

@@ -242,6 +242,7 @@ void UCombatComponent::EquipSecondaryWeapon(AWeaponBase* WeaponToEquip)
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	AttachActorToBackpack(WeaponToEquip);
 	PlayEquipWeaponSound(WeaponToEquip);
+	
 	SecondaryWeapon->SetWeaponOwner(Owner);
 }
 
@@ -269,6 +270,31 @@ void UCombatComponent::DropEquippedWeapon()
 		EquippedWeapon->Dropped();
 	}
 }
+
+//目前设置的交换武器的输入按键是跟装备武器的按键是一样的。
+//XMBTOOD:可以制作一个交换武器的按键
+void UCombatComponent::SwapWeapons()
+{
+	AWeaponBase* TempWeapon = EquippedWeapon;
+	EquippedWeapon = SecondaryWeapon;
+	SecondaryWeapon = TempWeapon;
+
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachActorToRightHand(EquippedWeapon);
+	EquippedWeapon->SetHUDAmmo();
+	UpdateCarriedAmmo();
+	PlayEquipWeaponSound(EquippedWeapon);
+
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	AttachActorToBackpack(SecondaryWeapon);
+	
+}
+
+bool UCombatComponent::ShouldSwapWeapons()
+{
+	return (EquippedWeapon != nullptr && SecondaryWeapon != nullptr);
+}
+
 
 
 /**
@@ -300,6 +326,9 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 		// 播放装备音效
 		PlayEquipWeaponSound(EquippedWeapon);
+
+		EquippedWeapon->EnableCustomDepth(false);
+		EquippedWeapon->SetHUDAmmo();
 	}
 }
 
@@ -310,6 +339,11 @@ void UCombatComponent::OnRep_SecondaryWeapon()
 		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 		AttachActorToBackpack(SecondaryWeapon);
 		PlayEquipWeaponSound(EquippedWeapon);
+		if (SecondaryWeapon->GetWeaponMesh())
+		{
+			SecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+			SecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
+		}
 	}
 }
 

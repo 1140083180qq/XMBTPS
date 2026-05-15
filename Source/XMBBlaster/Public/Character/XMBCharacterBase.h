@@ -108,6 +108,11 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+
+	void DropOrDestroyWeapon(AWeaponBase* Weapon);
+	void DropOrDestroyWeapons();
+
+	
 	
 	/*
 	 * 动画
