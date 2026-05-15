@@ -27,45 +27,23 @@ enum class EWeaponState : uint8
 #include "WeaponBase.generated.h"
 
 
-
-/**
- * @class AWeaponBase
- * @brief 武器基类
- * 
- * 所有武器的父类，处理通用武器功能：
- * - 武器的拾取与丢弃
- * - 弹药管理
- * - 开火逻辑
- * - 武器状态机
- * - 准心纹理配置
- * - 弹壳抛出
- */
 UCLASS()
 class XMBBLASTER_API AWeaponBase : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	/** 构造函数 */
 	AWeaponBase();
-	
-	/** 设置网络复制属性 */
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/*
 	 * 拾取武器
 	 */
 	
-	/**
-	 * @brief 显示或隐藏拾取UI
-	 * @param bShowWidget - true显示拾取提示，false隐藏
-	 */
+	/*** @brief 显示或隐藏拾取UI*/
 	void ShowPickupWidget(bool bShowWidget);
 
-	/**
-	 * @brief 设置武器状态
-	 * @param State - 新的武器状态
-	 */
+	/*** @brief 设置武器状态*/
 	void SetWeaponState(EWeaponState State);
 	
 	/** Owner变化时的回调（网络复制触发） */
@@ -74,20 +52,15 @@ public:
 	/** 更新HUD上显示的弹药数量 */
 	void SetHUDAmmo();
 
-	/**
-	 * @brief 设置武器拥有者
-	 * @param Character - 拥有此武器的角色
-	 */
+	/*** @brief 设置武器拥有者*/
 	void SetWeaponOwner(ACharacter* Character);
 
+	
 	/*
 	 * 开火
 	 */
-	
-	/**
-	 * @brief 开火（虚函数，子类可重写）
-	 * @param HitTarget - 目标命中位置
-	 */
+
+	/*@brief 开火（虚函数，子类可重写）*/
 	virtual void Fire(const FVector& HitTarget);
 
 	/** @return 弹药是否耗尽 */
@@ -95,10 +68,7 @@ public:
 
 	bool IsAmmoFull();
 
-	/**
-	 * 武器准心纹理配置
-	 * 不同武器可以有不同的准心外观
-	 */
+	
 
 	/** 准心中心纹理 */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
@@ -147,10 +117,7 @@ public:
 	/** 丢弃武器（从角色手上掉落到地面） */
 	void Dropped();
 
-	/**
-	 * @brief 添加弹药
-	 * @param AmmoToAdd - 要添加的弹药数量
-	 */
+	/** @brief 添加弹药 */
 	void AddAmmo(int32 AmmoToAdd);
 
 	/** 装备武器时的音效 */
@@ -161,12 +128,11 @@ public:
 	 * 自定义深度
 	 */
 	void EnableCustomDepth(bool bEnable);
+
 	
 protected:
-	/** 游戏开始时初始化 */
 	virtual void BeginPlay() override;
-
-	/** 碰撞体重叠进入回调（用于武器拾取检测） */
+	
 	UFUNCTION()
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

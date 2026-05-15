@@ -17,21 +17,6 @@
 #include "Sound/SoundCue.h"
 #include "XMBComponent/BuffComponent.h"
 
-
-/**
- * @brief 构造函数 - 初始化角色所有组件和默认参数
- *
- * 【组件初始化顺序与逻辑】：
- * 1. 网络更新频率设置：66Hz（高优先级）/ 33Hz（最低保障）
- * 2. 相机臂(CameraBoom)：附加到Mesh上，长度600，跟随控制器旋转
- *    - bUsePawnControlRotation=true 使相机臂随鼠标转动
- * 3. 跟随相机(FollowCamera)：附加到CameraBoom末端，不独立旋转
- * 4. 角色移动设置：bOrientRotationYaw=false + OrientRotationToMovement=true
- *    - 组合效果：角色身体朝移动方向转，但相机可自由环视（第三人称标准配置）
- * 5. 碰撞通道配置：Mesh和Capsule忽略Camera通道，防止阻挡视线
- * 6. VisibilityBasedAnimTickOption = AlwaysTickPoseAndRefreshBones
- *    - 即使不可见也持续刷新骨骼姿态，确保远程代理角色的动画正确
- */
 AXMBCharacterBase::AXMBCharacterBase()
 {
 	// 禁用默认Tick，由子组件自行处理每帧更新
@@ -94,16 +79,7 @@ AXMBCharacterBase::AXMBCharacterBase()
 	BuffComponent->SetIsReplicated(true);
 }
 
-/**
- * @brief 游戏开始时初始化
- *
- * 【执行逻辑】：
- * 1. 更新HUD生命值显示（从Health变量读取初始值）
- * 2. 仅在服务器(HasAuthority)上绑定伤害回调：
- *    - OnTakeAnyDamage是UE内置委托，当此Actor受到任意伤害时触发
- *    - 绑定ReceiveDamage函数来处理伤害逻辑
- *    - 为什么只在服务器？因为伤害结算、生命值修改、淘汰判断都需要权威性
- */
+/**@brief 游戏开始时初始化*/
 void AXMBCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -123,14 +99,7 @@ void AXMBCharacterBase::BeginPlay()
 	}
 }
 
-/**
- * @brief 每帧调用
- *
- * 【三个核心功能的帧驱动】：
- * 1. RotateInPlace: 处理本地玩家的AimOffset和远程代理的转身判断
- * 2. HideCameraIfCharacterClose: 防止相机穿入角色模型内部
- * 3. PollInit: 延迟获取PlayerState引用（因为BeginPlay时可能还未就绪）
- */
+/**@brief 每帧调用*/
 void AXMBCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -140,15 +109,7 @@ void AXMBCharacterBase::Tick(float DeltaSeconds)
 	PollInit();                         // TODO: 可改为定时器实现
 }
 
-/**
- * @brief 注册网络复制属性
- *
- * 【复制条件说明】：
- * - OverlappingWeapon: COND_OwnerOnly → 仅复制给拥有者客户端
- *   原因：只有拾取武器的玩家需要看到提示UI，其他玩家无需知道
- * - Health / MaxHealth: 所有客户端都需看到他人血量变化
- * - bDisableGameplay: 同步游戏禁用状态
- */
+/** @brief 注册网络复制属性*/
 void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -161,15 +122,7 @@ void AXMBCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	// DOREPLIFETIME(AXMBCharacterBase, bDisableGameplay);
 }
 
-/**
- * @brief 角色销毁时的清理工作
- *
- * 【销毁逻辑】：
- * 1. 销毁淘汰特效组件（如果存在）
- * 2. 判断是否在游戏中：
- *    - 若比赛未进行中(InProgress)且持有武器，则销毁武器
- *    - 原因：非比赛中死亡后不需要保留武器
- */
+/** @brief 角色销毁时的清理工作*/
 void AXMBCharacterBase::Destroyed()
 {
 	Super::Destroyed();
@@ -190,13 +143,7 @@ void AXMBCharacterBase::Destroyed()
 	}
 }
 
-/**
- * @brief 组件初始化完成后的回调
- *
- * 在所有组件CreateDefaultSubobject完成后调用，
- * 将Owner指针传递给CombatComponent和UIComponent，
- * 使它们能够反向访问角色数据。
- */
+/**在所有组件CreateDefaultSubobject完成后调用*/
 void AXMBCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -217,6 +164,8 @@ void AXMBCharacterBase::PostInitializeComponents()
 		BuffComponent->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
 	}
 }
+
+
 
 /**
  * @brief 计算瞄准偏移(AimOffset) - 本地玩家专用
@@ -318,13 +267,7 @@ void AXMBCharacterBase::CalculateAO_Pitch()
 	}
 }
 
-/**
- * @brief 计算角色水平移动速度（忽略Z轴）
- *
- * @return 水平速度标量值
- *
- * 使用场景：判断角色是否在移动、准心散布计算、动画混合空间输入
- */
+/*** 使用场景：判断角色是否在移动、准心散布计算、动画混合空间输入*/
 float AXMBCharacterBase::CalculateSpeed()
 {
 	FVector Velocity = GetVelocity();
@@ -439,6 +382,116 @@ void AXMBCharacterBase::SimProxiesTurn()
 }
 
 /**
+ * @brief 统一的原地旋转入口
+ *
+ * 【根据角色类型分发不同的处理方式】：
+ *
+ * ┌──────────────────────────────────────────────────────┐
+ * │ 本地控制的角色 (ROLE > SimulatedProxy):             │
+ * │   → 使用 AimOffset()                                │
+ * │   原因：有本地相机信息，可以直接计算瞄准偏移         │
+ * ├──────────────────────────────────────────────────────┤
+ * │ 远程代理角色 (SimulatedProxy 或更低):               │
+ * │   → 使用 SimProxiesTurn()                           │
+ * │   原因：没有相机，只能通过帧间旋转差推断转身         │
+ * │   每0.25秒手动触发一次OnRep_ReplicatedMovement       │
+ * └──────────────────────────────────────────────────────┘
+ *
+ * 两类角色都会调用CalculateAO_Pitch()计算俯仰角
+ *
+ * @param DeltaSeconds - 帧间隔时间
+ */
+void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
+{
+	// 本地控制的角色：使用基于相机的AimOffset
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaSeconds);
+	}
+	else
+	{
+		// 远程代理角色：定时模拟OnRep触发SimProxiesTurn
+		TimeSinceLastMovementReplication += DeltaSeconds;
+		if (TimeSinceLastMovementReplication > 0.25f)
+		{
+			OnRep_ReplicatedMovement();  // 手动触发以刷新代理转身状态
+		}
+		CalculateAO_Pitch();  // 远程角色也需要Pitch值
+	}
+}
+
+
+/**
+ * @brief 接收伤害的处理函数（绑定在OnTakeAnyDamage委托上）
+ *
+ * 【伤害处理链路】：
+ * 1. 扣减生命值：Health = Clamp(Health - Damage, 0, MaxHealth)
+ * 2. 更新HUD生命值显示
+ * 3. 播放受击反应动画
+ * 4. 判断是否死亡(Health == 0):
+ *    - 是 → 获取GameMode → 调用PlayerEliminated()处理淘汰
+ *      - 传入受害者控制器(this->Controller)
+ *      - 传入攻击者控制器(InstigatorController)
+ *
+ * 【为什么不用RPC而是用变量复制】：
+ * 伤害是高频事件，每个RPC都消耗带宽。使用Replicated变量+OnRep回调更经济
+ *
+ * @param DamagedActor - 受伤的Actor（即this）
+ * @param Damage - 伤害数值
+ * @param DamageType - 伤害类型（子弹、爆炸等）
+ * @param InstigatorController - 造成伤害者的控制器
+ * @param DmaageCauser - 造成伤害的来源Actor（如子弹）
+ */
+void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DmaageCauser)
+{
+	if (bElimmed) return;
+
+	float DamageToHealth = Damage;
+
+	if (Shield > 0.f)
+	{
+		if (Shield >= Damage)
+		{
+			Shield = FMath::Clamp(Shield - Damage, 0.f, MaxShield);
+			DamageToHealth = 0;
+		}
+		else
+		{
+			Shield = 0.f;
+			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
+		}
+	}
+	
+	
+	// 扣减生命值并限制在[0, MaxHealth]范围内
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+	
+	UpdateHUDHealth();       // 同步HUD显示
+	UpdateHUDShield();
+
+
+	PlayHitReactMontage();   // 播放受击动画（内部含非空闲状态恢复保护）
+	
+	
+	// 生命值归零 → 触发淘汰流程
+	if (Health == 0.f)
+	{
+		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+		if (BlasterGameMode)
+		{
+			// 缓存控制器引用（避免每次都Cast）
+			XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
+			AXMBPlayerController* AttackController = Cast<AXMBPlayerController>(InstigatorController);
+			
+			// 由GameMode统一处理淘汰逻辑（加分、通知等）
+			BlasterGameMode->PlayerEliminated(this, XMBPlayerController, AttackController);
+		}
+	}
+}
+
+
+/**
  * @brief 防止相机穿入角色模型内部
  *
  * 【问题】：当相机距离角色太近（如贴墙后退）时，相机会穿入角色体内
@@ -485,20 +538,9 @@ FVector AXMBCharacterBase::GetHitTarget() const
 	return CombatComponent->HitTarget;
 }
 
-/** @return 当前装备的武器 */
-AWeaponBase* AXMBCharacterBase::GetEquippedWeapon()
-{
-	if (CombatComponent == nullptr) return nullptr;
-	return CombatComponent->EquippedWeapon;
-}
 
-/**
- * @brief 播放开火蒙太奇动画
- *
- * @param bAiming - 是否处于瞄准状态，决定跳转到哪个Section
- * - true → "RifleAim" Section（瞄准开火动画）
- * - false → "RifleHip" Section（腰射开火动画）
- */
+
+/**@brief 播放开火蒙太奇动画*/
 void AXMBCharacterBase::PlayFireMontage(bool bAiming)
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -581,13 +623,7 @@ void AXMBCharacterBase::PlayHitReactMontage()
 	}
 }
 
-/**
- * @brief 播放换弹蒙太奇动画
- *
- * 根据武器类型选择对应的动画Section：
- * - 突击步枪 → "Rifle" Section
- * - 未来可扩展其他武器类型
- */
+/** @brief 播放换弹蒙太奇动画*/
 void AXMBCharacterBase::PlayReloadMontage()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
@@ -623,14 +659,14 @@ void AXMBCharacterBase::PlayReloadMontage()
 			break;	
 		}
 
-		SniperReload(SectionName,bIsSniper);
+		ExecuteReloadMontage(SectionName,bIsSniper);
 		
 		// AnimInstance->Montage_Play(ReloadMontage);
 		// AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 
-void AXMBCharacterBase::SniperReload(FName SectionName, bool bIsSniper)
+void AXMBCharacterBase::ExecuteReloadMontage(FName SectionName, bool bIsSniper)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance == nullptr) return;
@@ -654,82 +690,11 @@ void AXMBCharacterBase::SniperReload(FName SectionName, bool bIsSniper)
 
 
 /**
- * @brief 接收伤害的处理函数（绑定在OnTakeAnyDamage委托上）
- *
- * 【伤害处理链路】：
- * 1. 扣减生命值：Health = Clamp(Health - Damage, 0, MaxHealth)
- * 2. 更新HUD生命值显示
- * 3. 播放受击反应动画
- * 4. 判断是否死亡(Health == 0):
- *    - 是 → 获取GameMode → 调用PlayerEliminated()处理淘汰
- *      - 传入受害者控制器(this->Controller)
- *      - 传入攻击者控制器(InstigatorController)
- *
- * 【为什么不用RPC而是用变量复制】：
- * 伤害是高频事件，每个RPC都消耗带宽。使用Replicated变量+OnRep回调更经济
- *
- * @param DamagedActor - 受伤的Actor（即this）
- * @param Damage - 伤害数值
- * @param DamageType - 伤害类型（子弹、爆炸等）
- * @param InstigatorController - 造成伤害者的控制器
- * @param DmaageCauser - 造成伤害的来源Actor（如子弹）
- */
-void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatorController, AActor* DmaageCauser)
-{
-	if (bElimmed) return;
-
-	float DamageToHealth = Damage;
-
-	if (Shield > 0.f)
-	{
-		if (Shield >= Damage)
-		{
-			Shield = FMath::Clamp(Shield - Damage, 0.f, MaxShield);
-			DamageToHealth = 0;
-		}
-		else
-		{
-			Shield = 0.f;
-			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
-		}
-	}
-	
-	
-	// 扣减生命值并限制在[0, MaxHealth]范围内
-	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
-	
-	UpdateHUDHealth();       // 同步HUD显示
-	UpdateHUDShield();
-
-
-	PlayHitReactMontage();   // 播放受击动画（内部含非空闲状态恢复保护）
-	
-	
-	// 生命值归零 → 触发淘汰流程
-	if (Health == 0.f)
-	{
-		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
-		if (BlasterGameMode)
-		{
-			// 缓存控制器引用（避免每次都Cast）
-			XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
-			AXMBPlayerController* AttackController = Cast<AXMBPlayerController>(InstigatorController);
-			
-			// 由GameMode统一处理淘汰逻辑（加分、通知等）
-			BlasterGameMode->PlayerEliminated(this, XMBPlayerController, AttackController);
-		}
-	}
-}
-
-
-/**
  * @brief 装备按钮按下处理
  *
  * 【网络逻辑】：
  * - 有权限(HasAuthority) → 直接在服务器执行EquipWeapon
  * - 无权限(客户端) → 调用ServerRPC请求服务器执行
- * 这确保了装备操作的安全性（防止客户端作弊）
  */
 void AXMBCharacterBase::EquipButtonPressed()
 {
@@ -747,6 +712,24 @@ void AXMBCharacterBase::EquipButtonPressed()
 		}
 	}
 }
+
+/**
+ * @brief 装备按钮的服务器RPC实现
+ *
+ * RPC的_Implementation后缀是UE的要求：
+ * - Server前缀的函数必须以_Server_Implementation形式定义
+ * - 此函数仅在服务器上执行
+ * - 不需要检查Authority，因为UE保证只有服务器才会收到
+ */
+void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
+}
+
+
 
 /**
  * @brief 设置重叠武器（当进入/离开武器拾取范围时调用）
@@ -781,78 +764,6 @@ void AXMBCharacterBase::SetOverlappingWeapon(AWeaponBase* Weapon)
 		}
 	}
 }
-
-/**
- * @brief OverlappingWeapon网络复制回调
- *
- * 【问题】：OnRep回调只传入新值，不知道旧值是什么
- * 【解决方案】：传入LastWeapon参数保存旧值引用
- * 
- * 回调逻辑：
- * - 新武器不为空 → 显示拾取Widget
- * - 旧武器不为空 → 隐藏旧武器的Widget
- *
- * @param LastWeapon - 复制前的旧武器（自动传入）
- */
-void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
-{
-	// 显示新武器的拾取Widget
-	if (OverlappingWeapon)
-	{
-		OverlappingWeapon->ShowPickupWidget(true);
-	}
-	// 隐藏旧武器的拾取Widget
-	if (LastWeapon)
-	{
-		LastWeapon->ShowPickupWidget(false);
-	}
-}
-
-/**
- * @brief 网络移动数据复制回调
- *
- * 当服务器的角色位置/旋转同步到客户端时自动触发：
- * 1. 调用SimProxiesTurn()判断远程代理是否在转身
- * 2. 重置移动复制计时器（用于RotateInPlace中的定时检查）
- */
-void AXMBCharacterBase::OnRep_ReplicatedMovement()
-{
-	Super::OnRep_ReplicatedMovement();
-	
-	SimProxiesTurn();                    // 处理远程代理转身
-	TimeSinceLastMovementReplication = 0.f;  // 重置计时器
-}
-
-
-/** @brief 生命值变化的网络回调：更新HUD + 播放受击动画 */
-void AXMBCharacterBase::OnRep_Health(float LastHealth)
-{
-	UpdateHUDHealth();
-	if (Health < LastHealth)
-	{
-		PlayHitReactMontage();
-	}
-}
-
-
-void AXMBCharacterBase::OnRep_Shield(float LastShield)
-{
-	UpdateHUDShield();
-	if (Shield < LastShield)
-	{
-		PlayHitReactMontage();
-	}
-}
-
-
-/** @brief 最大生命值变化的网络回调（预留扩展） */
-void AXMBCharacterBase::OnRep_MaxHealth()
-{
-}
-void AXMBCharacterBase::OnRep_MaxShield()
-{
-}
-
 
 /**
  * @brief 更新HUD上的生命值显示
@@ -907,44 +818,7 @@ void AXMBCharacterBase::PollInit()
 	}
 }
 
-/**
- * @brief 统一的原地旋转入口
- *
- * 【根据角色类型分发不同的处理方式】：
- *
- * ┌──────────────────────────────────────────────────────┐
- * │ 本地控制的角色 (ROLE > SimulatedProxy):             │
- * │   → 使用 AimOffset()                                │
- * │   原因：有本地相机信息，可以直接计算瞄准偏移         │
- * ├──────────────────────────────────────────────────────┤
- * │ 远程代理角色 (SimulatedProxy 或更低):               │
- * │   → 使用 SimProxiesTurn()                           │
- * │   原因：没有相机，只能通过帧间旋转差推断转身         │
- * │   每0.25秒手动触发一次OnRep_ReplicatedMovement       │
- * └──────────────────────────────────────────────────────┘
- *
- * 两类角色都会调用CalculateAO_Pitch()计算俯仰角
- *
- * @param DeltaSeconds - 帧间隔时间
- */
-void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
-{
-	// 本地控制的角色：使用基于相机的AimOffset
-	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
-	{
-		AimOffset(DeltaSeconds);
-	}
-	else
-	{
-		// 远程代理角色：定时模拟OnRep触发SimProxiesTurn
-		TimeSinceLastMovementReplication += DeltaSeconds;
-		if (TimeSinceLastMovementReplication > 0.25f)
-		{
-			OnRep_ReplicatedMovement();  // 手动触发以刷新代理转身状态
-		}
-		CalculateAO_Pitch();  // 远程角色也需要Pitch值
-	}
-}
+
 
 /**
  * @brief 淘汰（击杀）处理 - 仅在服务器调用
@@ -1119,6 +993,8 @@ void AXMBCharacterBase::StartDissolve()
 	}
 }
 
+
+
 /**
  * @brief 重写Jump - 增加蹲伏解除逻辑
  *
@@ -1138,20 +1014,84 @@ void AXMBCharacterBase::Jump()
 	}
 }
 
-/**
- * @brief 装备按钮的服务器RPC实现
- *
- * RPC的_Implementation后缀是UE的要求：
- * - Server前缀的函数必须以_Server_Implementation形式定义
- * - 此函数仅在服务器上执行
- * - 不需要检查Authority，因为UE保证只有服务器才会收到
- */
-void AXMBCharacterBase::ServerEquipButtonPressed_Implementation()
+/** @return 当前装备的武器 */
+AWeaponBase* AXMBCharacterBase::GetEquippedWeapon()
 {
-	if (CombatComponent)
+	if (CombatComponent == nullptr) return nullptr;
+	return CombatComponent->EquippedWeapon;
+}
+
+/** @return 当前战斗状态（换弹/空闲等） */
+ECombatState AXMBCharacterBase::GetCombatState() const
+{
+	if (CombatComponent == nullptr) return ECombatState::ECS_MAX;
+	return CombatComponent->CombatState;
+}
+
+/**
+ * @brief OverlappingWeapon网络复制回调
+ *
+ * 回调逻辑：
+ * - 新武器不为空 → 显示拾取Widget
+ * - 旧武器不为空 → 隐藏旧武器的Widget
+ *
+ * @param LastWeapon - 复制前的旧武器（自动传入）
+ */
+void AXMBCharacterBase::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
+{
+	// 显示新武器的拾取Widget
+	if (OverlappingWeapon)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		OverlappingWeapon->ShowPickupWidget(true);
 	}
+	// 隐藏旧武器的拾取Widget
+	if (LastWeapon)
+	{
+		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+/**
+ * @brief 网络移动数据复制回调
+ *
+ * 当服务器的角色位置/旋转同步到客户端时自动触发：
+ * 1. 调用SimProxiesTurn()判断远程代理是否在转身
+ * 2. 重置移动复制计时器（用于RotateInPlace中的定时检查）
+ */
+void AXMBCharacterBase::OnRep_ReplicatedMovement()
+{
+	Super::OnRep_ReplicatedMovement();
+	
+	SimProxiesTurn();                    // 处理远程代理转身
+	TimeSinceLastMovementReplication = 0.f;  // 重置计时器
+}
+
+/** @brief 生命值变化的网络回调：更新HUD + 播放受击动画 */
+void AXMBCharacterBase::OnRep_Health(float LastHealth)
+{
+	UpdateHUDHealth();
+	if (Health < LastHealth)
+	{
+		PlayHitReactMontage();
+	}
+}
+
+void AXMBCharacterBase::OnRep_Shield(float LastShield)
+{
+	UpdateHUDShield();
+	if (Shield < LastShield)
+	{
+		PlayHitReactMontage();
+	}
+}
+
+/** @brief 最大生命值变化的网络回调（预留扩展） */
+void AXMBCharacterBase::OnRep_MaxHealth()
+{
+}
+
+void AXMBCharacterBase::OnRep_MaxShield()
+{
 }
 
 /** 开火按钮按下 → 通知CombatComponent */
@@ -1238,9 +1178,4 @@ bool AXMBCharacterBase::IsShoulderAiming()
 	return (CombatComponent && CombatComponent->bShoulderAiming);
 }
 
-/** @return 当前战斗状态（换弹/空闲等） */
-ECombatState AXMBCharacterBase::GetCombatState() const
-{
-	if (CombatComponent == nullptr) return ECombatState::ECS_MAX;
-	return CombatComponent->CombatState;
-}
+

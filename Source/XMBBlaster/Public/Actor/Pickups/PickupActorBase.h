@@ -26,23 +26,23 @@ protected:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere)//旋转速率
 	float BaseTurnRate = 45.f;
 	
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category = Properties)
 	USphereComponent* OverlapSphere;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Properties)
 	USoundCue* PickupSound;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Properties)
 	UStaticMeshComponent* PickupMesh;
 
 	UPROPERTY(VisibleAnywhere)
 	UNiagaraComponent* PickupEffectComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Properties)
 	UNiagaraSystem* PickupEffect;
 
 	FTimerHandle BindOverlapTimer;

@@ -76,7 +76,6 @@ void ABlasterGameMode::BeginPlay()
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
 }
 
-
 /**
  * @brief 每帧更新 - 驱动三阶段计时器和状态切换
  * @param DeltaSeconds - 帧间隔时间
@@ -158,6 +157,8 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 	}
 }
 
+
+
 /**
  * @brief 处理玩家被淘汰事件 - 游戏规则的核心判决函数
  * @param ElimmedCharacter - 被淘汰的角色指针
@@ -221,6 +222,8 @@ void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXM
 	}
 }
 
+
+
 /**
  * @brief 请求重生被淘汰的角色
  * @param ElimmedCharacter - 要销毁的旧角色
@@ -268,6 +271,8 @@ void ABlasterGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AController*
 		RestartPlayerAtPlayerStart(ElimmedController, PlayerStarts[Selection]);
 	}
 }
+
+
 
 /**
  * @brief MatchState 变化时的广播通知 - 将状态变化推送给所有 PlayerController

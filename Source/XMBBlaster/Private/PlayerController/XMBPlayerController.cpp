@@ -102,6 +102,258 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 }
 
 
+
+/**
+ * @brief 检查是否需要进行服务器时间同步
+ * @param DeltaSeconds - 本帧的时间增量
+ *
+ * 【时间同步机制】：
+ * - 维护一个累加器 TimeSyncRunningTime，每帧增加 DeltaSeconds
+ * - 当累计超过 TimeSyncFrequency（默认5秒）时触发一次时间同步
+ * - 同步后重置累加器为0，开始新一轮计数
+ * - 仅对本地玩家控制器执行（IsLocalPlayerController），
+ *   因为只有本地客户端需要知道服务器时间来正确显示倒计时
+ *
+ * 【为什么定期同步？】因为客户端的系统时钟会漂移（drift），
+ * 定期校准确保本地计算的倒计时与服务器保持一致
+ */
+void AXMBPlayerController::CheckTimeSync(float DeltaSeconds)
+{
+	TimeSyncRunningTime += DeltaSeconds;
+	// 仅本地控制器需要时间同步，且达到同步间隔时触发
+	if (IsLocalPlayerController() && TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		// 将当前客户端时间作为请求时间戳发送给服务器
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.f; // 重置计时器
+	}
+}
+
+/**
+ * @brief 获取经校准后的服务器等效时间
+ * @return 校准后的服务器时间（以 GetWorld()->GetTimeSeconds() 为基准加上偏移量）
+ *
+ * 【原理】：
+ * GetWorld()->GetTimeSeconds() 返回的是自关卡开始以来的本地流逝时间（不包含暂停时间）。
+ * 加上 ClientServerDelta（客户端-服务器时间偏差的补偿值）后，
+ * 得到的就是近似的服务器当前时间。
+ *
+ * 【应用场景】：SetHUDTime() 中用于准确计算各阶段倒计时
+ */
+float AXMBPlayerController::GetServerTime()
+{
+	// 本地世界时间 + 经过RTT校准的时间偏移 ≈ 服务器当前时间
+	return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+}
+
+/**
+ * @brief 当 Player 被完全接收（Received）时自动调用引擎回调
+ *
+ * 【触发时机】：客户端连接到服务器且 PlayerController 被完全初始化后
+ *
+ * 【逻辑说明】：在此刻立即发起首次服务器时间同步请求。
+ * 这是最早可以安全发起RPC的时刻——在此之前网络通道可能尚未完全建立。
+ * 这次初始同步对于后续所有依赖服务器时间的功能至关重要（如倒计时）
+ */
+void AXMBPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	// 连接建立后立即进行第一次时间同步
+	if (IsLocalPlayerController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+/**
+ * @brief 设置比赛状态 - 由 GameMode 在状态切换时调用
+ * @param State - 新的比赛状态名称
+ *
+ * 【逻辑说明】：保存新的 MatchState 并根据状态分发处理函数：
+ * - InProgress → HandleMatchHasStarted()：隐藏公告栏、显示主HUD
+ * - Cooldown → HandleCooldown()：移除主HUD、显示结算信息
+ */
+void AXMBPlayerController::OnMatchStateSet(FName State)
+{
+	MatchState = State;
+
+	// 根据新状态分发到对应的处理函数
+	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
+	else if (MatchState == MatchState::Cooldown) HandleCooldown();
+}
+
+/**
+ * @brief MatchState 变化的网络回调 - 客户端收到服务器端 MatchState 变化时自动调用
+ *
+ * 【与 OnMatchStateSet 的关系】：
+ * - OnMatchStateSet: GameMode 主动调用的入口（可能直接调用也可能通过复制触发）
+ * - OnRep_MatchState: 纯粹的网络复制回调（MatchState 属性标注了 ReplicatedUsing）
+ * 两者的处理逻辑相同，都是根据状态分发到对应的Handle函数
+ */
+void AXMBPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
+}
+
+/**
+ * @brief 处理比赛开始的UI切换
+ *
+ * 【UI操作流程】：
+ * 1. 确保 CharacterOverlayWidget 已创建（若未创建则调用 AddCharacterOverlayWidget 创建）
+ * 2. 隐藏 AnnouncementWidget（公告面板不再需要显示）
+ *
+ * 【效果】：玩家从热身界面切换到游戏主界面（血量/弹药/分数等覆盖层）
+ */
+void AXMBPlayerController::HandleMatchHasStarted()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	if (XMBHUD)
+	{
+		// 如果主覆盖层Widget尚未创建，立即创建
+		if (XMBHUD->CharacterOverlayWidget == nullptr) XMBHUD->AddCharacterOverlayWidget();
+		// 隐藏热身公告面板
+		if (XMBHUD->AnnouncementWidget)
+		{
+			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+/**
+ * @brief 处理冷却/结算阶段的UI切换
+ *
+ * 【完整逻辑流程】：
+ *
+ * 1. 移除 CharacterOverlayWidget（主游戏HUD不再需要）
+ *
+ * 2. 显示 AnnouncementWidget 并设置为可见
+ *
+ * 3. 设置公告标题为 "New Match Starts In:" （提示即将开始新一局）
+ *
+ * 4. 从 GameState 获取 TopScoringPlayers 列表并生成本局结果信息：
+ *    - 列表为空 → 显示"没有最高分"（无人得分的情况）
+ *    - 只有1人且是自己 → 显示"你是胜利者!"
+ *    - 只有1人且不是自己 → 显示"Winner: XXX"（其他玩家的名字）
+ *    - 多人并列第一 → 显示所有获胜者的名字列表
+ *
+ * 5. 尝试禁用角色输入（bDisableGameplay = true），
+ *    但目前代码中被注释掉了（TODO待确认是否启用）
+ */
+void AXMBPlayerController::HandleCooldown()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	if(XMBHUD)
+	{
+		// 移除主游戏HUD覆盖层
+		XMBHUD->CharacterOverlayWidget->RemoveFromParent();
+
+		// 验证公告面板的所有必要控件是否有效
+		bool bHUDValid = XMBHUD->AnnouncementWidget
+			&& XMBHUD->AnnouncementWidget->AnnouncementText
+			&& XMBHUD->AnnouncementWidget->InfoText;
+		
+		if (bHUDValid)
+		{
+			// 显示公告面板
+			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Visible);
+			// 设置公告标题
+			FString AnnouncementText("New Match Starts In:");
+			XMBHUD->AnnouncementWidget->AnnouncementText->SetText(FText::FromString(AnnouncementText));
+
+			// 获取 GameState 以访问排行榜数据
+			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
+			// 获取自己的 PlayerState 用于对比
+			AXMBPlayerState* BlasterPlayerState = GetPlayerState<AXMBPlayerState>();
+			if (BlasterGameState)
+			{
+				TArray<AXMBPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
+				FString InfoTextString;
+
+				// 根据排行榜情况生成不同的结果文字
+				if (TopPlayers.Num() == 0)
+				{
+					InfoTextString = FString("没有最高分");
+				}
+				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
+				{
+					InfoTextString = FString("你是胜利者!"); // 我是唯一的第一名
+				}
+				else if (TopPlayers.Num() == 1)
+				{
+					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *TopPlayers[0]->GetPlayerName()); // 别人是第一名
+				}
+				else if (TopPlayers.Num() > 1)
+				{
+					InfoTextString = FString("Players tied for the win:\n"); // 多人同分
+					for (auto TiedPlayer : TopPlayers)
+					{
+						InfoTextString.Append(FString::Printf(TEXT("\n%s"), *TiedPlayer->GetPlayerName()));
+					}
+				}
+				XMBHUD->AnnouncementWidget->InfoText->SetText(FText::FromString(InfoTextString));
+			}
+		}
+	}
+
+	// 可选：禁用角色输入（冷却期间不允许操作），目前代码中已注释掉
+	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(GetPawn());
+	if (XMBCharacter && XMBCharacter->GetCombatComponent())
+	{
+		// 注释掉的禁用输入代码（待确认是否需要恢复）
+		// XMBCharacter->bDisableGameplay = true;
+		// XMBCharacter->GetCombatComponent()->FireButtonPressed(false);
+	}
+}
+
+/**
+ * @brief 延迟初始化 CharacterOverlayWidget 并恢复之前暂存的HUD数据
+ *
+ * 【问题背景】：在 BeginPlay 时 CharacterOverlayWidget 可能尚未创建完毕
+ * （UMG Widget 的创建依赖于蓝图的加载顺序），导致 SetHUDHealth 等函数
+ * 无法找到目标控件。此时数据被暂存到 HUdHealth/HUDScore 等成员变量中。
+ *
+ * 【解决方法】：在 Tick 中每帧调用 PollInit 检查 Widget 是否已创建，
+ * 一旦创建完成，立即使用之前暂存的数据调用各 SetHUD 函数完成真正的UI更新，
+ * 然后将 CharacterOverlayWidget 缓存起来避免重复检查。
+ */
+void AXMBPlayerController::PollInit()
+{
+	if (CharacterOverlayWidget == nullptr)
+	{
+		// 检查 HUD 和其下的 CharacterOverlayWidget 是否已有效
+		if (XMBHUD && XMBHUD->CharacterOverlayWidget)
+		{
+			// 缓存 Widget 引用
+			CharacterOverlayWidget = XMBHUD->CharacterOverlayWidget;
+			if (CharacterOverlayWidget)
+			{
+				// 使用之前暂存的值恢复所有 HUD 数据
+				// if (bInitializeHealth) SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
+				// if (bInitializeShield) SetHUDShield(HUdShield,HUDMaxShield);//盾量
+				if (bInitializeScore) SetHUDScore(HUDScore);                   // 恢复分数显示
+				if (bInitializeDefeats) SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
+
+				SetHUDHealth(HUdHealth, HUDMaxHealth);
+				SetHUDShield(HUdShield,HUDMaxShield);
+
+				
+				AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(GetPawn());
+				if (BlasterCharacter && BlasterCharacter->GetCombatComponent())
+				{
+					// SetHUDGrenades(HUDGrenades);
+					if (bInitializeGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
+				}
+			}
+		}
+	}
+}
+
+
+
 /**
  * @brief 更新HUD上的生命值显示
  * @param Health - 当前生命值
@@ -412,255 +664,6 @@ void AXMBPlayerController::SetHUDGrenades(int32 Grenades)
 	}
 }
 
-/**
- * @brief 检查是否需要进行服务器时间同步
- * @param DeltaSeconds - 本帧的时间增量
- *
- * 【时间同步机制】：
- * - 维护一个累加器 TimeSyncRunningTime，每帧增加 DeltaSeconds
- * - 当累计超过 TimeSyncFrequency（默认5秒）时触发一次时间同步
- * - 同步后重置累加器为0，开始新一轮计数
- * - 仅对本地玩家控制器执行（IsLocalPlayerController），
- *   因为只有本地客户端需要知道服务器时间来正确显示倒计时
- *
- * 【为什么定期同步？】因为客户端的系统时钟会漂移（drift），
- * 定期校准确保本地计算的倒计时与服务器保持一致
- */
-void AXMBPlayerController::CheckTimeSync(float DeltaSeconds)
-{
-	TimeSyncRunningTime += DeltaSeconds;
-	// 仅本地控制器需要时间同步，且达到同步间隔时触发
-	if (IsLocalPlayerController() && TimeSyncRunningTime > TimeSyncFrequency)
-	{
-		// 将当前客户端时间作为请求时间戳发送给服务器
-		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-		TimeSyncRunningTime = 0.f; // 重置计时器
-	}
-}
-
-
-/**
- * @brief 获取经校准后的服务器等效时间
- * @return 校准后的服务器时间（以 GetWorld()->GetTimeSeconds() 为基准加上偏移量）
- *
- * 【原理】：
- * GetWorld()->GetTimeSeconds() 返回的是自关卡开始以来的本地流逝时间（不包含暂停时间）。
- * 加上 ClientServerDelta（客户端-服务器时间偏差的补偿值）后，
- * 得到的就是近似的服务器当前时间。
- *
- * 【应用场景】：SetHUDTime() 中用于准确计算各阶段倒计时
- */
-float AXMBPlayerController::GetServerTime()
-{
-	// 本地世界时间 + 经过RTT校准的时间偏移 ≈ 服务器当前时间
-	return GetWorld()->GetTimeSeconds() + ClientServerDelta;
-}
-
-/**
- * @brief 当 Player 被完全接收（Received）时自动调用引擎回调
- *
- * 【触发时机】：客户端连接到服务器且 PlayerController 被完全初始化后
- *
- * 【逻辑说明】：在此刻立即发起首次服务器时间同步请求。
- * 这是最早可以安全发起RPC的时刻——在此之前网络通道可能尚未完全建立。
- * 这次初始同步对于后续所有依赖服务器时间的功能至关重要（如倒计时）
- */
-void AXMBPlayerController::ReceivedPlayer()
-{
-	Super::ReceivedPlayer();
-	// 连接建立后立即进行第一次时间同步
-	if (IsLocalPlayerController())
-	{
-		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-	}
-}
-
-/**
- * @brief 设置比赛状态 - 由 GameMode 在状态切换时调用
- * @param State - 新的比赛状态名称
- *
- * 【逻辑说明】：保存新的 MatchState 并根据状态分发处理函数：
- * - InProgress → HandleMatchHasStarted()：隐藏公告栏、显示主HUD
- * - Cooldown → HandleCooldown()：移除主HUD、显示结算信息
- */
-void AXMBPlayerController::OnMatchStateSet(FName State)
-{
-	MatchState = State;
-
-	// 根据新状态分发到对应的处理函数
-	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
-	else if (MatchState == MatchState::Cooldown) HandleCooldown();
-}
-
-/**
- * @brief MatchState 变化的网络回调 - 客户端收到服务器端 MatchState 变化时自动调用
- *
- * 【与 OnMatchStateSet 的关系】：
- * - OnMatchStateSet: GameMode 主动调用的入口（可能直接调用也可能通过复制触发）
- * - OnRep_MatchState: 纯粹的网络复制回调（MatchState 属性标注了 ReplicatedUsing）
- * 两者的处理逻辑相同，都是根据状态分发到对应的Handle函数
- */
-void AXMBPlayerController::OnRep_MatchState()
-{
-	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
-	else if (MatchState == MatchState::Cooldown)
-	{
-		HandleCooldown();
-	}
-}
-
-/**
- * @brief 处理比赛开始的UI切换
- *
- * 【UI操作流程】：
- * 1. 确保 CharacterOverlayWidget 已创建（若未创建则调用 AddCharacterOverlayWidget 创建）
- * 2. 隐藏 AnnouncementWidget（公告面板不再需要显示）
- *
- * 【效果】：玩家从热身界面切换到游戏主界面（血量/弹药/分数等覆盖层）
- */
-void AXMBPlayerController::HandleMatchHasStarted()
-{
-	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
-	if (XMBHUD)
-	{
-		// 如果主覆盖层Widget尚未创建，立即创建
-		if (XMBHUD->CharacterOverlayWidget == nullptr) XMBHUD->AddCharacterOverlayWidget();
-		// 隐藏热身公告面板
-		if (XMBHUD->AnnouncementWidget)
-		{
-			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-}
-
-/**
- * @brief 处理冷却/结算阶段的UI切换
- *
- * 【完整逻辑流程】：
- *
- * 1. 移除 CharacterOverlayWidget（主游戏HUD不再需要）
- *
- * 2. 显示 AnnouncementWidget 并设置为可见
- *
- * 3. 设置公告标题为 "New Match Starts In:" （提示即将开始新一局）
- *
- * 4. 从 GameState 获取 TopScoringPlayers 列表并生成本局结果信息：
- *    - 列表为空 → 显示"没有最高分"（无人得分的情况）
- *    - 只有1人且是自己 → 显示"你是胜利者!"
- *    - 只有1人且不是自己 → 显示"Winner: XXX"（其他玩家的名字）
- *    - 多人并列第一 → 显示所有获胜者的名字列表
- *
- * 5. 尝试禁用角色输入（bDisableGameplay = true），
- *    但目前代码中被注释掉了（TODO待确认是否启用）
- */
-void AXMBPlayerController::HandleCooldown()
-{
-	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
-	if(XMBHUD)
-	{
-		// 移除主游戏HUD覆盖层
-		XMBHUD->CharacterOverlayWidget->RemoveFromParent();
-
-		// 验证公告面板的所有必要控件是否有效
-		bool bHUDValid = XMBHUD->AnnouncementWidget
-			&& XMBHUD->AnnouncementWidget->AnnouncementText
-			&& XMBHUD->AnnouncementWidget->InfoText;
-		
-		if (bHUDValid)
-		{
-			// 显示公告面板
-			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Visible);
-			// 设置公告标题
-			FString AnnouncementText("New Match Starts In:");
-			XMBHUD->AnnouncementWidget->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-
-			// 获取 GameState 以访问排行榜数据
-			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
-			// 获取自己的 PlayerState 用于对比
-			AXMBPlayerState* BlasterPlayerState = GetPlayerState<AXMBPlayerState>();
-			if (BlasterGameState)
-			{
-				TArray<AXMBPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
-				FString InfoTextString;
-
-				// 根据排行榜情况生成不同的结果文字
-				if (TopPlayers.Num() == 0)
-				{
-					InfoTextString = FString("没有最高分");
-				}
-				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
-				{
-					InfoTextString = FString("你是胜利者!"); // 我是唯一的第一名
-				}
-				else if (TopPlayers.Num() == 1)
-				{
-					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *TopPlayers[0]->GetPlayerName()); // 别人是第一名
-				}
-				else if (TopPlayers.Num() > 1)
-				{
-					InfoTextString = FString("Players tied for the win:\n"); // 多人同分
-					for (auto TiedPlayer : TopPlayers)
-					{
-						InfoTextString.Append(FString::Printf(TEXT("\n%s"), *TiedPlayer->GetPlayerName()));
-					}
-				}
-				XMBHUD->AnnouncementWidget->InfoText->SetText(FText::FromString(InfoTextString));
-			}
-		}
-	}
-
-	// 可选：禁用角色输入（冷却期间不允许操作），目前代码中已注释掉
-	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(GetPawn());
-	if (XMBCharacter && XMBCharacter->GetCombatComponent())
-	{
-		// 注释掉的禁用输入代码（待确认是否需要恢复）
-		// XMBCharacter->bDisableGameplay = true;
-		// XMBCharacter->GetCombatComponent()->FireButtonPressed(false);
-	}
-}
-
-/**
- * @brief 延迟初始化 CharacterOverlayWidget 并恢复之前暂存的HUD数据
- *
- * 【问题背景】：在 BeginPlay 时 CharacterOverlayWidget 可能尚未创建完毕
- * （UMG Widget 的创建依赖于蓝图的加载顺序），导致 SetHUDHealth 等函数
- * 无法找到目标控件。此时数据被暂存到 HUdHealth/HUDScore 等成员变量中。
- *
- * 【解决方法】：在 Tick 中每帧调用 PollInit 检查 Widget 是否已创建，
- * 一旦创建完成，立即使用之前暂存的数据调用各 SetHUD 函数完成真正的UI更新，
- * 然后将 CharacterOverlayWidget 缓存起来避免重复检查。
- */
-void AXMBPlayerController::PollInit()
-{
-	if (CharacterOverlayWidget == nullptr)
-	{
-		// 检查 HUD 和其下的 CharacterOverlayWidget 是否已有效
-		if (XMBHUD && XMBHUD->CharacterOverlayWidget)
-		{
-			// 缓存 Widget 引用
-			CharacterOverlayWidget = XMBHUD->CharacterOverlayWidget;
-			if (CharacterOverlayWidget)
-			{
-				// 使用之前暂存的值恢复所有 HUD 数据
-				// if (bInitializeHealth) SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
-				// if (bInitializeShield) SetHUDShield(HUdShield,HUDMaxShield);//盾量
-				if (bInitializeScore) SetHUDScore(HUDScore);                   // 恢复分数显示
-				if (bInitializeDefeats) SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
-
-				SetHUDHealth(HUdHealth, HUDMaxHealth);
-				SetHUDShield(HUdShield,HUDMaxShield);
-
-				
-				AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(GetPawn());
-				if (BlasterCharacter && BlasterCharacter->GetCombatComponent())
-				{
-					// SetHUDGrenades(HUDGrenades);
-					if (bInitializeGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
-				}
-			}
-		}
-	}
-}
 
 
 /**

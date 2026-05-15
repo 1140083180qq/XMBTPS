@@ -21,19 +21,17 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere)//可拾取物品的子类
 	TArray<TSubclassOf<APickupActorBase>> PickupActorClasses;
 	
-	APickupActorBase* SpawnedPickupActor;
+	APickupActorBase* SpawnedPickupActor;//由这个Point生成的物品
 
 	void PickupActorToSpawn();
-
-	void SpawnPickupActorTimerFinished();
-
+	
 	UFUNCTION()
 	void StartSpawnPickupActorTimer(AActor* DestroyedActor);
 
-	
+	void SpawnPickupActorTimerFinished();
 private:
 
 	FTimerHandle SpawnPickupActorTimer;

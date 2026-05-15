@@ -26,15 +26,16 @@ class XMBBLASTER_API AXMBCharacterBase : public ACharacter, public IInteractWith
 	GENERATED_BODY()
 
 public:
-
 	AXMBCharacterBase();
-	virtual void PostInitializeComponents() override;
+	virtual void PostInitializeComponents() override;//组件初始化完成后的回调
 
-	void SetOverlappingWeapon(AWeaponBase* Weapon);//一旦overlappingWeapon这个变量发生改变时，复制才会起作用。仅当OverlappingWeapon在Server发生变化时，才会让Client发生变化
-	
+	virtual void Destroyed() override;
+
+
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	bool IsShoulderAiming();
+	ECombatState GetCombatState() const;
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
@@ -58,38 +59,42 @@ public:
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	/*XMBUITEST*/
 	/*--------- RELOADTEST----------*/
-	void SniperReload(FName SectionName, bool bIsSniper);
+	void ExecuteReloadMontage(FName SectionName, bool bIsSniper);
 	/*---------RELOADTEST----------*/
-
-	AWeaponBase* GetEquippedWeapon();
-
+	
 	void PlayFireMontage(bool bAiming);
 	void PlayElimMontage();
 	void PlayReloadMontage();
 	void PlayThrowGrenadeMontage();
+	
 
-	FVector GetHitTarget() const;
+	/*
+	 * 武器
+	 */
+	AWeaponBase* GetEquippedWeapon();//获取当前装备武器
+	FVector GetHitTarget() const;//获取当前屏幕中心点
+	void SetOverlappingWeapon(AWeaponBase* Weapon);//一旦overlappingWeapon这个变量发生改变时，复制才会起作用。仅当OverlappingWeapon在Server发生变化时，才会让Client发生变化
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);//设置狙击枪开镜
 
 	virtual void OnRep_ReplicatedMovement() override;//当角色移动时，会自动调用这个类//具体参考于Actor.h
 
-	//这个函数仅在服务器执行
-	void Elim();
+	
+	/*
+	 * 死亡
+	 */
+	void Elim();//这个函数仅在服务器执行
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
-
-	ECombatState GetCombatState() const;
-
-	//这个变量用于禁止玩家进行输入,false为可以，true为不可以
-	UPROPERTY(Replicated)
-	bool bDisableGameplay = false;//TODO:这个变量仅用来设置禁止使用技能以及用来设置游戏开始前的弹药不消耗(但是可以开枪)
-
-	virtual void Destroyed() override;
-
-	//设置狙击枪开镜
-	UFUNCTION(BlueprintImplementableEvent)
-	void ShowSniperScopeWidget(bool bShowScope);
-
+	
+	UPROPERTY(Replicated)//TODO:这个变量仅用来设置禁止使用技能以及用来设置游戏开始前的弹药不消耗(但是可以开枪)
+	bool bDisableGameplay = false;//这个变量用于禁止玩家进行输入,false为可以，true为不可以
+	
+	/*
+	 * 更新HUD
+	 */
 	UFUNCTION()
 	void UpdateHUDHealth();
 
@@ -100,9 +105,17 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	
+	/*
+	 * 动画
+	 */
 	void CalculateAO_Pitch();//获取相机俯仰角，传给动画蓝图驱动上半身上下转动。
 
-
+	
+	/*
+	 * 输入
+	 */
 	UFUNCTION(BlueprintCallable)
 	void EquipButtonPressed();
 	UFUNCTION(BlueprintCallable)
@@ -119,33 +132,32 @@ protected:
 	void ReloadButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void GrenadeButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void FireButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	void FireButtonReleased();
+
+	virtual void Jump() override;
 
 	UFUNCTION(BlueprintCallable)
 	void AimOffset(float DeltaTime);
 	UFUNCTION(BlueprintCallable)
 	void SimProxiesTurn();//本地玩家用 AimOffset（通过相机方向判断），但远程角色没有相机信息。所以改用帧间 Actor 旋转差（ProxyYaw）来判断是否在转身。
 
-	virtual void Jump() override;
-
-	UFUNCTION(BlueprintCallable)
-	void FireButtonPressed();
-	UFUNCTION(BlueprintCallable)
-	void FireButtonReleased();
-
-	void PlayHitReactMontage();
-
-	//使用变量的复制比使用RPC对网络更节俭。为了节省网络，此处对伤害不使用RPC，删除了multicast。
-	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
-
-	
-
-	/*
-	 * 此处要放在Tick内，因为无法及时更新HUD。TODO:尝试使用计时器
-	 */
+	//此处要放在Tick内，因为无法及时更新HUD。TODO:尝试使用计时器
 	void PollInit();
 	bool bDoOnce = true;
 	void RotateInPlace(float DeltaSeconds);
+	
+	void PlayHitReactMontage();//播放受击动画
+
+	
+	/*
+	 * 伤害
+	 */
+	//使用变量的复制比使用RPC对网络更节俭。为了节省网络，此处对伤害不使用RPC，删除了multicast。
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -169,12 +181,10 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* BuffComponent;
 
-	UFUNCTION(Server,Reliable)//需要了解RPC的可靠与不可靠执行，出现不可靠执行的几种情形。知道解决不可靠执行的几种办法。
-	void ServerEquipButtonPressed();
 	
-	UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
-
+	/*
+	 * 蒙太奇
+	 */
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
@@ -187,7 +197,19 @@ private:
 	UAnimMontage* SniperReloadMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ThrowGrenadeMontage;
+
+
+	/*装备武器输入*/
+	UFUNCTION(Server,Reliable)//需要了解RPC的可靠与不可靠执行，出现不可靠执行的几种情形。知道解决不可靠执行的几种办法。
+	void ServerEquipButtonPressed();
 	
+	UFUNCTION()//RPC
+	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
+
+	
+	/*
+	 * 动画
+	 */
 	float AO_Yaw;
 	float InterpAO_Yaw;//用于设置转身时的Yaw插值
 	float AO_Pitch;
@@ -197,12 +219,8 @@ private:
 
 	void TurnInPlace(float DeltaTime);
 
-	UFUNCTION(BlueprintCallable)
-	void HideCameraIfCharacterClose();
-
-	UPROPERTY(EditAnywhere)
-	float CameraThreshold = 200.f;
-
+	
+	/*瞄准类的东西*/
 	bool bRotateRootBone;
 	
 	float TurnThreshold = 0.5f;//每帧旋转角度的阈值
@@ -212,10 +230,79 @@ private:
 	float TimeSinceLastMovementReplication;
 	float CalculateSpeed();//计算角色的水平移动速度（忽略 Z 轴的下落/跳跃分量）。用于判断角色是否在移动。
 
+	
+	/*
+	 * 摄像机
+	 */
+	UFUNCTION(BlueprintCallable)
+	void HideCameraIfCharacterClose();
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+	float CameraThreshold = 200.f;
+	
+
+	UPROPERTY()//控制器指针缓存
+	AXMBPlayerController* XMBPlayerController;
+
+	
+	/*
+	 * 溶解效果
+	 */
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+	
+	FOnTimelineFloat DissolveTrack;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	UPROPERTY(EditAnywhere,Category = Dissolve)
+	UCurveFloat* DissolveCurve;
+
+	//在运行时可以改变的实例
+	UPROPERTY(VisibleAnywhere,Category = Elim)
+	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
+
+	//在蓝图中设置的材质实例，用于DynamicDissolveMaterialInstance↑
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* DissolveMaterialInstance;
+
+	
+	/*
+	 * Elim bot
+	 */
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UParticleSystem* ElimBotEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ElimBotComponent;
+
+	UPROPERTY(EditAnywhere,Category = Elim)
+	USoundCue* ElimBotSound;
+
+	UPROPERTY()
+	AXMBPlayerState* XMBPlayerState;
+
+	bool bElimmed = false;
+	FTimerHandle ElimTimer;
+	
+	UPROPERTY(EditDefaultsOnly,Category = Elim)
+	float ElimDelay = 3.f;
+
+	void ElimTimerFinished();
+
+	
+	/*
+	 * Grenade
+	 */
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* AttachedGrenade;
+
+	
 	/*
 	 * Player Health
 	 */
-
 	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth,VisibleAnywhere,Category = "Player States")
 	float MaxHealth = 100.f;
 
@@ -239,65 +326,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_MaxShield();
-
-	UPROPERTY()
-	AXMBPlayerController* XMBPlayerController;
-
-	bool bElimmed = false;
-
-	FTimerHandle ElimTimer;
-	void ElimTimerFinished();
-	UPROPERTY(EditDefaultsOnly)
-	float ElimDelay = 3.f;
-
-
-	/*
-	 * 溶解效果
-	 */
-
-	UPROPERTY(VisibleAnywhere)
-	UTimelineComponent* DissolveTimeline;
-	
-	FOnTimelineFloat DissolveTrack;
-
-	UFUNCTION()
-	void UpdateDissolveMaterial(float DissolveValue);
-	void StartDissolve();
-
-	UPROPERTY(EditAnywhere)
-	UCurveFloat* DissolveCurve;
-
-	//在运行时可以改变的实例
-	UPROPERTY(VisibleAnywhere,Category = Elim)
-	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
-
-	//在蓝图中设置的材质实例，用于DynamicDissolveMaterialInstance↑
-	UPROPERTY(EditAnywhere,Category = Elim)
-	UMaterialInstance* DissolveMaterialInstance;
-
-	/*
-	 * Elim bot
-	 */
-
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* ElimBotEffect;
-
-	UPROPERTY(VisibleAnywhere)
-	UParticleSystemComponent* ElimBotComponent;
-
-	UPROPERTY(EditAnywhere)
-	 USoundCue* ElimBotSound;
-
-	UPROPERTY()
-	AXMBPlayerState* XMBPlayerState;
-
-	/*
-	 * Grenade
-	 */
-
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* AttachedGrenade;
-	
 };
 
 

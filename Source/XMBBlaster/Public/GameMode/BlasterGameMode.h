@@ -30,7 +30,6 @@ class XMBBLASTER_API ABlasterGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
-	/** 构造函数，设置默认参数 */
 	ABlasterGameMode();
 	
 	/** 每帧更新，处理计时和比赛阶段切换 */
@@ -51,23 +50,24 @@ public:
 	 */
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
 
+
+	
 	/** 热身等待时长（秒） */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Match)
 	float WarmupTime = 5.f;
 
 	/** 正式比赛时长（秒） */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Match)
 	float MatchTime = 10.f;
 
 	/** 比赛结束后的冷却时长（秒） */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Match)
 	float CooldownTime = 5.f;
 	
 	/** 关卡开始时刻（服务器时间） */
 	float LevelStartingTime = 0.f;
 
-	/** @return 获取当前倒计时剩余时间 */
-	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
+
 	
 protected:
 	/** 游戏开始时初始化计时器等 */
@@ -76,9 +76,16 @@ protected:
 	/** 比赛状态变化时的回调 */
 	virtual void OnMatchStateSet() override;
 
-private:
+
 	
+private:
 	/** 当前倒计时的剩余时间 */
 	float CountdownTime = 0.f;
+
+	
+	
+public:
+	/** @return 获取当前倒计时剩余时间 */
+	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 	
 };

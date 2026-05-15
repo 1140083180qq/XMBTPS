@@ -47,15 +47,6 @@ void APickupActorSpawnPoint::PickupActorToSpawn()
 }
 
 
-void APickupActorSpawnPoint::SpawnPickupActorTimerFinished()
-{
-	if (HasAuthority())
-	{
-		PickupActorToSpawn();
-	}
-}
-
-
 void APickupActorSpawnPoint::StartSpawnPickupActorTimer(AActor* DestroyedActor)
 {
 	const float SpawnTime = FMath::FRandRange(SpawnPickupActorTimeMin, SpawnPickupActorTimeMax);
@@ -65,4 +56,13 @@ void APickupActorSpawnPoint::StartSpawnPickupActorTimer(AActor* DestroyedActor)
 		&APickupActorSpawnPoint::SpawnPickupActorTimerFinished,
 		SpawnTime);
 	
+}
+
+
+void APickupActorSpawnPoint::SpawnPickupActorTimerFinished()
+{
+	if (HasAuthority())
+	{
+		PickupActorToSpawn();
+	}
 }

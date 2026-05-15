@@ -62,16 +62,6 @@ void APickupActorBase::Tick(float DeltaTime)
 	}
 }
 
-void APickupActorBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	
-}
-
-void APickupActorBase::BindOverlapTimerFinished()
-{
-	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APickupActorBase::OnSphereOverlap);
-}
 
 void APickupActorBase::Destroyed()
 {
@@ -93,4 +83,16 @@ void APickupActorBase::Destroyed()
 		GetActorRotation()
 		);
 	}
+}
+
+
+void APickupActorBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
+}
+
+void APickupActorBase::BindOverlapTimerFinished()
+{
+	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APickupActorBase::OnSphereOverlap);
 }
