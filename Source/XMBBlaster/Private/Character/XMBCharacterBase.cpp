@@ -86,6 +86,9 @@ void AXMBCharacterBase::BeginPlay()
 
 	UpdateHUDHealth();  // 初始化时将当前生命值同步到HUD
 	UpdateHUDShield();
+
+	CombatComponent->SpawnDefaultWeapon();
+	UpdateHUDAmmo();
 	
 	// 仅服务器绑定伤害事件，确保伤害计算的权威性
 	if (HasAuthority())
@@ -792,6 +795,17 @@ void AXMBCharacterBase::UpdateHUDShield()
 	}
 }
 
+void AXMBCharacterBase::UpdateHUDAmmo()
+{
+	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
+	if (XMBPlayerController && CombatComponent && CombatComponent->GetEquippedWeapon())
+	{
+		XMBPlayerController->SetHUDCarriedAmmo(CombatComponent->CarriedAmmo);
+		XMBPlayerController->SetHUDWeaponAmmo(CombatComponent->GetEquippedWeapon()->GetAmmo());
+	}
+}
+
+
 /**
  * @brief 轮询初始化（延迟获取PlayerState）
  *
@@ -834,7 +848,14 @@ void AXMBCharacterBase::Elim()
 	// 步骤1：掉落武器
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
-		CombatComponent->EquippedWeapon->Dropped();
+		if (CombatComponent->EquippedWeapon->GetWeaponDestroy())
+		{
+			CombatComponent->EquippedWeapon->Destroy();
+		}
+		else
+		{
+			CombatComponent->EquippedWeapon->Dropped();
+		}
 	}
 	
 	// 步骤2：多播淘汰效果到所有客户端

@@ -206,6 +206,8 @@ private:
 	EWeaponType WeaponType;
 
 
+	bool bDestroyWeapon = false;
+	
 public:
 	/** @return 碰撞球体组件 */
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
@@ -221,5 +223,9 @@ public:
 	
 	/** @return 弹夹容量 */
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+
+	FORCEINLINE bool GetWeaponDestroy() const { return bDestroyWeapon; }
+
+	FORCEINLINE void SetWeaponDestroy(bool InbDestroy) { bDestroyWeapon = InbDestroy; }
 };
 

@@ -31,6 +31,7 @@ public:
 	 */
 	void EquipWeapon(AWeaponBase* WeaponToEquip);/*** @brief 装备武器*/
 
+	void SpawnDefaultWeapon();
 	
 	/*
 	 * 开火
@@ -162,6 +163,8 @@ protected:
 	
 	void PlayEquipWeaponSound();/*播放装备武器的音效*/
 
+	
+
 private:
 
 	UPROPERTY()	/** 拥有此组件的角色指针 */
@@ -169,6 +172,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)/** 当前装备的武器（需复制） */
 	AWeaponBase* EquippedWeapon;
+
+	UPROPERTY(EditAnywhere)/*角色出生时默认携带武器*/
+	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 	
 	UPROPERTY(Replicated)/** 是否处于瞄准状态（网络复制） */
 	bool bAiming;

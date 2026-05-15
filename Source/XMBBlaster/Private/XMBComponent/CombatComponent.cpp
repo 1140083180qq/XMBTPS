@@ -8,6 +8,7 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Actor/Projectile.h"
+#include "GameMode/BlasterGameMode.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -218,6 +219,22 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
 	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Owner->bUseControllerRotationYaw = true;
+}
+
+
+void UCombatComponent::SpawnDefaultWeapon()
+{
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* World = GetWorld();
+	if (BlasterGameMode && World &&!Owner->IsElimmed() && DefaultWeaponClass)
+	{
+		AWeaponBase* StartingWeapon = World->SpawnActor<AWeaponBase>(DefaultWeaponClass);
+		if (StartingWeapon)
+		{
+			StartingWeapon->SetWeaponDestroy(true);//装备了别的武器后销毁掉初始武器//XMBTODO:若玩家置换武器也销毁
+			EquipWeapon(StartingWeapon);
+		}
+	}
 }
 
 void UCombatComponent::DropEquippedWeapon()

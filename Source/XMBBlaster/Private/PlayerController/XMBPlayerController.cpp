@@ -332,20 +332,22 @@ void AXMBPlayerController::PollInit()
 			if (CharacterOverlayWidget)
 			{
 				// 使用之前暂存的值恢复所有 HUD 数据
-				// if (bInitializeHealth) SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
-				// if (bInitializeShield) SetHUDShield(HUdShield,HUDMaxShield);//盾量
+				if (bInitializeHealth) SetHUDHealth(HUdHealth, HUDMaxHealth); // 恢复血量显示
+				if (bInitializeShield) SetHUDShield(HUdShield,HUDMaxShield);//盾量
 				if (bInitializeScore) SetHUDScore(HUDScore);                   // 恢复分数显示
 				if (bInitializeDefeats) SetHUDDefeats(HUDDefeats);               // 恢复击败数显示
 
-				SetHUDHealth(HUdHealth, HUDMaxHealth);
-				SetHUDShield(HUdShield,HUDMaxShield);
+				if (bInitializeWeaponAmmo) SetHUDWeaponAmmo(HUDWeaponAmmo);
+				if (bInitializeCarriedAmmo) SetHUDCarriedAmmo(HUDCarriedAmmo);
+				// SetHUDHealth(HUdHealth, HUDMaxHealth);
+				// SetHUDShield(HUdShield,HUDMaxShield);
 
 				
 				AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(GetPawn());
 				if (BlasterCharacter && BlasterCharacter->GetCombatComponent())
 				{
-					// SetHUDGrenades(HUDGrenades);
-					if (bInitializeGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
+					SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
+					// if (bInitializeGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenades());
 				}
 			}
 		}
@@ -487,6 +489,11 @@ void AXMBPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 		FString AmmoText = FString::Printf(TEXT("%d"),Ammo);
 		XMBHUD->CharacterOverlayWidget->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
+	else
+	{
+		bInitializeWeaponAmmo = true;
+		HUDWeaponAmmo = Ammo;
+	}
 }
 
 /**
@@ -505,6 +512,11 @@ void AXMBPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	{
 		FString AmmoText = FString::Printf(TEXT("%d"),Ammo);
 		XMBHUD->CharacterOverlayWidget->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+	else
+	{
+		bInitializeCarriedAmmo = true;
+		HUDCarriedAmmo = Ammo;
 	}
 }
 

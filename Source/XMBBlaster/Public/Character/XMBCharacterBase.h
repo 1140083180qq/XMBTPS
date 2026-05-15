@@ -100,6 +100,8 @@ public:
 
 	UFUNCTION()
 	void UpdateHUDShield();
+
+	void UpdateHUDAmmo();
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -180,6 +182,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* BuffComponent;
+
+
+
+
+	
+	
 
 	
 	/*
