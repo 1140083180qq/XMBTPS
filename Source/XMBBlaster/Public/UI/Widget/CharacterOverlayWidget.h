@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "CharacterOverlayWidget.generated.h"
 
+class UImage;
 /**
  * 
  */
@@ -49,5 +50,11 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* GrenadeText;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* HighPingImage;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)//TODO:了解这个宏
+	UWidgetAnimation* HighPingAnimation;
 	
 };

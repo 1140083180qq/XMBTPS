@@ -82,6 +82,10 @@ protected:
 	void ClientJoinMidgame(FName StateOfMatch,float WarmUp,float Match,float StartingTime,float InCooldownTime);
 
 
+
+	void HighPingWarning();
+	void StopHighPingWarning();
+	void CheckPing(float DeltaTime);
 	
 private:
 	UPROPERTY()
@@ -125,6 +129,21 @@ private:
 
 	UPROPERTY()
 	ABlasterGameMode* BlasterGameMode;
+
+	float HighPingRunningTime = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = Ping)
+	float HighPingDuration = 5.f;
+
+	UPROPERTY(EditAnywhere,Category = Ping)
+	float CheckPingFrequency = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = Ping)
+	float HighPingThreshold = 50.f;//TODO:了解
+
+	float PingAnimationRunningTime = 0.f;
+
+
 	
 };
 

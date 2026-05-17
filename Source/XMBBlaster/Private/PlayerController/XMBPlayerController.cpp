@@ -16,6 +16,7 @@
 
 #include "OnlineSubsystemTypes.h"
 #include "Character/XMBCharacterBase.h"
+#include "Components/Image.h"
 #include "GameFramework/GameMode.h"
 #include "GameMode/BlasterGameMode.h"
 #include "GameState/XMBBlasterGameState.h"
@@ -94,11 +95,9 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 
 	SetHUDTime();          // 更新倒计时显示
 	CheckTimeSync(DeltaSeconds); // 检查时间同步
-
-	// 如果 CharacterOverlayWidget 还没准备好，每帧尝试初始化
-	// if (bInitializeCharcterOverlay)
-		PollInit();
-	// }
+	PollInit();
+	CheckPing(DeltaSeconds);
+	
 }
 
 
@@ -804,3 +803,69 @@ void AXMBPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,f
 }
 
 
+
+void AXMBPlayerController::HighPingWarning()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->HighPingImage
+		&& XMBHUD->CharacterOverlayWidget->HighPingAnimation;
+	if (bHUDValid)
+	{
+		XMBHUD->CharacterOverlayWidget->HighPingImage->SetOpacity(1.f);
+		XMBHUD->CharacterOverlayWidget->PlayAnimation(XMBHUD->CharacterOverlayWidget->HighPingAnimation,0.f,5);
+	}
+}
+
+void AXMBPlayerController::StopHighPingWarning()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->HighPingImage
+		&& XMBHUD->CharacterOverlayWidget->HighPingAnimation;
+	if (bHUDValid)
+	{
+		XMBHUD->CharacterOverlayWidget->HighPingImage->SetOpacity(0.f);
+		if (XMBHUD->CharacterOverlayWidget->IsAnimationPlaying(XMBHUD->CharacterOverlayWidget->HighPingAnimation))
+		{
+			XMBHUD->CharacterOverlayWidget->StopAnimation(XMBHUD->CharacterOverlayWidget->HighPingAnimation);
+		}
+	}
+}
+
+void AXMBPlayerController::CheckPing(float DeltaTime)
+{
+	if (HasAuthority()) return;
+	HighPingRunningTime += DeltaTime;
+	if (HighPingRunningTime > CheckPingFrequency)
+	{
+		PlayerState = PlayerState == nullptr ? GetPlayerState<AXMBPlayerState>() : PlayerState;
+		if (PlayerState)
+		{
+			//此处不需要乘以4了，在ue5内置封装好的函数里，这个函数在返回时已经乘以4了
+			// if (PlayerState->GetPingInMilliseconds() > HighPingThreshold)//OLD:此处获取的ping是被压缩过的，此处的ping经过除以4压缩，所以需要乘以4
+			if (PlayerState->GetCompressedPing() * 4 > HighPingThreshold)//这一句才是原来的意思，应该是通过获取压缩后的ping
+			{
+				HighPingWarning();
+				PingAnimationRunningTime = 0.f;
+			}
+		}
+		HighPingRunningTime = 0.f;
+	}
+	bool bHighPingAnimationPlaying = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->HighPingAnimation
+		&& XMBHUD->CharacterOverlayWidget->IsAnimationPlaying(XMBHUD->CharacterOverlayWidget->HighPingAnimation);
+	if (bHighPingAnimationPlaying)
+	{
+		PingAnimationRunningTime += DeltaTime;
+		if (PingAnimationRunningTime > HighPingDuration)
+		{
+			StopHighPingWarning();
+		}
+	}
+}
