@@ -275,6 +275,7 @@ void UCombatComponent::DropEquippedWeapon()
 //XMBTOOD:可以制作一个交换武器的按键
 void UCombatComponent::SwapWeapons()
 {
+	if (CombatState != ECombatState::ECS_Unoccupied) return;//防止玩家在播放Reloading时切换武器
 	AWeaponBase* TempWeapon = EquippedWeapon;
 	EquippedWeapon = SecondaryWeapon;
 	SecondaryWeapon = TempWeapon;
