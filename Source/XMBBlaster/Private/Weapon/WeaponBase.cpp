@@ -162,7 +162,10 @@ void AWeaponBase::Fire(const FVector& HitTarget)
 	}
 
 	// 步骤3: 扣除一发弹药并更新HUD
-	SpendRound();
+	if (HasAuthority())
+	{
+		SpendRound();
+	}
 }
 
 /**

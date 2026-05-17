@@ -115,6 +115,8 @@ protected:
 	 * 开火
 	 */
 	void Fire();/** 执行开火逻辑 */
+	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
+	
 
 	/**
 	 * @brief 服务器RPC：执行开火

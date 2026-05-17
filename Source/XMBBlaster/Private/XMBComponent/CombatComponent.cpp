@@ -420,7 +420,28 @@ void UCombatComponent::Fire()
 	{
 		bCanFire = false; // 立即标记为不可开火，直到冷却结束
 		ServerFire(HitTarget); // 将 Tick 中缓存的目标点发送给服务器
+		LocalFire(HitTarget);
 		StartFireTimer(); // 启动冷却计时器
+	}
+}
+
+void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (EquippedWeapon == nullptr) return;
+
+	if (Owner && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun)
+	{
+		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
+		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
+		CombatState = ECombatState::ECS_Unoccupied;
+		return;
+	}
+	
+	// 再次确认战斗状态合法，防止换弹期间误触发出开火
+	if (Owner && CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
+		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
 	}
 }
 
@@ -515,22 +536,9 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
  */
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	if (EquippedWeapon == nullptr) return;
-
-	if (Owner && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun)
-	{
-		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
-		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
-		CombatState = ECombatState::ECS_Unoccupied;
-		return;
-	}
-	
-	// 再次确认战斗状态合法，防止换弹期间误触发出开火
-	if (Owner && CombatState == ECombatState::ECS_Unoccupied)
-	{
-		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
-		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
-	}
+	//因为LocalFire已经拥有了播放蒙太奇的逻辑，为了防止RPC使得客户端再一次播放蒙太奇
+	if (Owner && Owner->IsLocallyControlled() && !Owner->HasAuthority()) return;//是给别的客户端使用的
+	LocalFire(TraceHitTarget);
 }
 
 
