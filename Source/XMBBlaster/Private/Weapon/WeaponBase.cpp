@@ -2,6 +2,7 @@
 #include "Weapon/WeaponBase.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/XMBCharacterBase.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "PlayerController/XMBPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
@@ -67,6 +68,8 @@ void AWeaponBase::EnableCustomDepth(bool bEnable)
 	}
 }
 
+
+
 /**
  * @brief 游戏开始时初始化武器的碰撞和UI状态
  *
@@ -91,16 +94,13 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority()) // 仅服务器端初始化碰撞系统
-	{
-		// 启用碰撞球体的重叠检测能力，对Pawn通道设置为重叠模式
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	// 启用碰撞球体的重叠检测能力，对Pawn通道设置为重叠模式
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
-		// 绑定球体的进入/离开重叠事件到对应的处理函数
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
-	}
+	// 绑定球体的进入/离开重叠事件到对应的处理函数
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
 
 	// 默认隐藏拾取提示UI（有玩家接近时再显示）
 	if (PickupWidget)
@@ -167,6 +167,30 @@ void AWeaponBase::Fire(const FVector& HitTarget)
 		SpendRound();
 	}
 }
+
+
+
+FVector AWeaponBase::TraceEndWithScatter(const FVector& HitTarget)
+{
+	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+	if (MuzzleFlashSocket == nullptr) return FVector();
+	
+	FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+	FVector Start = SocketTransform.GetLocation();
+	
+	FVector ToTargetNormalized = (HitTarget - Start).GetSafeNormal();
+	FVector SphereCenter = Start + ToTargetNormalized * DistanceToSphere;
+	FVector RandomVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+	FVector EndLoc = SphereCenter + RandomVec;
+	FVector ToEndLoc = EndLoc - Start;
+	
+	// DrawDebugLine(GetWorld(), Start, FVector(Start + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()), FColor::Cyan, true);
+
+	return FVector(Start + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
+}
+
+
+
 
 /**
  * @brief 设置武器的拥有者角色

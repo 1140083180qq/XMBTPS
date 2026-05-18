@@ -83,20 +83,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 }
 
 
-FVector AHitScanWeapon::TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget)
-{
-	FVector ToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
-	FVector SphereCenter = TraceStart + ToTargetNormalized * DistanceToSphere;
-	FVector RandomVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
-	FVector EndLoc = SphereCenter + RandomVec;
-	FVector ToEndLoc = EndLoc - TraceStart;
 
-	// DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
-	// DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
-	DrawDebugLine(GetWorld(), TraceStart, FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()), FColor::Cyan, true);
-
-	return FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
-}
 
 void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult)
 {
@@ -105,7 +92,9 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 
 	if (World)
 	{
-		FVector End = bUseScatter ? TraceEndWithScatter(TraceStart, HitTarget) : TraceStart + (HitTarget - TraceStart) * 1.25f;
+		// FVector End = bUseScatter ? TraceEndWithScatter(TraceStart, HitTarget) : TraceStart + (HitTarget - TraceStart) * 1.25f;
+		//此处只进行本地运算散步，所以只采取了原三元的false端(LocalFire)
+		FVector End =  TraceStart + (HitTarget - TraceStart) * 1.25f;//为何此处不使用三元
 		
 		World->LineTraceSingleByChannel(
 				OutHitResult,
@@ -119,6 +108,9 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 		{
 			BeamEnd = OutHitResult.ImpactPoint;
 		}
+
+		//之前制作了LocalFire,开火时本地的开火与服务器的开火不一样，所以会有不一样的随机弹道偏移
+		DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true);
 
 		if (BeamParticles)
 		{

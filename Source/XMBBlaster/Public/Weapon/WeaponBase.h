@@ -10,6 +10,8 @@
 
 class AXMBPlayerController;
 class AXMBCharacterBase;
+#include "WeaponBase.generated.h"
+
 
 /**
  * @enum EWeaponState
@@ -25,7 +27,17 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")             // 最大值占位符
 };
 
-#include "WeaponBase.generated.h"
+UENUM(BlueprintType)
+enum class EFireType : uint8
+{
+	EFT_HitScan UMETA(DisplayName = "Hit Scan Weapon"),
+	EFT_Projectile UMETA(DisplayName = "Porjectile Weapon"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun Weapon"),
+	
+	EFT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
+
 
 
 UCLASS()
@@ -130,6 +142,23 @@ public:
 	 */
 	void EnableCustomDepth(bool bEnable);
 
+
+	/*
+	 * 武器开火的弹道类型
+	 */
+	UPROPERTY(EditAnywhere)
+	EFireType FireType;
+
+
+	/*
+	 * 散射
+	 */
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	bool bUseScatter = false;//散射
+
+	FVector TraceEndWithScatter( const FVector& HitTarget);
+
+	
 	
 protected:
 	virtual void BeginPlay() override;
@@ -214,6 +243,16 @@ private:
 
 	bool bDestroyWeapon = false;
 
+
+
+	/*
+	 * 散射
+	 */
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float DistanceToSphere = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float SphereRadius = 75.f;
 	
 	
 public:

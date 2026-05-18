@@ -16,9 +16,11 @@ class XMBBLASTER_API AHitScanWeapon : public AWeaponBase
 
 public:
 	virtual void Fire(const FVector& HitTarget) override;
+	
 
+	
 protected:
-	FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);
+	
 
 	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult);
 
@@ -42,16 +44,7 @@ protected:
 	USoundCue* HitSound;
 	
 private:
-	/*
-	 * Trace end with scatter
-	 */
+	
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	float DistanceToSphere = 800.f;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	float SphereRadius = 75.f;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	bool bUseScatter = false;//散射
+	
 };

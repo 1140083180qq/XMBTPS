@@ -39,6 +39,9 @@ public:
 	
 	/** @return 准心是否发生变化（用于判断是否需要改变颜色） */
 	FORCEINLINE bool GetbIsChange() { return bIsChange; }
+
+	FORCEINLINE float GetCrosshairShootingFactor() const { return CrosshairShootingFactor;}
+	FORCEINLINE void SetCrosshairShootingFactor(float InFactor) { CrosshairShootingFactor = InFactor; }
 	
 	/**
 	 * @brief 设置准心变化标志

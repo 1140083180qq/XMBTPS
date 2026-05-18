@@ -116,6 +116,9 @@ protected:
 	 */
 	void Fire();/** 执行开火逻辑 */
 	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
+	void FireProjectileWeapon();
+	void FireHitScanWeapon();
+	void FireShotgun();
 	
 
 	/**
@@ -334,5 +337,6 @@ public:
 
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 };
+
 
 

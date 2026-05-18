@@ -420,8 +420,28 @@ void UCombatComponent::Fire()
 	if (CanFire())
 	{
 		bCanFire = false; // 立即标记为不可开火，直到冷却结束
-		ServerFire(HitTarget); // 将 Tick 中缓存的目标点发送给服务器
-		LocalFire(HitTarget);
+		//*****因为制作了LocalFire,开火时本地的开火与服务器的开火不一样，所以会有不一样的随机弹道偏移
+		// ServerFire(HitTarget); // 将 Tick 中缓存的目标点发送给服务器
+		// LocalFire(HitTarget);
+		if(EquippedWeapon)
+		{
+			Owner->GetUIComponent()->SetCrosshairShootingFactor(0.75f);
+
+			switch (EquippedWeapon->FireType)
+			{
+			case EFireType::EFT_Projectile:
+				FireProjectileWeapon();
+				break;
+			case EFireType::EFT_HitScan:
+				FireHitScanWeapon();
+				break;
+			case EFireType::EFT_Shotgun:
+				FireShotgun();
+				break;
+			}
+		}
+		
+		
 		StartFireTimer(); // 启动冷却计时器
 	}
 }
@@ -444,6 +464,34 @@ void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
 		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
 		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
 	}
+}
+
+//********************************************
+/*
+ * 此处执行的重点，是玩家经过开火后，现在本地执行散射，再将本地的散射结果发给服务器，再由服务器将本地的结果发给别的客户端。
+ * TODO:需要了解此处有关散射的制作设置，后续需要将成员换成private并添加安全验证
+ * TODO:需要了解整个开火的执行流程以及数据在本地-服务器-客户端的传递
+ */
+//XMBTODO:会出现新的作弊方式，需要修改验证
+//********************************************
+void UCombatComponent::FireProjectileWeapon()
+{
+	LocalFire(HitTarget);
+	ServerFire(HitTarget); 
+}
+
+void UCombatComponent::FireHitScanWeapon()
+{
+	if (EquippedWeapon)
+	{
+		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
+		LocalFire(HitTarget);
+		ServerFire(HitTarget);
+	}
+}
+
+void UCombatComponent::FireShotgun()
+{
 }
 
 /**
