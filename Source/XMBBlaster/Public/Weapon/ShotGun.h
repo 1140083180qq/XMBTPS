@@ -15,8 +15,10 @@ class XMBBLASTER_API AShotGun : public AHitScanWeapon
 	GENERATED_BODY()
 
 public:
-	void virtual Fire(const FVector& HitTarget) override;
 
+	virtual void FireShotgun(const TArray<FVector_NetQuantize>& HitTargets);
+	
+	void ShotgunTraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets);
 
 protected:
 	

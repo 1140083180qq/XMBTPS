@@ -119,7 +119,7 @@ protected:
 	void FireProjectileWeapon();
 	void FireHitScanWeapon();
 	void FireShotgun();
-	
+	void ShotgunLocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
 
 	/**
 	 * @brief 服务器RPC：执行开火
@@ -131,6 +131,13 @@ protected:
 	
 	UFUNCTION(NetMulticast, Reliable)	/*** 在所有客户端上显示开火特效 */
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
+
+	UFUNCTION(Server, Reliable)
+	void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTarget);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTarget);
+
 	
 	void ThrowGrenade();/*投掷手雷*/
 

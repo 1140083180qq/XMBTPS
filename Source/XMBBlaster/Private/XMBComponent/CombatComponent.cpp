@@ -9,6 +9,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Actor/Projectile.h"
 #include "GameMode/BlasterGameMode.h"
+#include "Weapon/ShotGun.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -449,20 +450,26 @@ void UCombatComponent::Fire()
 void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
-
-	if (Owner && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun)
-	{
-		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
-		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
-		CombatState = ECombatState::ECS_Unoccupied;
-		return;
-	}
 	
 	// 再次确认战斗状态合法，防止换弹期间误触发出开火
 	if (Owner && CombatState == ECombatState::ECS_Unoccupied)
 	{
-		Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
+		// Owner->PlayFireMontage(bFireButtonPressed); // 播放开火动画
+		Owner->PlayFireMontage(bAiming); 
 		EquippedWeapon->Fire(TraceHitTarget); // 调用武器的开火方法（生成投射物/抛弹壳/扣弹药）
+		
+	}
+}
+
+void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets)
+{
+	AShotGun* Shotgun = Cast<AShotGun>(EquippedWeapon);
+	if (Shotgun == nullptr || Owner == nullptr) return;
+	if (CombatState == ECombatState::ECS_Reloading || CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Owner->PlayFireMontage(bAiming);
+		Shotgun->FireShotgun(TraceHitTargets);
+		CombatState = ECombatState::ECS_Unoccupied;
 	}
 }
 
@@ -476,23 +483,93 @@ void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
 //********************************************
 void UCombatComponent::FireProjectileWeapon()
 {
-	LocalFire(HitTarget);
-	ServerFire(HitTarget); 
+	if (EquippedWeapon && Owner)
+	{
+		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
+		if (!Owner->HasAuthority()) LocalFire(HitTarget);
+		ServerFire(HitTarget); 
+	}
 }
 
 void UCombatComponent::FireHitScanWeapon()
 {
-	if (EquippedWeapon)
+	if (EquippedWeapon && Owner)
 	{
 		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
-		LocalFire(HitTarget);
+		if (!Owner->HasAuthority()) LocalFire(HitTarget);
 		ServerFire(HitTarget);
 	}
 }
 
+//霰弹枪需要把所有弹丸的轨迹都发送给服务器
 void UCombatComponent::FireShotgun()
 {
+	AShotGun* Shotgun = Cast<AShotGun>(EquippedWeapon);
+	if (Shotgun && Owner)
+	{
+		TArray<FVector_NetQuantize> HitTargets;
+		Shotgun->ShotgunTraceEndWithScatter(HitTarget, HitTargets);
+		if (!Owner->HasAuthority()) ShotgunLocalFire(HitTargets);
+		ServerShotgunFire(HitTargets);
+	}
 }
+
+
+
+
+/**
+ * @brief 服务器RPC实现 - 执行开火逻辑的服务器端
+ * @param TraceHitTarget - 客户端发送的命中目标位置（FVector_NetQuantize 网络压缩向量）
+ *
+ * 【网络传播链路说明】：
+ * 客户端不能直接调用 MulticastFire（没有权限）。
+ * 必须走 Client → Server → Multicast to All Clients 的路径：
+ * 1. 客户端调用 ServerFire（RPC 到服务器）
+ * 2. 服务器验证后调用 MulticastFire（多播到所有客户端，包括原始客户端）
+ * 3. 所有客户端收到 MulticastFire 后各自播放开火特效
+ *
+ * 为什么这样设计？因为服务器需要对开火行为进行权威校验（防作弊）
+ */
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MulticastFire(TraceHitTarget);// 服务器收到开火请求后，向所有客户端多播开火效果
+}
+
+/**
+ * @brief 多播开火效果 - 在所有客户端上同时播放开火表现
+ * @param TraceHitTarget - 服务器确认的命中目标位置
+ *
+ * 【逻辑说明】：
+ * - 此函数在每个客户端（包括服务器所在的本地客户端）上都执行
+ * - 执行两项操作：
+ *   1. 播放开火动画蒙太奇（PlayFireMontage），传入 bFireButtonPressed
+ *      决定是否播放完整的开火动画（按住时播放，松开时不播放后续部分）
+ *   2. 调用武器的 Fire() 方法，具体效果取决于武器子类的实现：
+ *      - WeaponBase: 播放枪口动画 + 抛弹壳 + 扣除弹药
+ *      - ProjectileWeapon: 还会在枪口生成投射物Actor
+ * - 二次检查 CombatState：如果在换弹期间收到多播请求则忽略
+ *   （防止换弹动画与开火动画冲突）
+ */
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	//因为LocalFire已经拥有了播放蒙太奇的逻辑，为了防止RPC使得客户端再一次播放蒙太奇
+	if (Owner && Owner->IsLocallyControlled() && !Owner->HasAuthority()) return;//是给别的客户端使用的
+	LocalFire(TraceHitTarget);
+}
+
+
+void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTarget)
+{
+	MulticastShotgunFire(TraceHitTarget);
+}
+
+void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTarget)
+{
+	if (Owner && Owner->IsLocallyControlled() && !Owner->HasAuthority()) return;
+	ShotgunLocalFire(TraceHitTarget);
+}
+
+
 
 /**
  * @brief 启动开火冷却计时器
@@ -547,47 +624,6 @@ void UCombatComponent::FireTimerFinished()
 
 	// 自动换弹：冷却结束时若弹夹为空，尝试换弹
 	ReloadEmptyWeapon();
-}
-
-/**
- * @brief 服务器RPC实现 - 执行开火逻辑的服务器端
- * @param TraceHitTarget - 客户端发送的命中目标位置（FVector_NetQuantize 网络压缩向量）
- *
- * 【网络传播链路说明】：
- * 客户端不能直接调用 MulticastFire（没有权限）。
- * 必须走 Client → Server → Multicast to All Clients 的路径：
- * 1. 客户端调用 ServerFire（RPC 到服务器）
- * 2. 服务器验证后调用 MulticastFire（多播到所有客户端，包括原始客户端）
- * 3. 所有客户端收到 MulticastFire 后各自播放开火特效
- *
- * 为什么这样设计？因为服务器需要对开火行为进行权威校验（防作弊）
- */
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	// 服务器收到开火请求后，向所有客户端多播开火效果
-	MulticastFire(TraceHitTarget);
-}
-
-/**
- * @brief 多播开火效果 - 在所有客户端上同时播放开火表现
- * @param TraceHitTarget - 服务器确认的命中目标位置
- *
- * 【逻辑说明】：
- * - 此函数在每个客户端（包括服务器所在的本地客户端）上都执行
- * - 执行两项操作：
- *   1. 播放开火动画蒙太奇（PlayFireMontage），传入 bFireButtonPressed
- *      决定是否播放完整的开火动画（按住时播放，松开时不播放后续部分）
- *   2. 调用武器的 Fire() 方法，具体效果取决于武器子类的实现：
- *      - WeaponBase: 播放枪口动画 + 抛弹壳 + 扣除弹药
- *      - ProjectileWeapon: 还会在枪口生成投射物Actor
- * - 二次检查 CombatState：如果在换弹期间收到多播请求则忽略
- *   （防止换弹动画与开火动画冲突）
- */
-void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	//因为LocalFire已经拥有了播放蒙太奇的逻辑，为了防止RPC使得客户端再一次播放蒙太奇
-	if (Owner && Owner->IsLocallyControlled() && !Owner->HasAuthority()) return;//是给别的客户端使用的
-	LocalFire(TraceHitTarget);
 }
 
 

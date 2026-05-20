@@ -146,6 +146,7 @@ public:
 	/*
 	 * 武器开火的弹道类型
 	 */
+	//用于决定武器的弹丸与弹道类型
 	UPROPERTY(EditAnywhere)
 	EFireType FireType;
 
@@ -180,6 +181,16 @@ protected:
 	UPROPERTY()
 	APawn* InstigatorPawn;
 
+
+	/*
+	* 散射
+	*/
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float DistanceToSphere = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float SphereRadius = 75.f;
+	
 private:
 	/** 武器的骨骼网格体（模型） */
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
@@ -245,14 +256,7 @@ private:
 
 
 
-	/*
-	 * 散射
-	 */
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	float DistanceToSphere = 800.f;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	float SphereRadius = 75.f;
 	
 	
 public:
