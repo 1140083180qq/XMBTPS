@@ -55,7 +55,7 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	// 注册需要网络复制的变量
 	DOREPLIFETIME(AWeaponBase, WeaponState);
-	DOREPLIFETIME(AWeaponBase, Ammo);
+	
 }
 
 
@@ -162,10 +162,11 @@ void AWeaponBase::Fire(const FVector& HitTarget)
 	}
 
 	// 步骤3: 扣除一发弹药并更新HUD
-	if (HasAuthority())
-	{
-		SpendRound();
-	}
+	// if (HasAuthority())
+	// {
+	// 	SpendRound();
+	// }
+	SpendRound();
 }
 
 
@@ -338,19 +339,53 @@ void AWeaponBase::OnEquippedSecondary()
 
 
 
+
+
+
 /**
  * @brief 消耗一发弹药 - 开火时调用
- *
- * 【逻辑说明】：
- * - Ammo 减1，使用 FMath::Clamp 限制在 [0, MagCapacity] 有效范围内
- *   （防止出现负数或超过容量的异常值）
- * - 扣减后立即更新 HUD 上的弹药显示
- * - 注意：Ammo 变量的变化会通过网络复制到所有客户端（DOREPLIFETIME 注册过）
  */
 void AWeaponBase::SpendRound()
 {
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity); // 扣除1发并钳制在有效范围
 	SetHUDAmmo(); // 更新HUD弹药显示
+	if (HasAuthority())
+	{
+		ClientUpdateAmmo(Ammo);   // ★ 服务器执行完扣弹后，立即校正拥有者客户端
+	}
+	else
+	{
+		++Sequence;               // ★ 客户端预测扣弹，累加待确认计数
+	}
+}
+
+void AWeaponBase::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
+{
+	if (HasAuthority()) return;  // ← 服务器自己不执行，只发给客户端
+	Ammo = ServerAmmo;            // ① 用服务器权威值覆盖本地
+	--Sequence;                   // ② 本次RPC确认了1发预测扣弹
+	Ammo -= Sequence;             // ③ 扣掉还没被确认的本地预测值
+	SetHUDAmmo();                 // ④ 更新HUD显示
+}
+
+/**
+ * @brief 为武器添加弹药
+ */
+void AWeaponBase::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity); // 注意：传入负值=增加
+	SetHUDAmmo(); // 同步更新HUD显示
+}
+
+void AWeaponBase::ClientAddAmmo_Implementation(int32 AmmoToAdd)
+{
+	if (HasAuthority()) return;
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+	if (XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull())
+	{
+		XMBOwnerCharacter->GetCombatComponent()->JumpToShotgunEnd();
+	}
 }
 
 
@@ -363,17 +398,17 @@ void AWeaponBase::SpendRound()
  * - 如果为 nullptr，则从 GetOwner() 转换获取并缓存
  * - 如果已有缓存值，直接复用（避免每帧 Cast 的性能开销）
  */
-void AWeaponBase::OnRep_Ammo()
-{
-	// 惰性获取或复用缓存的拥有者角色引用
-	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
-	// ★ 通过 Multicast RPC 广播霰弹枪装填动画跳转，确保所有客户端同步
-	if (HasAuthority() && XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull())
-	{
-		XMBOwnerCharacter->GetCombatComponent()->MulticastJumpToShotgunEnd();
-	}
-	SetHUDAmmo(); // 更新HUD上的弹药数值显示
-}
+// void AWeaponBase::OnRep_Ammo()
+// {
+// 	// 惰性获取或复用缓存的拥有者角色引用
+// 	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+// 	// ★ 通过 Multicast RPC 广播霰弹枪装填动画跳转，确保所有客户端同步
+// 	if (HasAuthority() && XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull())
+// 	{
+// 		XMBOwnerCharacter->GetCombatComponent()->MulticastJumpToShotgunEnd();
+// 	}
+// 	SetHUDAmmo(); // 更新HUD上的弹药数值显示
+// }
 
 /**
  * @brief Owner 变化的网络回调 - 当武器的拥有者发生变化时调用
@@ -514,23 +549,7 @@ void AWeaponBase::Dropped()
 	XMBOwnerController = nullptr; // 清空控制器缓存
 }
 
-/**
- * @brief 为武器添加弹药
- * @param AmmoToAdd - 要添加的弹药数量（正值增加，但传入方式特殊）
- *
- * 【注意参数语义】：虽然函数名是 AddAmmo，但在 UpdateAmmoValues 中的实际调用方式是
- * AddAmmo(-ReloadAmount)，即传入负值来表示增加弹夹内的弹药。
- * 内部的计算公式为：Ammo = Clamp(Ammo - AmmoToAdd, 0, MagCapacity)
- * 所以传入 -ReloadAmount 时实际效果为 Ammo += ReloadAmount
- *
- * 【设计原因】：这个命名可能是历史遗留或为了统一 SpendRound（扣弹药）和 AddAmmo（加弹药）
- * 的接口风格。Clamp 确保最终值不会超过弹夹容量上限
- */
-void AWeaponBase::AddAmmo(int32 AmmoToAdd)
-{
-	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity); // 注意：传入负值=增加
-	SetHUDAmmo(); // 同步更新HUD显示
-}
+
 
 /**
  * @brief 检查弹夹内弹药是否耗尽

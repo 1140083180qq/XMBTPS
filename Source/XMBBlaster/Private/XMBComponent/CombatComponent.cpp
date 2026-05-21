@@ -977,7 +977,7 @@ void UCombatComponent::UpdateShotgunAmmoValues()
 	}
 	
 	// 弹夹增加1发弹药（AddAmmo传入负数表示增加）
-	EquippedWeapon->AddAmmo(-1);
+	EquippedWeapon->AddAmmo(1);
 	bCanFire = true;
 	
 	// 检查是否需要结束装填（弹夹满或备用耗尽）

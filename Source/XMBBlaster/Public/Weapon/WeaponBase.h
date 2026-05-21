@@ -225,19 +225,35 @@ private:
 	 */
 
 	/** 当前弹夹内剩余弹药数（网络复制） */
-	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
-	int32 Ammo;
+	UPROPERTY(EditAnywhere)//, ReplicatedUsing = OnRep_Ammo
+	int32 Ammo;///不再复制OnRep_Ammo使用rpc更新
 
 	/** 弹夹容量上限 */
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
+	
+	//未经服务器处理的子弹数量
+	int32 Sequence = 0;//在SpendRound中增加，在ClientUpdateAmmo中减少
 
-	/** 弹药数量变化时的网络回调 */
-	UFUNCTION()
-	void OnRep_Ammo();
+	UFUNCTION(Client,Reliable)
+	void ClientUpdateAmmo(int32 ServerAmmo);
+
+	UFUNCTION(Client,Reliable)
+	void ClientAddAmmo(int32 AmmoToAdd);
+	
+	
 
 	/** 消耗一发子弹 */
 	void SpendRound();
+
+
+	/** 弹药数量变化时的网络回调 */
+	// UFUNCTION()/
+	// void OnRep_Ammo();
+
+
+
+	
 
 	/** 拥有此武器的角色缓存 */
 	UPROPERTY()
