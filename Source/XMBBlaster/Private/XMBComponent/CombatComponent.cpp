@@ -247,6 +247,8 @@ void UCombatComponent::EquipSecondaryWeapon(AWeaponBase* WeaponToEquip)
 	SecondaryWeapon->SetWeaponOwner(Owner);
 }
 
+
+
 void UCombatComponent::SpawnDefaultWeapon()
 {
 	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
@@ -1147,7 +1149,18 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	{
 		Owner->ShowSniperScopeWidget(bIsAiming);
 	}
+
+	if (Owner->IsLocallyControlled()) bAimButtonPressed = bIsAiming;
 }
+
+void UCombatComponent::OnRep_Aiming()
+{
+	if (Owner && Owner->IsLocallyControlled())
+	{
+		bAiming = bAimButtonPressed;
+	}
+}
+
 
 /**
  * @brief 服务器RPC实现 - 设置正常瞄准状态的服务器端版本
@@ -1178,6 +1191,15 @@ void UCombatComponent::SetShoulderAiming(bool bIsShoulderAiming)
 	if (Owner)
 	{
 		Owner->GetCharacterMovement()->MaxWalkSpeed = bIsShoulderAiming ? ShoulderAimWalkSpeed : BaseWalkSpeed;
+	}
+	if (Owner->IsLocallyControlled()) bShoulderAimButtonPressed = bIsShoulderAiming;
+}
+
+void UCombatComponent::OnRep_ShoulderAiming()
+{
+	if (Owner && Owner->IsLocallyControlled())
+	{
+		bShoulderAiming = bShoulderAimButtonPressed;
 	}
 }
 

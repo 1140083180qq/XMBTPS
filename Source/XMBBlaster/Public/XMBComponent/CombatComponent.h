@@ -203,9 +203,19 @@ private:
 	
 	UPROPERTY(Replicated)/** 是否处于瞄准状态（网络复制） */
 	bool bAiming;
+
+	bool bAimButtonPressed = false;
+
+	UFUNCTION()
+	void OnRep_Aiming();
 	
 	UPROPERTY(Replicated)/** 是否处于肩射瞄准状态（网络复制） */
 	bool bShoulderAiming;
+
+	bool bShoulderAimButtonPressed = false;
+
+	UFUNCTION()
+	void OnRep_ShoulderAiming();
 	
 	UPROPERTY(Replicated)/** 是否按住开火按钮（网络复制） */
 	bool bFireButtonPressed;
