@@ -16,6 +16,8 @@
 #include "XMBBlaster/XMBBlaster.h"
 #include "Sound/SoundCue.h"
 #include "XMBComponent/BuffComponent.h"
+#include "Components/BoxComponent.h"
+#include "XMBComponent/LagCompensationComponent.h"
 
 AXMBCharacterBase::AXMBCharacterBase()
 {
@@ -33,7 +35,7 @@ AXMBCharacterBase::AXMBCharacterBase()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->TargetArmLength = 600.f;              // 相机距角色600单位
- CameraBoom->bUsePawnControlRotation = true;      // 相机臂跟随玩家视角控制旋转
+	CameraBoom->bUsePawnControlRotation = true;      // 相机臂跟随玩家视角控制旋转
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -54,6 +56,9 @@ AXMBCharacterBase::AXMBCharacterBase()
 	UIComponent = CreateDefaultSubobject<UUIComponent>(TEXT("UIComponent"));
 	UIComponent->SetIsReplicated(true);             // UI状态需要网络同步
 
+	LagCompensationComponent = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensationComponent"));
+	// LagCompensationComponent->SetIsReplicated(true);
+	
 	/* ====== 移动能力配置 ====== */
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;  // 允许蹲伏
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 650.f); // Z轴旋转速度650°/s
@@ -77,6 +82,77 @@ AXMBCharacterBase::AXMBCharacterBase()
 
 	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	BuffComponent->SetIsReplicated(true);
+
+	
+	Head = CreateDefaultSubobject<UBoxComponent>(TEXT("Head"));
+	Head->SetupAttachment(GetMesh(), FName("head"));
+	Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("Pelvis"));
+	Pelvis->SetupAttachment(GetMesh(), FName("Pelvie"));
+	Pelvis->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("Spine_02"));
+	Spine_02->SetupAttachment(GetMesh(), FName("spine_02"));
+	Spine_02->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Spine_03 = CreateDefaultSubobject<UBoxComponent>(TEXT("Spine_03"));
+	Spine_03->SetupAttachment(GetMesh(), FName("spine_03"));
+	Spine_03->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	Upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Upperarm_l"));
+	Upperarm_l->SetupAttachment(GetMesh(), FName("upperarm_l"));
+	Upperarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Upperarm_r"));
+	Upperarm_r->SetupAttachment(GetMesh(), FName("upperarm_r"));
+	Upperarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Lowerarm_l"));
+	Lowerarm_l->SetupAttachment(GetMesh(), FName("lowerarm_l"));
+	Lowerarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Lowerarm_r"));
+	Lowerarm_r->SetupAttachment(GetMesh(), FName("lowerarm_r"));
+	Lowerarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Hand_l"));
+	Hand_l->SetupAttachment(GetMesh(), FName("hand_l"));
+	Hand_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Hand_r"));
+	Hand_r->SetupAttachment(GetMesh(), FName("hand_r"));
+	Hand_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// Backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("Backpack"));
+	// Backpack->SetupAttachment(GetMesh(), FName("backpack"));
+	// Backpack->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Thigh_l"));
+	Thigh_l->SetupAttachment(GetMesh(), FName("thigh_l"));
+	Thigh_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Thigh_r"));
+	Thigh_r->SetupAttachment(GetMesh(), FName("thigh_r"));
+	Thigh_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Calf_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Calf_l"));
+	Calf_l->SetupAttachment(GetMesh(), FName("calf_l"));
+	Calf_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Calf_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Calf_r"));
+	Calf_r->SetupAttachment(GetMesh(), FName("calf_r"));
+	Calf_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("Foot_l"));
+	Foot_l->SetupAttachment(GetMesh(), FName("foot_l"));
+	Foot_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("Foot_r"));
+	Foot_r->SetupAttachment(GetMesh(), FName("foot_r"));
+	Foot_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
 }
 
 /**@brief 游戏开始时初始化*/
@@ -167,6 +243,14 @@ void AXMBCharacterBase::PostInitializeComponents()
 		BuffComponent->Owner = this;
 		BuffComponent->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed, GetCharacterMovement()->MaxWalkSpeedCrouched);
 		BuffComponent->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
+	}
+	if (LagCompensationComponent)
+	{
+		LagCompensationComponent->Owner = this;
+		if (Controller)
+		{
+			LagCompensationComponent->OwnerController = Cast<AXMBPlayerController>(Controller);
+		}
 	}
 }
 

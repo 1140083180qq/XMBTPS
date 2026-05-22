@@ -14,6 +14,8 @@
 
 #include "XMBCharacterBase.generated.h"
 
+class ULagCompensationComponent;
+class UBoxComponent;
 class UBuffComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -167,6 +169,67 @@ protected:
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController,AActor* DmaageCauser);
 
+
+
+	/*
+	 * 用于网络延迟补偿的碰撞盒子
+	 */
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Head;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Pelvis;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Spine_02;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Spine_03;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Upperarm_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Upperarm_r;
+	
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Lowerarm_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Lowerarm_r;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Hand_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Hand_r;
+
+	// UPROPERTY(EditAnywhere,Category = "HitBox")
+	// UBoxComponent* Backpack;
+
+	// UPROPERTY(EditAnywhere,Category = "HitBox")
+	// UBoxComponent* Blanket;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Thigh_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Thigh_r;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Calf_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Calf_r;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Foot_l;
+
+	UPROPERTY(EditAnywhere,Category = "HitBox")
+	UBoxComponent* Foot_r;
+	
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* CameraBoom;
@@ -189,11 +252,10 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* BuffComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	ULagCompensationComponent* LagCompensationComponent;
 
 
-
-	
-	
 
 	
 	/*
