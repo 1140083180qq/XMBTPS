@@ -258,7 +258,14 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	// bUseAimOffset = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
 	// 换弹期间或游戏禁用期间禁用右手旋转调整
 	// bTransformRightHand = XMBCharacter->GetCombatState() != ECombatState::ECS_Reloading && !XMBCharacter->GetDisableGameplay();
+	
 	bUseFABRIK = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+
+	if (XMBCharacter->IsLocallyControlled() && XMBCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade)
+	{
+		bUseFABRIK = !XMBCharacter->IsLocallyReloading();
+	}
+	
 	bUseAimOffset = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !XMBCharacter->GetDisableGameplay();
 	bTransformRightHand = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !XMBCharacter->GetDisableGameplay();
 	

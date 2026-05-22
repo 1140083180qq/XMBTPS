@@ -671,6 +671,8 @@ void AXMBCharacterBase::PlayReloadMontage()
 	}
 }
 
+
+
 void AXMBCharacterBase::ExecuteReloadMontage(FName SectionName, bool bIsSniper)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -1229,4 +1231,8 @@ bool AXMBCharacterBase::IsShoulderAiming()
 	return (CombatComponent && CombatComponent->bShoulderAiming);
 }
 
-
+bool AXMBCharacterBase::IsLocallyReloading()
+{
+	if (CombatComponent == nullptr) return false;
+	return CombatComponent->bLocallyReloading;
+}

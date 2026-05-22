@@ -375,6 +375,11 @@ void AWeaponBase::AddAmmo(int32 AmmoToAdd)
 {
 	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity); // 注意：传入负值=增加
 	SetHUDAmmo(); // 同步更新HUD显示
+	// 服务器端通过RPC同步到拥有者客户端，修复换弹后客户端HUD弹夹数不更新的问题
+	if (HasAuthority())
+	{
+		ClientAddAmmo(AmmoToAdd);
+	}
 }
 
 void AWeaponBase::ClientAddAmmo_Implementation(int32 AmmoToAdd)
@@ -382,10 +387,11 @@ void AWeaponBase::ClientAddAmmo_Implementation(int32 AmmoToAdd)
 	if (HasAuthority()) return;
 	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
-	if (XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull())
+	if (XMBOwnerCharacter && XMBOwnerCharacter->GetCombatComponent() && IsAmmoFull() && WeaponType == EWeaponType::EWT_ShotGun)
 	{
 		XMBOwnerCharacter->GetCombatComponent()->JumpToShotgunEnd();
 	}
+	SetHUDAmmo();
 }
 
 

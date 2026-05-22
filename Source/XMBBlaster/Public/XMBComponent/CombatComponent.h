@@ -69,6 +69,8 @@ public:
 	UFUNCTION(Reliable,Server)/*投掷手雷*/
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
+	bool bLocallyReloading = false;//如果这个值为真，则不使用FABRIK
+
 
 protected:
 	virtual void BeginPlay() override;

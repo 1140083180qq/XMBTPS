@@ -469,6 +469,7 @@ void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& Trace
 	if (Shotgun == nullptr || Owner == nullptr) return;
 	if (CombatState == ECombatState::ECS_Reloading || CombatState == ECombatState::ECS_Unoccupied)
 	{
+		bLocallyReloading = false;
 		Owner->PlayFireMontage(bAiming);
 		Shotgun->FireShotgun(TraceHitTargets);
 		CombatState = ECombatState::ECS_Unoccupied;
@@ -731,12 +732,14 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 void UCombatComponent::Reload()
 {
 	// 必须有备用弹药且当前未处于换弹状态才能发起换弹
-	if (CarriedAmmo > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon && !EquippedWeapon->IsAmmoFull())
+	if (CarriedAmmo > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon && !EquippedWeapon->IsAmmoFull() && !bLocallyReloading)
 	// if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Unoccupied && !EquippedWeapon->IsAmmoFull())
 	{
 		//判断当前弹夹是否为最大装填
 		
 		ServerReload();
+		HandleReload();//此处在本地使用播放换弹动画，同时让服务器也处理换弹相关逻辑//在由服务器处理的函数ServerReload_Implementation内增加一个判断用于在服务器上的本地客户端的副本进行设置
+		bLocallyReloading = true;
 	}
 }
 
@@ -752,7 +755,11 @@ void UCombatComponent::Reload()
  */
 void UCombatComponent::HandleReload()
 {
-	Owner->PlayReloadMontage();
+	if (Owner)
+	{
+		Owner->PlayReloadMontage();
+	}
+	// Owner->PlayReloadMontage();
 }
 
 void UCombatComponent::ReloadEmptyWeapon()
@@ -817,6 +824,8 @@ void UCombatComponent::FinishReloading()
 {
 	if (Owner == nullptr) return;
 
+	bLocallyReloading = false;
+
 	// 仅服务器端执行状态和数据更新
 	if (Owner->HasAuthority())
 	{
@@ -854,7 +863,9 @@ void UCombatComponent::ServerReload_Implementation()
 
 	// 设置战斗状态为"换弹中"（会触发 OnRep_CombatState 同步到客户端）
 	CombatState = ECombatState::ECS_Reloading;
-	HandleReload(); // 播放换弹动画
+	
+	//由于在本地客户端执行Reload时会执行ServerReload，而ServerReload会让本地客户端再一次执行Reload，所以需要加一个对本地客户端判断
+	if (!Owner->IsLocallyControlled()) HandleReload(); // 播放换弹动画
 }
 
 
@@ -900,7 +911,7 @@ void UCombatComponent::UpdateAmmoValues()
 	}
 
 	// AddAmmo 传入负数表示增加弹夹内的弹药（内部用 clamp 限制上限）
-	EquippedWeapon->AddAmmo(-ReloadAmount);
+	EquippedWeapon->AddAmmo(ReloadAmount);
 }
 
 void UCombatComponent::UpdateHUDGrenades()
@@ -1248,7 +1259,7 @@ void UCombatComponent::OnRep_CombatState()
 	switch (CombatState)
 	{
 	case ECombatState::ECS_Reloading:
-		HandleReload(); // 客户端也播放换弹动画
+		if (Owner && !Owner->IsLocallyControlled()) HandleReload(); 
 		break;
 	case ECombatState::ECS_Unoccupied:
 		// 换弹结束且玩家仍在按住开火键 → 自动恢复射击
