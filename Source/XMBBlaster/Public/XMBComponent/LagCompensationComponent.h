@@ -2,11 +2,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/XMBCharacterBase.h"
+
 #include "Components/ActorComponent.h"
 #include "LagCompensationComponent.generated.h"
 
 
+class AXMBCharacterBase;
 class AXMBPlayerController;
 
 USTRUCT(BlueprintType)
@@ -48,9 +49,12 @@ public:
 	friend AXMBCharacterBase;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void ShowFramePackage(const FFramePackage& Package, const FColor Color);
 	
 protected:
 	virtual void BeginPlay() override;
+
+	void SaveFramePackage(FFramePackage& Package);
 
 
 private:
@@ -59,6 +63,17 @@ private:
 
 	UPROPERTY()
 	AXMBPlayerController* OwnerController;
+
+	/*
+	 * 历史帧数保存记录
+	 */
+	
+	TDoubleLinkedList<FFramePackage> FrameHistory;
+
+	UPROPERTY(EditAnywhere,Category = "Frame")
+	float MaxRecordTime = 5.f;
+
+	
 	
 	
 

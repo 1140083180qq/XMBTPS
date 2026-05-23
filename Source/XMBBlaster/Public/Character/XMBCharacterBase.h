@@ -105,6 +105,13 @@ public:
 	void UpdateHUDShield();
 
 	void UpdateHUDAmmo();
+
+
+	/*
+	 * 碰撞盒子
+	 */
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitCollisionBoxes; 
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -228,6 +235,10 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category = "HitBox")
 	UBoxComponent* Foot_r;
+
+	
+
+
 	
 
 private:
