@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-// #include "Sound/SoundCue.h"
+#include "Sound/SoundCue.h"
 #include "Casing.generated.h"
 
 /**

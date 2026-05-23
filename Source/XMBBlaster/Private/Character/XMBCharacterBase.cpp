@@ -87,7 +87,7 @@ AXMBCharacterBase::AXMBCharacterBase()
 	Head = CreateDefaultSubobject<UBoxComponent>(TEXT("Head"));
 	Head->SetupAttachment(GetMesh(), FName("head"));
 	Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HitCollisionBoxes.Add(FName("head"), Head);
+	HitCollisionBoxes.Add(FName("Head"), Head);
 
 	Pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("Pelvis"));
 	Pelvis->SetupAttachment(GetMesh(), FName("Pelvie"));

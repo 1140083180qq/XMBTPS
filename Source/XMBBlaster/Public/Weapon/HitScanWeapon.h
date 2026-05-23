@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon/WeaponBase.h"
+#include "Sound/SoundCue.h"
 #include "HitScanWeapon.generated.h"
 
 /**
@@ -23,10 +24,6 @@ protected:
 	
 
 	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult);
-
-
-	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactParticles;

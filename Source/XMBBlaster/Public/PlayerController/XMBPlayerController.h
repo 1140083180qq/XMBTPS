@@ -41,7 +41,8 @@ public:
 	void SetHUDAnnouncementCountdown(float CountdownTime);//设置热身时的计时
 	void SetHUDGrenades(int32 Grenades);
 
-
+	//单程时间
+	float SingleTripTime = 0.f;
 	
 protected:
 	virtual void BeginPlay() override;

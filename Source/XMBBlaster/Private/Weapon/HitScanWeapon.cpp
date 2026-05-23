@@ -11,6 +11,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameTypes/WeaponTypes.h"
+#include "XMBComponent/LagCompensationComponent.h"
 
 
 //TODO:BUG:在客户端进行开枪后，装填时子弹会一次装两颗,而且在客户端开火时会有两条弹道
@@ -35,15 +36,35 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(FireHit.GetActor());
 		if (OwnerPawn != BlasterCharacter)
 		{
-			if (BlasterCharacter && HasAuthority() && InstigatorController)
+			if (BlasterCharacter  && InstigatorController)
 			{
-				UGameplayStatics::ApplyDamage(
+				bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
+				if (HasAuthority() && bCauseAuthDamage)
+				{
+					UGameplayStatics::ApplyDamage(
 					BlasterCharacter,
 					Damage,
 					InstigatorController,
 					this,
 					UDamageType::StaticClass()
 					);
+				}
+				
+				if (!HasAuthority() && bUseServerSideRewind)
+				{
+					XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;
+					XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(InstigatorController) : XMBOwnerController;
+					if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() && XMBOwnerCharacter->IsLocallyControlled())
+					{
+						XMBOwnerCharacter->GetLagCompensation()->ServerScoreRequest(
+							BlasterCharacter,
+							Start,
+							HitTarget,
+							XMBOwnerController->GetServerTime() - XMBOwnerController->SingleTripTime,
+							this
+							);
+					}
+				}
 			}
 		}
 		

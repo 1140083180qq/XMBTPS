@@ -729,6 +729,8 @@ void AXMBPlayerController::ClientReportServerTime_Implementation(float TimeOfCli
 	// 步骤1: 计算完整的往返时间（从发出请求到收到回复的总耗时）
 	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
 
+	SingleTripTime = 0.5f * RoundTripTime;
+
 	// 步骤2: 估算当前服务器时间 = 服务器接收时间 + 半程耗时（假设网络对称）
 	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);
 

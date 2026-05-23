@@ -8,7 +8,7 @@
 #include "UI/HUD/XMBHUD.h"
 #include "Weapon/WeaponBase.h"
 #include "GameTypes/WeaponTypes.h"
-
+#include "Sound/SoundCue.h"
 #include "CombatComponent.generated.h"
 
 class AProjectile;

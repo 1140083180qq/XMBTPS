@@ -4,7 +4,7 @@
 
 #include "Components/SphereComponent.h"
 #include "GameTypes/WeaponTypes.h"
-#include "Sound/SoundCue.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"

@@ -159,7 +159,13 @@ public:
 
 	FVector TraceEndWithScatter( const FVector& HitTarget);
 
-	
+
+
+	/*
+	 * 服务器延迟补偿
+	 */
+	UPROPERTY(EditAnywhere)
+	bool bUseServerSideRewind = false;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -190,6 +196,21 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
 	float SphereRadius = 75.f;
+
+
+
+	UPROPERTY(EditAnywhere)
+	float Damage = 20.f;
+
+
+
+	/** 拥有此武器的角色缓存 */
+	UPROPERTY()
+	AXMBCharacterBase* XMBOwnerCharacter;
+
+	/** 拥有此武器的玩家控制器缓存 */
+	UPROPERTY()
+	AXMBPlayerController* XMBOwnerController;
 	
 private:
 	/** 武器的骨骼网格体（模型） */
@@ -255,13 +276,7 @@ private:
 
 	
 
-	/** 拥有此武器的角色缓存 */
-	UPROPERTY()
-	AXMBCharacterBase* XMBOwnerCharacter;
-
-	/** 拥有此武器的玩家控制器缓存 */
-	UPROPERTY()
-	AXMBPlayerController* XMBOwnerController;
+	
 
 	/** 武器类型（决定使用哪种弹药） */
 	UPROPERTY(EditAnywhere)
@@ -294,5 +309,7 @@ public:
 	FORCEINLINE bool GetWeaponDestroy() const { return bDestroyWeapon; }
 
 	FORCEINLINE void SetWeaponDestroy(bool InbDestroy) { bDestroyWeapon = InbDestroy; }
+
+	FORCEINLINE float GetDamage() const { return Damage; }
 };
 
