@@ -303,14 +303,16 @@ void UUIComponent::SetHUDCrosshairs(float DeltaTime)
  */
 void UUIComponent::InterpFOV(float DeltaTime)
 {
-	// 无武器时不调整FOV
-	if (CachedEquippedWeapon == nullptr) return;
+	// 实时从 CombatComponent 获取当前武器，不依赖 SetHUDCrosshairs 的缓存副作用
+	// （修复：打包后 SetHUDCrosshairs 可能因 Controller/HUD 未就绪提前返回导致 CachedEquippedWeapon 永远为 nullptr）
+	AWeaponBase* Weapon = CombatComp ? CombatComp->GetEquippedWeapon() : nullptr;
+	if (Weapon == nullptr) return;
 
 	if (CombatComp->IsAiming())
 	{
 		// 瞄准中：FOV 向武器的 ZoomedFOV 缩小值插值（如 90° → 30°）
 		// 使用武器自身的 ZoomInterpSpeed 作为插值速率
-		CurrentFOV = FMath::FInterpTo(CurrentFOV, CachedEquippedWeapon->ZoomedFOV, DeltaTime, CachedEquippedWeapon->ZoomInterpSpeed);
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, Weapon->ZoomedFOV, DeltaTime, Weapon->ZoomInterpSpeed);
 	}
 	else
 	{
