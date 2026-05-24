@@ -131,7 +131,7 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 		}
 
 		//之前制作了LocalFire,开火时本地的开火与服务器的开火不一样，所以会有不一样的随机弹道偏移
-		DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true);
+		// DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true,false, 3.f);
 
 		if (BeamParticles)
 		{

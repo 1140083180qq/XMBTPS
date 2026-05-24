@@ -8,7 +8,7 @@
 #include "Sound/SoundCue.h"
 #include "Character/XMBCharacterBase.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "XMBComponent/LagCompensationComponent.h"
 
 
 void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
@@ -65,16 +65,40 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 			}
 		}
 
+		TArray<AXMBCharacterBase*> HitCharacters;
+		
 		for (auto HitPair :HitMap)
 		{
-			if (HitPair.Key && HasAuthority() && InstigatorController)
+			if (HitPair.Key && InstigatorController)
 			{
-				UGameplayStatics::ApplyDamage(
+				if (HasAuthority() && !bUseServerSideRewind)
+				{
+					UGameplayStatics::ApplyDamage(
 					HitPair.Key,
 					Damage * HitPair.Value,
 					InstigatorController,
 					this,
 					UDamageType::StaticClass()
+					);
+				}
+				
+				//
+				HitCharacters.Add(HitPair.Key);
+			}
+		}
+
+		//TODO:为何bUseServerSideRewind=true时无法造成伤害
+		if (!HasAuthority() && bUseServerSideRewind)
+		{
+			XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;
+			XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(InstigatorController) : XMBOwnerController;
+			if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() && XMBOwnerCharacter->IsLocallyControlled() )
+			{
+				XMBOwnerCharacter->GetLagCompensation()->ShotgunServerScoreRequest(
+					HitCharacters,
+					Start,
+					HitTargets,
+					XMBOwnerController->GetServerTime() - XMBOwnerController->SingleTripTime
 					);
 			}
 		}

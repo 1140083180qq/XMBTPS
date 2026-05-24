@@ -35,7 +35,11 @@ struct FFramePackage
 	UPROPERTY()
 	float Time;
 
+	UPROPERTY()
 	TMap<FName, FBoxInformation> HitBoxInfo;
+
+	UPROPERTY()
+	AXMBCharacterBase* Character;
 	
 };
 
@@ -50,6 +54,19 @@ struct FServerSideRewindResult
 
 	UPROPERTY()
 	bool bHeadShot;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FShotgunServerSideRewindResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TMap<AXMBCharacterBase*, uint32> HeadShots;
+
+	UPROPERTY()
+	TMap<AXMBCharacterBase*, uint32> BodyShots;
 	
 };
 
@@ -70,6 +87,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeaponBase* DamageCauser);
+
+	UFUNCTION(Server, Reliable)
+	void ShotgunServerScoreRequest(const TArray<AXMBCharacterBase*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -82,9 +102,15 @@ protected:
 	void MoveBoxes(AXMBCharacterBase* HitCharacter, const FFramePackage& Package);
 	void ResetHitBoxes(AXMBCharacterBase* HitCharacter, const FFramePackage& Package);
 	void EnableCharacterMeshCollision(AXMBCharacterBase* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
-
-
+	
 	void SaveFramePackage();
+
+	FFramePackage GetFrameToCheck(AXMBCharacterBase* HitCharacter, float HitTime);
+	/*
+	 * Shotgun 
+	 */
+	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<AXMBCharacterBase*>& HitCharacters,const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
+	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& FramePackages,const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations);
 private:
 	UPROPERTY()
 	AXMBCharacterBase* Owner;
@@ -99,7 +125,7 @@ private:
 	TDoubleLinkedList<FFramePackage> FrameHistory;
 
 	UPROPERTY(EditAnywhere,Category = "Frame")
-	float MaxRecordTime = 5.f;
+	float MaxRecordTime = 4.f;
 
 	
 	
