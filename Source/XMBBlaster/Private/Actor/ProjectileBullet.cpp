@@ -18,8 +18,11 @@
 // ============================================================
 
 #include "Actor/ProjectileBullet.h"
+
+#include "Character/XMBCharacterBase.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "XMBComponent/LagCompensationComponent.h"
 
 AProjectileBullet::AProjectileBullet()
 {
@@ -88,24 +91,29 @@ void AProjectileBullet::PostEditChangeProperty(struct FPropertyChangedEvent& Pro
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                               FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 步骤1: 获取发射子弹的角色（Owner 在 SpawnActor 时通过 SpawnParams.Owner 设置）
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	AXMBCharacterBase* OwnerCharacter = Cast<AXMBCharacterBase>(GetOwner());
 	if (OwnerCharacter)
 	{
-		// 步骤2: 获取发射者的控制器（用于伤害归属判定）
-		AController* OwnerController = OwnerCharacter->GetController();
+		AXMBPlayerController* OwnerController = Cast<AXMBPlayerController>(OwnerCharacter->GetController());
 		if (OwnerController)
 		{
-			// 步骤3: 对被击中的 Actor 应用点数伤害
-			// Damage 值来自父类 AProjectile（默认20，蓝图可覆盖）
-			// OwnerController 用于记录"谁是攻击者"
-			// this (子弹自身) 作为伤害来源 Actor
-			UGameplayStatics::ApplyDamage(
-				OtherActor,                    // 受害者：被击中的目标
-				Damage,                         // 伤害量
-				OwnerController,                // 攻击者控制器（击杀归属）
-				this,                           // 伤害来源Actor（这颗子弹）
-				UDamageType::StaticClass());     // 伤害类型（默认通用型）
+			
+			
+			if (OwnerCharacter->HasAuthority() && !bUseServerSideRewind)
+			{
+				UGameplayStatics::ApplyDamage(OtherActor,Damage,OwnerController,this,UDamageType::StaticClass());
+				Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+				return;
+			}
+
+			AXMBCharacterBase* HitCharacter = Cast<AXMBCharacterBase>(OtherActor);
+			if (bUseServerSideRewind && OwnerCharacter->GetLagCompensation() && OwnerCharacter->IsLocallyControlled() && HitCharacter)//此处检查LocallyControlled是因为只有其在true时才能调用Sercersidescorerequest
+			{
+				OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(
+					HitCharacter,TraceStart,InitialVelocity,OwnerController->GetServerTime() - OwnerController->SingleTripTime);
+			}
+			
+			
 		}
 	}
 	
@@ -117,21 +125,19 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
-
-	FPredictProjectilePathParams PathParams;
-	PathParams.bTraceWithChannel = true;
-	PathParams.bTraceWithCollision = true;
-	PathParams.DrawDebugTime = 5.f;
-	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-	PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
-	PathParams.MaxSimTime = 4.f;
-	PathParams.ProjectileRadius = 5.f;
-	PathParams.SimFrequency = 30.f;
-	PathParams.StartLocation = GetActorLocation();
-	PathParams.TraceChannel = ECC_Visibility;
-	PathParams.ActorsToIgnore.Add(this);
 	
-	FPredictProjectilePathResult PathResult;
-	
-	UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+	// FPredictProjectilePathParams PathParams;
+	// PathParams.bTraceWithChannel = true;
+	// PathParams.bTraceWithCollision = true;
+	// PathParams.DrawDebugTime = 5.f;
+	// PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+	// PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
+	// PathParams.MaxSimTime = 4.f;
+	// PathParams.ProjectileRadius = 5.f;
+	// PathParams.SimFrequency = 30.f;
+	// PathParams.StartLocation = GetActorLocation();
+	// PathParams.TraceChannel = ECC_Visibility;
+	// PathParams.ActorsToIgnore.Add(this);
+	// FPredictProjectilePathResult PathResult;
+	// UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
 }

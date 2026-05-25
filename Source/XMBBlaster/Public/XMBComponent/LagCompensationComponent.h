@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/XMBCharacterBase.h"
 
 #include "Components/ActorComponent.h"
 #include "LagCompensationComponent.generated.h"
@@ -83,13 +84,33 @@ public:
 
 	void ShowFramePackage(const FFramePackage& Package, const FColor Color);
 
+	/*
+	 * HitScan
+	 */
 	FServerSideRewindResult ServerSideRewind(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart,const FVector_NetQuantize& HitLocation, float HitTime);
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeaponBase* DamageCauser);
+	
+	/*
+	 * Projectile
+	 */
+	FServerSideRewindResult ProjectileServerSideRewind(AXMBCharacterBase* HitCharacter,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize100& InitialVelocity,float HitTime);
 
 	UFUNCTION(Server, Reliable)
+	void ProjectileServerScoreRequest(
+		AXMBCharacterBase* HitCharacter,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize100& InitialVelocity,float HitTime);
+	/*
+	 * Shotgun
+	 */
+	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<AXMBCharacterBase*>& HitCharacters,const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
+	
+	UFUNCTION(Server, Reliable)
 	void ShotgunServerScoreRequest(const TArray<AXMBCharacterBase*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
+
+	
+
+	
 	
 protected:
 	virtual void BeginPlay() override;
@@ -97,7 +118,6 @@ protected:
 	void SaveFramePackage(FFramePackage& Package);
 
 	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
-	FServerSideRewindResult ConfirmHit(const FFramePackage& Package, AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
 	void CacheBoxPosition(AXMBCharacterBase* HitCharacter, FFramePackage& OutFramePackage);
 	void MoveBoxes(AXMBCharacterBase* HitCharacter, const FFramePackage& Package);
 	void ResetHitBoxes(AXMBCharacterBase* HitCharacter, const FFramePackage& Package);
@@ -106,11 +126,22 @@ protected:
 	void SaveFramePackage();
 
 	FFramePackage GetFrameToCheck(AXMBCharacterBase* HitCharacter, float HitTime);
+
+	/*
+	 * HitScan
+	 */
+	FServerSideRewindResult ConfirmHit(const FFramePackage& Package, AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
+
+	/*
+	 * Projectile
+	 */
+	FServerSideRewindResult ProjectileConfirmHit(const FFramePackage& Package,AXMBCharacterBase* HitCharacter,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize100& InitialVelocity,float HitTime);
+	
 	/*
 	 * Shotgun 
 	 */
-	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<AXMBCharacterBase*>& HitCharacters,const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
 	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& FramePackages,const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations);
+	
 private:
 	UPROPERTY()
 	AXMBCharacterBase* Owner;

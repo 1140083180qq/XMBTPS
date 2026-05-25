@@ -20,12 +20,15 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 	Super::Fire(HitTarget);
 
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (OwnerPawn == nullptr) return;
-	AController* InstigatorController =  OwnerPawn->GetController();
-	
+	if (OwnerPawn == nullptr)
+	{
+		return;
+	}
+	AController* InstigatorController = OwnerPawn->GetController();
+
 
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
-	if (MuzzleFlashSocket)//为何不能在这里直接检查InstigatorController
+	if (MuzzleFlashSocket) //为何不能在这里直接检查InstigatorController
 	{
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector Start = SocketTransform.GetLocation();
@@ -34,49 +37,43 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		WeaponTraceHit(Start, HitTarget, FireHit);
 
 		AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(FireHit.GetActor());
-		if (OwnerPawn != BlasterCharacter)
+		if (BlasterCharacter && InstigatorController)
 		{
-			if (BlasterCharacter  && InstigatorController)
+			bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
+			if (HasAuthority() && bCauseAuthDamage)
 			{
-				bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
-				if (HasAuthority() && bCauseAuthDamage)
+				UGameplayStatics::ApplyDamage(BlasterCharacter, Damage, InstigatorController, this,
+				                              UDamageType::StaticClass());
+			}
+
+			if (!HasAuthority() && bUseServerSideRewind)
+			{
+				XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;
+				XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(InstigatorController) : XMBOwnerController;
+				if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() &&
+					XMBOwnerCharacter->IsLocallyControlled())
 				{
-					UGameplayStatics::ApplyDamage(
-					BlasterCharacter,
-					Damage,
-					InstigatorController,
-					this,
-					UDamageType::StaticClass()
+					XMBOwnerCharacter->GetLagCompensation()->ServerScoreRequest(
+						BlasterCharacter,
+						Start,
+						HitTarget,
+						XMBOwnerController->GetServerTime() - XMBOwnerController->SingleTripTime,
+						this
 					);
-				}
-				
-				if (!HasAuthority() && bUseServerSideRewind)
-				{
-					XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;
-					XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(InstigatorController) : XMBOwnerController;
-					if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() && XMBOwnerCharacter->IsLocallyControlled())
-					{
-						XMBOwnerCharacter->GetLagCompensation()->ServerScoreRequest(
-							BlasterCharacter,
-							Start,
-							HitTarget,
-							XMBOwnerController->GetServerTime() - XMBOwnerController->SingleTripTime,
-							this
-							);
-					}
 				}
 			}
 		}
-		
+
+
 		if (ImpactParticles)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(
 				GetWorld(),
 				ImpactParticles,
 				FireHit.ImpactPoint,
-				FireHit.ImpactNormal.Rotation());	
+				FireHit.ImpactNormal.Rotation());
 		}
-		
+
 		if (HitSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(
@@ -92,7 +89,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				MuzzleFlash,
 				SocketTransform);
 		}
-		
+
 		if (FireSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(
@@ -104,8 +101,6 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 }
 
 
-
-
 void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult)
 {
 	FHitResult FireHit;
@@ -115,15 +110,15 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 	{
 		// FVector End = bUseScatter ? TraceEndWithScatter(TraceStart, HitTarget) : TraceStart + (HitTarget - TraceStart) * 1.25f;
 		//此处只进行本地运算散步，所以只采取了原三元的false端(LocalFire)
-		FVector End =  TraceStart + (HitTarget - TraceStart) * 1.25f;//为何此处不使用三元
-		
+		FVector End = TraceStart + (HitTarget - TraceStart) * 1.25f; //为何此处不使用三元
+
 		World->LineTraceSingleByChannel(
-				OutHitResult,
-				TraceStart,
-				End,
-				ECC_Visibility
-				);
-		
+			OutHitResult,
+			TraceStart,
+			End,
+			ECC_Visibility
+		);
+
 		FVector BeamEnd = End;
 		if (OutHitResult.bBlockingHit)
 		{
@@ -141,7 +136,7 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 				TraceStart,
 				FRotator::ZeroRotator,
 				true
-				);
+			);
 
 			if (Beam)
 			{

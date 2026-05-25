@@ -71,7 +71,8 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 		{
 			if (HitPair.Key && InstigatorController)
 			{
-				if (HasAuthority() && !bUseServerSideRewind)
+				bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
+				if (HasAuthority() && bCauseAuthDamage)
 				{
 					UGameplayStatics::ApplyDamage(
 					HitPair.Key,
@@ -82,7 +83,6 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 					);
 				}
 				
-				//
 				HitCharacters.Add(HitPair.Key);
 			}
 		}
@@ -92,7 +92,7 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 		{
 			XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;
 			XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(InstigatorController) : XMBOwnerController;
-			if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() && XMBOwnerCharacter->IsLocallyControlled() )
+			if (XMBOwnerCharacter && XMBOwnerController && XMBOwnerCharacter->GetLagCompensation() && XMBOwnerCharacter->IsLocallyControlled() && XMBOwnerCharacter->IsLocallyControlled())
 			{
 				XMBOwnerCharacter->GetLagCompensation()->ShotgunServerScoreRequest(
 					HitCharacters,
