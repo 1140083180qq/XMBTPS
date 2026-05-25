@@ -223,11 +223,12 @@ void UCombatComponent::EquipPrimaryWeapon(AWeaponBase* WeaponToEquip)
 	DropEquippedWeapon();
 	
 	EquippedWeapon = WeaponToEquip;
+	
+	EquippedWeapon->SetWeaponOwner(Owner);
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
 	AttachActorToRightHand(EquippedWeapon);
 	
-	EquippedWeapon->SetWeaponOwner(Owner);
 	EquippedWeapon->SetHUDAmmo(); // 更新HUD上显示的弹夹弹药数
 
 	UpdateCarriedAmmo();
@@ -239,12 +240,15 @@ void UCombatComponent::EquipSecondaryWeapon(AWeaponBase* WeaponToEquip)
 {
 	if (WeaponToEquip == nullptr) return;
 	SecondaryWeapon = WeaponToEquip;
+	
 	// SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	SecondaryWeapon->SetWeaponOwner(Owner);
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	
 	AttachActorToBackpack(WeaponToEquip);
 	PlayEquipWeaponSound(WeaponToEquip);
 	
-	SecondaryWeapon->SetWeaponOwner(Owner);
+	
 }
 
 

@@ -164,7 +164,7 @@ public:
 	/*
 	 * 服务器延迟补偿
 	 */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	bool bUseServerSideRewind = false;
 	
 protected:
@@ -211,6 +211,12 @@ protected:
 	/** 拥有此武器的玩家控制器缓存 */
 	UPROPERTY()
 	AXMBPlayerController* XMBOwnerController;
+
+	/*
+	 * Ping too high
+	 */
+	UFUNCTION()
+	void OnPingTooHigh(bool bPingTooHigh);
 	
 private:
 	/** 武器的骨骼网格体（模型） */

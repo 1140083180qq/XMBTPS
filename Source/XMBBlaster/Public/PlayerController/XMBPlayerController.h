@@ -10,6 +10,9 @@
 
 class ABlasterGameMode;
 
+//用于设置有关ping过高
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
+
 /**
  * 
  */
@@ -43,6 +46,8 @@ public:
 
 	//单程时间
 	float SingleTripTime = 0.f;
+
+	FHighPingDelegate HighPingDelegate;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -139,6 +144,9 @@ private:
 	UPROPERTY(EditAnywhere,Category = Ping)
 	float CheckPingFrequency = 20.f;
 
+	UFUNCTION(server, reliable)
+	void ServerReportPingStatus(bool bHighPing);
+	
 	UPROPERTY(EditAnywhere, Category = Ping)
 	float HighPingThreshold = 50.f;//TODO:了解
 

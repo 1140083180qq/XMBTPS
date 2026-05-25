@@ -198,6 +198,8 @@ void AXMBPlayerController::OnRep_MatchState()
 	}
 }
 
+
+
 /**
  * @brief 处理比赛开始的UI切换
  *
@@ -850,10 +852,16 @@ void AXMBPlayerController::CheckPing(float DeltaTime)
 		{
 			//此处不需要乘以4了，在ue5内置封装好的函数里，这个函数在返回时已经乘以4了
 			// if (PlayerState->GetPingInMilliseconds() > HighPingThreshold)//OLD:此处获取的ping是被压缩过的，此处的ping经过除以4压缩，所以需要乘以4
+			UE_LOG(LogTemp, Warning,TEXT("PlayerState->GetPing * 4: %d"),PlayerState->GetCompressedPing() * 4);
 			if (PlayerState->GetCompressedPing() * 4 > HighPingThreshold)//这一句才是原来的意思，应该是通过获取压缩后的ping
 			{
 				HighPingWarning();
 				PingAnimationRunningTime = 0.f;
+				ServerReportPingStatus(true);
+			}
+			else
+			{
+				
 			}
 		}
 		HighPingRunningTime = 0.f;
@@ -870,4 +878,10 @@ void AXMBPlayerController::CheckPing(float DeltaTime)
 			StopHighPingWarning();
 		}
 	}
+}
+
+//Is the ping too high?
+void AXMBPlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
+{
+	HighPingDelegate.Broadcast(bHighPing);
 }

@@ -55,7 +55,7 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	// 注册需要网络复制的变量
 	DOREPLIFETIME(AWeaponBase, WeaponState);
-	
+	DOREPLIFETIME_CONDITION(AWeaponBase,bUseServerSideRewind, COND_OwnerOnly);//仅由Owner才能执行此逻辑
 }
 
 
@@ -270,6 +270,11 @@ void AWeaponBase::OnWeaponStateSet()
 	}
 }
 
+void AWeaponBase::OnPingTooHigh(bool bPingTooHigh)
+{
+	bUseServerSideRewind = !bPingTooHigh;
+}
+
 /**
  * @brief 武器状态变化的网络回调 - 客户端收到服务器端 WeaponState 变化时自动调用
  *
@@ -296,6 +301,17 @@ void AWeaponBase::OnEquippedState()
 	WeaponMesh->SetEnableGravity(false);         // 关闭重力
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭碰撞
 	EnableCustomDepth(false);
+
+	//此处前往CombatComponent内的EquippedWeapon与EquppedSecondaryWeapon内将Setowner放置在SetState前，否则此处Getowner无效
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+	if (XMBOwnerCharacter && bUseServerSideRewind)
+	{
+		XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(XMBOwnerCharacter->Controller) : XMBOwnerController;
+		if (XMBOwnerController && HasAuthority() && !XMBOwnerController->HighPingDelegate.IsBound())
+		{
+			XMBOwnerController->HighPingDelegate.AddDynamic(this, &AWeaponBase::OnPingTooHigh);
+		}
+	}
 }
 
 void AWeaponBase::OnDroppedState()
@@ -313,6 +329,16 @@ void AWeaponBase::OnDroppedState()
 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	WeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
+
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+	if (XMBOwnerCharacter && bUseServerSideRewind)
+	{
+		XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(XMBOwnerCharacter->Controller) : XMBOwnerController;
+		if (XMBOwnerController && HasAuthority() && XMBOwnerController->HighPingDelegate.IsBound())
+		{
+			XMBOwnerController->HighPingDelegate.RemoveDynamic(this, &AWeaponBase::OnPingTooHigh);
+		}
+	}
 }
 
 void AWeaponBase::OnEquippedSecondary()
@@ -322,17 +348,22 @@ void AWeaponBase::OnEquippedSecondary()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// if (WeaponType == EWeaponType::EWT_SubmachineGun)
-	// {
-	// 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	// 	WeaponMesh->SetEnableGravity(true);
-	// 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	// }
+	
 	EnableCustomDepth(true);
 	if (WeaponMesh)
 	{
 		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
 		WeaponMesh->MarkRenderStateDirty();
+	}
+
+	XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : XMBOwnerCharacter;
+	if (XMBOwnerCharacter && bUseServerSideRewind)
+	{
+		XMBOwnerController = XMBOwnerController == nullptr ? Cast<AXMBPlayerController>(XMBOwnerCharacter->Controller) : XMBOwnerController;
+		if (XMBOwnerController && HasAuthority() && XMBOwnerController->HighPingDelegate.IsBound())
+		{
+			XMBOwnerController->HighPingDelegate.RemoveDynamic(this, &AWeaponBase::OnPingTooHigh);
+		}
 	}
 	
 }
