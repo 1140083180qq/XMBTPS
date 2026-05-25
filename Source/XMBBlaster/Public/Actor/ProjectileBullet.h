@@ -20,12 +20,18 @@ class XMBBLASTER_API AProjectileBullet : public AProjectile
 public:
 	AProjectileBullet();
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
+
 protected:
 	/**
 	 * 碰撞回调函数（重写）
 	 * 击中目标时应用伤害，然后调用父类的销毁逻辑
 	 */
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
+	virtual void BeginPlay() override;
 	
 private:
 };

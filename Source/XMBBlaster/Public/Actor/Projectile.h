@@ -22,6 +22,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void Destroyed() override;
+
+	/*
+	 * Used with Server-side rewind
+	 */
+	bool bUseServerSideRewind = false;
+	FVector_NetQuantize TraceStart;
+	FVector_NetQuantize100 InitialVelocity;
+
+	UPROPERTY(EditAnywhere)
+	float InitialSpeed = 15000.f;
 	
 protected:
 	
@@ -66,7 +76,7 @@ protected:
 
 	//XMBTODO:将来设置成先判断是否为投射物
 	//用于子弹的伤害，仅用ApplyDamage
-	UPROPERTY(EditAnywhere)
+	// UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 
 	
@@ -97,5 +107,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	float DestroyTime = 3.f;
 
-	
+public:
+	FORCEINLINE float GetDamage() const { return Damage; }
+	FORCEINLINE void SetDamage(float InDamage)  {  Damage = InDamage; }
+	FORCEINLINE UProjectileMovementComponent* GetProjectileMovementComponent() const { return ProjectileMovementComponent; }
 };

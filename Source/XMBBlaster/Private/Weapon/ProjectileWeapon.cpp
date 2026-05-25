@@ -56,42 +56,72 @@
  */
 void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
-	// 步骤1: 先执行基类的通用开火逻辑（动画/弹壳/扣弹药）
 	Super::Fire(HitTarget);
-
-	// 步骤2: 仅服务器端生成投射物（客户端通过复制同步接收）
-	if (!HasAuthority()) return;
 	
-	// 步骤3: 获取武器上的枪口闪烁插槽
+	// APawn* InstigatorPawn = Cast<APawn>(GetOwner());
+	InstigatorPawn = Cast<APawn>(GetOwner());
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
-	if (MuzzleFlashSocket)
+	UWorld* World = GetWorld();
+	
+	if (MuzzleFlashSocket && World)
 	{
 		// 获取枪口插槽的世界空间变换
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
-		// 步骤4: 计算从枪口指向目标命中点的方向向量
+		
 		FVector ToTarget = HitTarget - SocketTransform.GetLocation();
 		FRotator TargetRotation = ToTarget.Rotation(); // 方向向量转为旋转
 
-		// 步骤5: 如果配置了投射物蓝图类，则在枪口位置生成投射物
-		if (ProjectileClass)
+		// 配置生成参数
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner(); // 拥有者=开火玩家（使用GetOwner而非缓存变量以确保最新）
+		SpawnParams.Instigator = InstigatorPawn; // 伤害来源Pawn
+		
+		AProjectile* SpawnedProjectile = nullptr;
+		
+		if (bUseServerSideRewind)
 		{
-			// 配置生成参数
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = GetOwner(); // 拥有者=开火玩家（使用GetOwner而非缓存变量以确保最新）
-			SpawnParams.Instigator = InstigatorPawn; // 伤害来源Pawn
-
-			if (UWorld* World = GetWorld())
+			if (InstigatorPawn->HasAuthority())//server
 			{
-				// 在枪口位置以朝向目标的旋转角度生成投射物
-				AProjectile* Projectile = World->SpawnActor<AProjectile>(
-					ProjectileClass,
-					SocketTransform.GetLocation(), // 出生位置=枪口坐标
-					TargetRotation,               // 朝向=对准目标
-					SpawnParams                   // 拥有者和伤害来源信息
-				);
+				if (InstigatorPawn->IsLocallyControlled())//在服务器上的、由本地玩家控制的角色，生成一个有服务器回放的投射物
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = false;
+					SpawnedProjectile->SetDamage(Damage);
+				}
+				else//在服务器上的、非本地玩家控制的角色，生成一个没有服务器回放的投射物
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = true;
+				}
+			}
+			else//client, using SSR
+			{
+				if (InstigatorPawn->IsLocallyControlled()) // client, locally controlled - spawn non_replicated projectile, use SSR
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = true;
+					SpawnedProjectile->TraceStart = SocketTransform.GetLocation();
+					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
+
+					
+					//XMBTODO:了解此处的逻辑
+					SpawnedProjectile->SetDamage(Damage);
+ 				}
+				else // client, not locally controlled - spawn non-replicated projectile, no SSR
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = false;
+				}
 			}
 		}
-		
+		else// weapon not using SSR
+		{
+			if (InstigatorPawn->HasAuthority())
+			{
+				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+				SpawnedProjectile->bUseServerSideRewind = false;
+				SpawnedProjectile->SetDamage(Damage);
+			}
+		}
 	}
-	
 }
