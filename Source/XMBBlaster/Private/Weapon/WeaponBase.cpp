@@ -349,7 +349,6 @@ void AWeaponBase::OnEquippedSecondary()
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
-	EnableCustomDepth(true);
 	if (WeaponMesh)
 	{
 		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);

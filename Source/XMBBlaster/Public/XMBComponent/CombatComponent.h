@@ -71,6 +71,14 @@ public:
 
 	bool bLocallyReloading = false;//如果这个值为真，则不使用FABRIK
 
+	/*
+	 * 交换武器
+	 */
+	UFUNCTION(BlueprintCallable)
+	void FinishSwap();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishSwapAttachWeapon();
 
 protected:
 	virtual void BeginPlay() override;

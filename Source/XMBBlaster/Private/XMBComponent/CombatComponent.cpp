@@ -21,6 +21,8 @@ UCombatComponent::UCombatComponent()
 	ShoulderAimWalkSpeed = 300.f;
 }
 
+
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -282,19 +284,26 @@ void UCombatComponent::DropEquippedWeapon()
 //XMBTOOD:可以制作一个交换武器的按键
 void UCombatComponent::SwapWeapons()
 {
-	if (CombatState != ECombatState::ECS_Unoccupied) return;//防止玩家在播放Reloading时切换武器
-	AWeaponBase* TempWeapon = EquippedWeapon;
-	EquippedWeapon = SecondaryWeapon;
-	SecondaryWeapon = TempWeapon;
+	if (CombatState != ECombatState::ECS_Unoccupied || Owner == nullptr) return;//防止玩家在播放Reloading时切换武器
 
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	AttachActorToRightHand(EquippedWeapon);
-	EquippedWeapon->SetHUDAmmo();
-	UpdateCarriedAmmo();
-	PlayEquipWeaponSound(EquippedWeapon);
+	Owner->PlaySwapWeaponMontage();
+	Owner->bFinishedSwapping = false;
+	CombatState = ECombatState::ECS_SwappingWeapons;
+	
+	// AWeaponBase* TempWeapon = EquippedWeapon;
+	// EquippedWeapon = SecondaryWeapon;
+	// SecondaryWeapon = TempWeapon;
 
-	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	AttachActorToBackpack(SecondaryWeapon);
+	if (SecondaryWeapon) SecondaryWeapon->EnableCustomDepth(false);
+
+	// EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	// AttachActorToRightHand(EquippedWeapon);
+	// EquippedWeapon->SetHUDAmmo();
+	// UpdateCarriedAmmo();
+	// PlayEquipWeaponSound(EquippedWeapon);
+	//
+	// SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	// AttachActorToBackpack(SecondaryWeapon);
 	
 }
 
@@ -402,6 +411,8 @@ bool UCombatComponent::CanFire()
 
 	if (!EquippedWeapon->IsAmmoEmply() && bCanFire && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_ShotGun) return true;
 
+	if (bLocallyReloading ) return false;//XMBTEST
+	
 	// 三条件与运算：有弹药 AND 冷却结束 AND 未在换弹
 	return !EquippedWeapon->IsAmmoEmply() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
@@ -1280,6 +1291,41 @@ void UCombatComponent::OnRep_CombatState()
 			ShowAttachedGrenade(true);
 		}
 		break;
+	case ECombatState::ECS_SwappingWeapons:
+		if (Owner && !Owner->IsLocallyControlled())
+		{
+			Owner->PlaySwapWeaponMontage();
+		}
+		break;
 	}
 	
+}
+
+
+void UCombatComponent::FinishSwap()
+{
+	if (Owner && Owner->HasAuthority())
+	{
+		CombatState = ECombatState::ECS_Unoccupied;
+	}
+	if (Owner) Owner->bFinishedSwapping = true;
+	if (SecondaryWeapon) SecondaryWeapon->EnableCustomDepth(true);
+}
+
+void UCombatComponent::FinishSwapAttachWeapon()
+{
+	// if (Owner == nullptr || !Owner->HasAuthority()) return;
+	PlayEquipWeaponSound(SecondaryWeapon);
+	AWeaponBase* TempWeapon = EquippedWeapon;
+	EquippedWeapon = SecondaryWeapon;
+	SecondaryWeapon = TempWeapon;
+
+	
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachActorToRightHand(EquippedWeapon);
+	EquippedWeapon->SetHUDAmmo();
+	UpdateCarriedAmmo();
+	
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	AttachActorToBackpack(SecondaryWeapon);
 }

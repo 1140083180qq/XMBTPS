@@ -70,7 +70,7 @@ public:
 	void PlayElimMontage();
 	void PlayReloadMontage();
 	void PlayThrowGrenadeMontage();
-	
+	void PlaySwapWeaponMontage();
 
 	/*
 	 * 武器
@@ -112,7 +112,14 @@ public:
 	 * 碰撞盒子
 	 */
 	UPROPERTY()
-	TMap<FName, UBoxComponent*> HitCollisionBoxes; 
+	TMap<FName, UBoxComponent*> HitCollisionBoxes;
+
+
+	/*
+	 * 交换武器
+	 */
+	bool bFinishedSwapping = false;
+	
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -285,7 +292,8 @@ private:
 	UAnimMontage* SniperReloadMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ThrowGrenadeMontage;
-
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* SwapWeaponMontage;
 
 	/*装备武器输入*/
 	UFUNCTION(Server,Reliable)//需要了解RPC的可靠与不可靠执行，出现不可靠执行的几种情形。知道解决不可靠执行的几种办法。

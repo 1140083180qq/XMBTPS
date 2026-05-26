@@ -261,9 +261,13 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	
 	bUseFABRIK = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
 
-	if (XMBCharacter->IsLocallyControlled() && XMBCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade)
+	bool bFABRIKOverride = XMBCharacter->IsLocallyControlled()
+	&& XMBCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade
+	&& XMBCharacter->bFinishedSwapping;
+	
+	if (bFABRIKOverride)
 	{
-		bUseFABRIK = !XMBCharacter->IsLocallyReloading();
+		bUseFABRIK = !XMBCharacter->IsLocallyReloading() ;
 	}
 	
 	bUseAimOffset = XMBCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !XMBCharacter->GetDisableGameplay();

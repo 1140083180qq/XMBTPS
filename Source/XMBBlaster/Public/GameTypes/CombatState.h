@@ -20,6 +20,9 @@ enum class ECombatState : uint8
 	//投掷手雷
 	ECS_ThrowingGrenade UMETA(DisplayName = "Throwing Grenade"),
 
+	//交换武器
+	ECS_SwappingWeapons UMETA(DisplayName = "Swapping Weapons"),
+
 	/** 枚举最大值占位符 */
 	ECS_MAX UMETA(DisplayName = "DefaultMAX")
 };

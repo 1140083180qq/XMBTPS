@@ -668,6 +668,15 @@ void AXMBCharacterBase::PlayThrowGrenadeMontage()
 	}
 }
 
+void AXMBCharacterBase::PlaySwapWeaponMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && SwapWeaponMontage)
+	{
+		AnimInstance->Montage_Play(SwapWeaponMontage);
+	}
+}
+
 /** @brief 播放受击反应动画（"FromFront" Section） */
 void AXMBCharacterBase::PlayHitReactMontage()
 {
@@ -796,17 +805,19 @@ void AXMBCharacterBase::EquipButtonPressed()
 {
 	if (CombatComponent)
 	{
-		ServerEquipButtonPressed();
-		// if (HasAuthority())
-		// {
-		// 	// 服务器端：直接装备
-		// 	CombatComponent->EquipWeapon(OverlappingWeapon);
-		// }
-		// else
-		// {
-		// 	// 客户端：发送RPC请求服务器装备
-		// 	ServerEquipButtonPressed();
-		// }
+		if (GetCombatState() == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed();
+
+		bool bSwap = CombatComponent->ShouldSwapWeapons()
+		&& !HasAuthority()
+		&& CombatComponent->CombatState == ECombatState::ECS_Unoccupied
+		&& OverlappingWeapon == nullptr;
+		
+		if (bSwap)
+		{
+			PlaySwapWeaponMontage();
+			CombatComponent->CombatState = ECombatState::ECS_SwappingWeapons;
+			bFinishedSwapping = false;
+		}
 	}
 }
 
