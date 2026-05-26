@@ -11,6 +11,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameTypes/WeaponTypes.h"
+#include "XMBBlaster/XMBBlaster.h"
 #include "XMBComponent/LagCompensationComponent.h"
 
 
@@ -119,14 +120,25 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 			ECC_Visibility
 		);
 
+		// World->LineTraceSingleByChannel(
+		// 	OutHitResult,
+		// 	TraceStart,
+		// 	End,
+		// 	ECC_HitBox
+		// );
+
 		FVector BeamEnd = End;
 		if (OutHitResult.bBlockingHit)
 		{
 			BeamEnd = OutHitResult.ImpactPoint;
 		}
+		else
+		{
+			OutHitResult.ImpactPoint = End;
+		}
 
 		//之前制作了LocalFire,开火时本地的开火与服务器的开火不一样，所以会有不一样的随机弹道偏移
-		// DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true,false, 3.f);
+		DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true,false, 3.f);
 
 		if (BeamParticles)
 		{

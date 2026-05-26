@@ -97,8 +97,6 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		AXMBPlayerController* OwnerController = Cast<AXMBPlayerController>(OwnerCharacter->GetController());
 		if (OwnerController)
 		{
-			
-			
 			if (OwnerCharacter->HasAuthority() && !bUseServerSideRewind)
 			{
 				UGameplayStatics::ApplyDamage(OtherActor,Damage,OwnerController,this,UDamageType::StaticClass());
@@ -107,6 +105,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 			}
 
 			AXMBCharacterBase* HitCharacter = Cast<AXMBCharacterBase>(OtherActor);
+		
 			if (bUseServerSideRewind && OwnerCharacter->GetLagCompensation() && OwnerCharacter->IsLocallyControlled() && HitCharacter)//此处检查LocallyControlled是因为只有其在true时才能调用Sercersidescorerequest
 			{
 				OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(

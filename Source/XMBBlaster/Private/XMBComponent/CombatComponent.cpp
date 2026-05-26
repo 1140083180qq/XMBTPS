@@ -290,9 +290,9 @@ void UCombatComponent::SwapWeapons()
 	Owner->bFinishedSwapping = false;
 	CombatState = ECombatState::ECS_SwappingWeapons;
 	
-	// AWeaponBase* TempWeapon = EquippedWeapon;
-	// EquippedWeapon = SecondaryWeapon;
-	// SecondaryWeapon = TempWeapon;
+	AWeaponBase* TempWeapon = EquippedWeapon;
+	EquippedWeapon = SecondaryWeapon;
+	SecondaryWeapon = TempWeapon;
 
 	if (SecondaryWeapon) SecondaryWeapon->EnableCustomDepth(false);
 
@@ -505,7 +505,7 @@ void UCombatComponent::FireProjectileWeapon()
 	{
 		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
 		if (!Owner->HasAuthority()) LocalFire(HitTarget);
-		ServerFire(HitTarget); 
+		ServerFire(HitTarget,EquippedWeapon->FireDelay); 
 	}
 }
 
@@ -515,7 +515,7 @@ void UCombatComponent::FireHitScanWeapon()
 	{
 		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
 		if (!Owner->HasAuthority()) LocalFire(HitTarget);
-		ServerFire(HitTarget);
+		ServerFire(HitTarget,EquippedWeapon->FireDelay);
 	}
 }
 
@@ -528,7 +528,7 @@ void UCombatComponent::FireShotgun()
 		TArray<FVector_NetQuantize> HitTargets;
 		Shotgun->ShotgunTraceEndWithScatter(HitTarget, HitTargets);
 		if (!Owner->HasAuthority()) ShotgunLocalFire(HitTargets);
-		ServerShotgunFire(HitTargets);
+		ServerShotgunFire(HitTargets,EquippedWeapon->FireDelay);
 	}
 }
 
@@ -548,10 +548,23 @@ void UCombatComponent::FireShotgun()
  *
  * 为什么这样设计？因为服务器需要对开火行为进行权威校验（防作弊）
  */
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget, float FireDelay)
 {
 	MulticastFire(TraceHitTarget);// 服务器收到开火请求后，向所有客户端多播开火效果
 }
+
+bool UCombatComponent::ServerFire_Validate(const FVector_NetQuantize& TraceHitTarget, float FireDelay)
+{
+	if (EquippedWeapon)
+	{
+		bool bNearlyEqual = FMath::IsNearlyEqual(EquippedWeapon->FireDelay, FireDelay, 0.001f);
+		return bNearlyEqual;
+	}
+	return true;
+}
+
+
+
 
 /**
  * @brief 多播开火效果 - 在所有客户端上同时播放开火表现
@@ -576,10 +589,21 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 }
 
 
-void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTarget)
+void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTarget, float FireDelay)
 {
 	MulticastShotgunFire(TraceHitTarget);
 }
+
+bool UCombatComponent::ServerShotgunFire_Validate(const TArray<FVector_NetQuantize>& TraceHitTarget, float FireDelay)
+{
+	if (EquippedWeapon)
+	{
+		bool bNearlyEqual = FMath::IsNearlyEqual(EquippedWeapon->FireDelay, FireDelay, 0.001f);
+		return bNearlyEqual;
+	}
+	return true;
+}
+
 
 void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTarget)
 {
@@ -1316,9 +1340,9 @@ void UCombatComponent::FinishSwapAttachWeapon()
 {
 	// if (Owner == nullptr || !Owner->HasAuthority()) return;
 	PlayEquipWeaponSound(SecondaryWeapon);
-	AWeaponBase* TempWeapon = EquippedWeapon;
-	EquippedWeapon = SecondaryWeapon;
-	SecondaryWeapon = TempWeapon;
+	// AWeaponBase* TempWeapon = EquippedWeapon;
+	// EquippedWeapon = SecondaryWeapon;
+	// SecondaryWeapon = TempWeapon;
 
 	
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);

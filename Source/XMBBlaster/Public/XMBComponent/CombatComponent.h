@@ -136,14 +136,14 @@ protected:
 	 * @param TraceHitTarget - 射线检测命中的目标位置（使用网络量化压缩的向量类型以节省带宽）
 	* // 仅从客户端调用服务器执行，其他客户端不可见；在服务器调用并执行时，客户端也不可见
 	// Server表示从客户端上调用并在服务器上执行；非常重要的同步需要Reliable传到服务器 */
-	UFUNCTION(Server, Reliable)//TODO:需要了解FVector_NetQuantize这一个类型对于网络复制的作用
-	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
+	UFUNCTION(Server, Reliable,WithValidation)//TODO:需要了解FVector_NetQuantize这一个类型对于网络复制的作用
+	void ServerFire(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
 	
 	UFUNCTION(NetMulticast, Reliable)	/*** 在所有客户端上显示开火特效 */
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
-	UFUNCTION(Server, Reliable)
-	void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTarget);
+	UFUNCTION(Server, Reliable,WithValidation)
+	void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTarget, float FireDelay);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTarget);

@@ -123,7 +123,7 @@ protected:
 	void ResetHitBoxes(AXMBCharacterBase* HitCharacter, const FFramePackage& Package);
 	void EnableCharacterMeshCollision(AXMBCharacterBase* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
 	
-	void SaveFramePackage();
+	void SaveFramePackageServer();
 
 	FFramePackage GetFrameToCheck(AXMBCharacterBase* HitCharacter, float HitTime);
 

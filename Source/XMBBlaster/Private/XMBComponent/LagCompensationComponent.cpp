@@ -20,7 +20,7 @@ void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	SaveFramePackage();
+	SaveFramePackageServer();
 }
 
 
@@ -97,13 +97,11 @@ void ULagCompensationComponent::ShotgunServerScoreRequest_Implementation(const T
 }
 
 
-void ULagCompensationComponent::SaveFramePackage()
+void ULagCompensationComponent::SaveFramePackageServer()
 {
-	Owner = Owner == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : Owner;
-	if (Owner == nullptr || !Owner->HasAuthority())
-	{
-		return;
-	}
+	// Owner = Owner == nullptr ? Cast<AXMBCharacterBase>(GetOwner()) : Owner;
+	if (Owner == nullptr || !Owner->HasAuthority()) return;
+
 	//针对链表中存储的第一个元素
 	if (FrameHistory.Num() <= 1)
 	{
@@ -275,11 +273,13 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		World->LineTraceSingleByChannel(ConfirmHitResult, TraceStart, TraceEnd, ECC_HitBox);
+		//World->LineTraceSingleByChannel(ConfirmHitResult, TraceStart, TraceEnd, ECC_HitBox);
+		bool bIsHit = World->LineTraceSingleByChannel(ConfirmHitResult, TraceStart, TraceEnd, ECC_HitBox);
 
 		DrawDebugLine(World, TraceStart, TraceEnd, FColor::Purple, false, 10.f);
 		
 		if (ConfirmHitResult.bBlockingHit) //we hit the head, return early
+		// if (bIsHit)
 		{
 			if (ConfirmHitResult.Component.IsValid())
 			{
