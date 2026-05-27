@@ -14,6 +14,8 @@
 
 #include "XMBCharacterBase.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class ULagCompensationComponent;
 class UBoxComponent;
 class UBuffComponent;
@@ -133,6 +135,12 @@ public:
 	void ServerLeaveGame();
 
 	FOnLeftGame OnLeftGame;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastGainedTheLead();
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastLostTheLead();
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -404,6 +412,12 @@ private:
 	void ElimTimerFinished();
 
 	bool bLeftGame = false;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* CrownSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* CrownComponent;
 
 	
 

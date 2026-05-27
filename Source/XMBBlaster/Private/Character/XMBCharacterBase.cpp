@@ -1,6 +1,7 @@
 
 #include "Character/XMBCharacterBase.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -18,6 +19,8 @@
 #include "XMBComponent/BuffComponent.h"
 #include "Components/BoxComponent.h"
 #include "XMBComponent/LagCompensationComponent.h"
+
+#include "NiagaraComponent.h"
 
 AXMBCharacterBase::AXMBCharacterBase()
 {
@@ -182,6 +185,8 @@ void AXMBCharacterBase::BeginPlay()
 		AttachedGrenade->SetVisibility(false);
 	}
 }
+
+
 
 /**@brief 每帧调用*/
 void AXMBCharacterBase::Tick(float DeltaSeconds)
@@ -940,6 +945,12 @@ void AXMBCharacterBase::PollInit()
 			// 用0值触发一次更新，确保HUD显示正确的初始值
 			XMBPlayerState->AddToScore(0.f);
 			XMBPlayerState->AddToDefeats(0);
+
+			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
+			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(XMBPlayerState))
+			{
+				MulticastGainedTheLead();
+			}
 		}
 	}
 }
@@ -1092,6 +1103,11 @@ void AXMBCharacterBase::MulticastElim_Implementation(bool bPlayerLeftGame)
 		ShowSniperScopeWidget(false);
 	}
 
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
+
 	//设置在此处则客户端上也工作
 	GetWorldTimerManager().SetTimer(
 		ElimTimer,
@@ -1124,6 +1140,40 @@ void AXMBCharacterBase::ElimTimerFinished()
 		OnLeftGame.Broadcast();
 	}
 }
+
+
+
+void AXMBCharacterBase::MulticastGainedTheLead_Implementation()
+{
+	if (CrownSystem == nullptr) return;
+	if (CrownComponent == nullptr)
+	{
+		CrownComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			CrownSystem,
+			GetCapsuleComponent(),
+			FName(),
+			GetActorLocation() + FVector(0.f,0.f,100.f),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false);
+	}
+
+	if (CrownComponent)
+	{
+		CrownComponent->Activate();
+	}
+}
+
+void AXMBCharacterBase::MulticastLostTheLead_Implementation()
+{
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
+}
+
+
+
 
 void AXMBCharacterBase::ServerLeaveGame_Implementation()
 {

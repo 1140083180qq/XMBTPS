@@ -207,8 +207,35 @@ void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXM
 	// 攻击者得分（排除自杀情况：自己杀自己不给分）
 	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && BlasterGameState)
 	{
+		TArray<AXMBPlayerState*> PlayersCurrentlyInTheLead;
+		for (auto LeadPlayer : BlasterGameState->TopScoringPlayers)
+		{
+			PlayersCurrentlyInTheLead.Add(LeadPlayer);
+		}
+		
 		AttackerPlayerState->AddToScore(1.f); // 每次击杀+1分
 		BlasterGameState->UpdateTopScore(AttackerPlayerState); // 更新全服排行榜
+
+		if (BlasterGameState->TopScoringPlayers.Contains(AttackerPlayerState))
+		{
+			AXMBCharacterBase* Leader = Cast<AXMBCharacterBase>(AttackerPlayerState->GetPawn());
+			if (Leader)
+			{
+				Leader->MulticastGainedTheLead();
+			}
+		}
+
+		for (int32 i = 0; i < PlayersCurrentlyInTheLead.Num(); i++)
+		{
+			if (!BlasterGameState->TopScoringPlayers.Contains(PlayersCurrentlyInTheLead[i]))
+			{
+				AXMBCharacterBase* Loser = Cast<AXMBCharacterBase>(PlayersCurrentlyInTheLead[i]->GetPawn());
+				if (Loser)
+				{
+					Loser->MulticastLostTheLead();
+				}
+			}
+		}
 	}
 
 	// 受害者击败数+1（记录死亡次数）
