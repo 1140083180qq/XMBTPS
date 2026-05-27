@@ -90,7 +90,7 @@ public:
 	FServerSideRewindResult ServerSideRewind(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart,const FVector_NetQuantize& HitLocation, float HitTime);
 
 	UFUNCTION(Server, Reliable)
-	void ServerScoreRequest(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeaponBase* DamageCauser);
+	void ServerScoreRequest(AXMBCharacterBase* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
 	
 	/*
 	 * Projectile

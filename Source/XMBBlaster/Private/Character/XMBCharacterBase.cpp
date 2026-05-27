@@ -540,7 +540,7 @@ void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
  * @param DamageType - 伤害类型（子弹、爆炸等）
  * @param InstigatorController - 造成伤害者的控制器
  * @param DmaageCauser - 造成伤害的来源Actor（如子弹）
- */
+ */ 
 void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatorController, AActor* DmaageCauser)
 {
@@ -557,8 +557,8 @@ void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 		}
 		else
 		{
-			Shield = 0.f;
 			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
+			Shield = 0.f;
 		}
 	}
 	
@@ -902,7 +902,7 @@ void AXMBCharacterBase::UpdateHUDHealth()
 	}
 }
 
-//XMBTODO:有关伤害处理有bug：假如玩家当前的护盾是25点,当受到伤害为30点时，则会直接将护盾清空并且生命也减少30
+
 void AXMBCharacterBase::UpdateHUDShield()
 {
 	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;

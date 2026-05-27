@@ -24,17 +24,13 @@ void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 }
 
 
-void ULagCompensationComponent::ServerScoreRequest_Implementation(AXMBCharacterBase* HitCharacter,
-                                                                  const FVector_NetQuantize& TraceStart,
-                                                                  const FVector_NetQuantize& HitLocation, float HitTime,
-                                                                  AWeaponBase* DamageCauser)
+void ULagCompensationComponent::ServerScoreRequest_Implementation(AXMBCharacterBase* HitCharacter,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize& HitLocation, float HitTime)
 {
 	FServerSideRewindResult Confirm = ServerSideRewind(HitCharacter, TraceStart, HitLocation, HitTime);
 
 	if (Owner && HitCharacter && Confirm.bHitConfirmed && Owner->GetEquippedWeapon())
 	{
-		// const float Damage = Confirm.bHeadShot ? Owner->GetEquippedWeapon()->GetHeadShotDamage() : Owner->GetEquippedWeapon()->GetDamage();
-		const float Damage = Owner->GetEquippedWeapon()->GetDamage();
+		const float Damage = Confirm.bHeadShot ? Owner->GetEquippedWeapon()->GetHeadShotDamage() : Owner->GetEquippedWeapon()->GetDamage();
 		
 		UGameplayStatics::ApplyDamage(
 			HitCharacter,
@@ -52,8 +48,7 @@ void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(AXMB
 
 	if (Owner && HitCharacter && Confirm.bHitConfirmed && Owner->GetEquippedWeapon())
 	{
-		// const float Damage = Confirm.bHeadShot ? Owner->GetEquippedWeapon()->GetHeadShotDamage() : Owner->GetEquippedWeapon()->GetDamage();
-		const float Damage = Owner->GetEquippedWeapon()->GetDamage();
+		const float Damage = Confirm.bHeadShot ? Owner->GetEquippedWeapon()->GetHeadShotDamage() : Owner->GetEquippedWeapon()->GetDamage();
 		
 		UGameplayStatics::ApplyDamage(
 			HitCharacter,
@@ -77,7 +72,7 @@ void ULagCompensationComponent::ShotgunServerScoreRequest_Implementation(const T
 		
 		if (Confirm.HeadShots.Contains(HitCharacter))
 		{
-			float HeadShotDamage = Confirm.HeadShots[HitCharacter] * Owner->GetEquippedWeapon()->GetDamage();
+			float HeadShotDamage = Confirm.HeadShots[HitCharacter] * Owner->GetEquippedWeapon()->GetHeadShotDamage();
 			TotalDamage += HeadShotDamage;
 		}
 		if (Confirm.BodyShots.Contains(HitCharacter))
@@ -520,16 +515,6 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 			AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(ConfirmHitResult.GetActor());
 			if (BlasterCharacter)
 			{
-				// if (ConfirmHitResult.Component.IsValid())
-				// {
-				// 	UBoxComponent* Box = Cast<UBoxComponent>(ConfirmHitResult.Component);
-				// 	if (Box)
-				// 	{
-				// 		DrawDebugBox(GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(),
-				// 		             FQuat(Box->GetComponentRotation()), FColor::Blue, false, 8.f);
-				// 	}
-				// }
-
 				if (ShotgunResult.BodyShots.Contains(BlasterCharacter))
 				{
 					ShotgunResult.BodyShots[BlasterCharacter]++;
