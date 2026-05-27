@@ -1,6 +1,10 @@
 
 #include "UI/HUD/XMBHUD.h"
+
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 #include "UI/Widget/ElimAnnouncement.h"
+#include "Components/HorizontalBox.h"
 
 /**
  * @brief 每帧绘制回调 - 在渲染管线中每帧调用一次，用于绘制2D HUD元素
@@ -183,7 +187,40 @@ void AXMBHUD::AddElimAnnouncement(FString Attacker, FString victim)
 		{
 			ElimAnnouncementWidget->SerElimAnnouncementText(Attacker,victim);
 			ElimAnnouncementWidget->AddToViewport();
+
+			for (auto Msg : ElimMessages)
+			{
+				if (Msg && Msg->AnnouncementBox)
+				{
+					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox);
+					if (CanvasSlot)
+					{
+						FVector2D Position = CanvasSlot->GetPosition();
+						FVector2D NewPosition(CanvasSlot->GetPosition().X,Position.Y - CanvasSlot->GetSize().Y);
+						CanvasSlot->SetPosition(NewPosition);
+					}
+				}
+			}
+			
+			ElimMessages.Add(ElimAnnouncementWidget);
+
+			FTimerHandle ElimMsgToTimer;
+			FTimerDelegate ElimMsgDelegate;
+			ElimMsgDelegate.BindUFunction(this,FName("ElimAnnouncementTimerFinished"), ElimAnnouncementWidget);
+			GetWorldTimerManager().SetTimer(
+				ElimMsgToTimer,
+				ElimMsgDelegate,
+				ElimAnnouncementTime,
+				false);
 		}
 	}
 }
 
+
+void AXMBHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
+{
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
+	}
+}
