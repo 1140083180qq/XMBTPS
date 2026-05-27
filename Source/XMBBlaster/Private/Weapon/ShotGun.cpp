@@ -26,6 +26,7 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 		FVector Start = SocketTransform.GetLocation();
 
 		TMap<AXMBCharacterBase*, uint32> HitMap;
+		TMap<AXMBCharacterBase*, int32> HeadShotHitMap;
 		for (auto HitTarget : HitTargets)
 		{
 			FHitResult FireHit;
@@ -34,15 +35,20 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 			AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(FireHit.GetActor());
 			if (BlasterCharacter)
 			{
-				if (HitMap.Contains(BlasterCharacter))
+				const bool bHeadShot = FireHit.BoneName.ToString() == FString("head");
+
+				if (bHeadShot)
 				{
-					HitMap[BlasterCharacter]++;
+					if (HeadShotHitMap.Contains(BlasterCharacter)) HeadShotHitMap[BlasterCharacter]++;
+					else HeadShotHitMap.Emplace(BlasterCharacter,1);
 				}
 				else
 				{
-					HitMap.Emplace(BlasterCharacter,1);
+					if (HitMap.Contains(BlasterCharacter)) HitMap[BlasterCharacter]++;
+					else HitMap.Emplace(BlasterCharacter,1);
 				}
-
+				
+				
 				if (ImpactParticles)
 				{
 					UGameplayStatics::SpawnEmitterAtLocation(
@@ -66,28 +72,54 @@ void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 		}
 
 		TArray<AXMBCharacterBase*> HitCharacters;
-		
+		//maps character hit to total damage
+		TMap<AXMBCharacterBase*, float> DamageMap;
+
+		//calculate body shot damage by multiplaying times hit x damage - store in damagemap
 		for (auto HitPair :HitMap)
 		{
-			if (HitPair.Key && InstigatorController)
+			if (HitPair.Key)
+			{
+				DamageMap.Emplace(HitPair.Key,HitPair.Value * Damage);
+
+				HitCharacters.AddUnique(HitPair.Key);
+			}
+		}
+
+		//calculate head shot damage by multiplying times hit x headshotdamage - store in damagemap
+		for (auto HeadShotHipPair : HeadShotHitMap)
+		{
+			if (HeadShotHipPair.Key )
+			{
+				if (DamageMap.Contains(HeadShotHipPair.Key)) DamageMap[HeadShotHipPair.Key] += HeadShotHipPair.Value * HeadShotDamage;
+				else DamageMap.Emplace(HeadShotHipPair.Key,HeadShotHipPair.Value * HeadShotDamage);
+				
+				HitCharacters.AddUnique(HeadShotHipPair.Key);
+			}
+		}
+
+		// loop through damage map to get total damage for each character
+		for (auto DamagePair : DamageMap)
+		{
+			if (DamagePair.Key && InstigatorController)
 			{
 				bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
 				if (HasAuthority() && bCauseAuthDamage)
 				{
 					UGameplayStatics::ApplyDamage(
-					HitPair.Key,
-					Damage * HitPair.Value,
+					DamagePair.Key, //character that was hit
+					DamagePair.Value, // Damage calculated in the two for loops above
 					InstigatorController,
 					this,
 					UDamageType::StaticClass()
 					);
 				}
-				
-				HitCharacters.Add(HitPair.Key);
 			}
 		}
 
-		//TODO:为何bUseServerSideRewind=true时无法造成伤害
+		
+
+		
 		if (!HasAuthority() && bUseServerSideRewind)
 		{
 			XMBOwnerCharacter = XMBOwnerCharacter == nullptr ? Cast<AXMBCharacterBase>(OwnerPawn) : XMBOwnerCharacter;

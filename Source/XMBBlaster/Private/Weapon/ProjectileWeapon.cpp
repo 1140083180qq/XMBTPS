@@ -87,6 +87,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
 					SpawnedProjectile->SetDamage(Damage);
+					SpawnedProjectile->SetDamage(HeadShotDamage);
 				}
 				else//server, not locally controlled - spawn non-replicated projectile, no SSR
 				{
@@ -105,7 +106,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 
 					
 					//XMBTODO:了解此处的逻辑
-					SpawnedProjectile->SetDamage(Damage);
+					// SpawnedProjectile->SetDamage(Damage);
  				}
 				else // client, not locally controlled - spawn non-replicated projectile, no SSR
 				{
@@ -121,6 +122,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 				SpawnedProjectile->bUseServerSideRewind = false;
 				SpawnedProjectile->SetDamage(Damage);
+				SpawnedProjectile->SetDamage(HeadShotDamage);
 			}
 		}
 	}

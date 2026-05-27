@@ -74,11 +74,13 @@ protected:
 	UNiagaraSystem* TrailSystem;
 
 
+	
 	//XMBTODO:将来设置成先判断是否为投射物
 	//用于子弹的伤害，仅用ApplyDamage
-	// UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere)//仅对火箭弹和手雷
 	float Damage = 20.f;
-
+	UPROPERTY(EditAnywhere)
+	float HeadShotDamage = 40.f;//XMBTODO:将来需要在此处将Damage与Headshotdamage与范围伤害用bool区分开
 	
 	//用于范围伤害
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Damage")
@@ -110,5 +112,7 @@ private:
 public:
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE void SetDamage(float InDamage)  {  Damage = InDamage; }
+	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
+	FORCEINLINE void SetHeadShotDamage(float InHeadShotDamage)  {  HeadShotDamage = InHeadShotDamage; }
 	FORCEINLINE UProjectileMovementComponent* GetProjectileMovementComponent() const { return ProjectileMovementComponent; }
 };

@@ -202,6 +202,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 
+	UPROPERTY(EditAnywhere)
+	float HeadShotDamage = 40.f;
 
 
 	/** 拥有此武器的角色缓存 */
@@ -317,6 +319,8 @@ public:
 	FORCEINLINE void SetWeaponDestroy(bool InbDestroy) { bDestroyWeapon = InbDestroy; }
 
 	FORCEINLINE float GetDamage() const { return Damage; }
+
+	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
 
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 };

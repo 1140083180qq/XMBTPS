@@ -902,6 +902,7 @@ void AXMBCharacterBase::UpdateHUDHealth()
 	}
 }
 
+//XMBTODO:有关伤害处理有bug：假如玩家当前的护盾是25点,当受到伤害为30点时，则会直接将护盾清空并且生命也减少30
 void AXMBCharacterBase::UpdateHUDShield()
 {
 	XMBPlayerController = XMBPlayerController == nullptr ? Cast<AXMBPlayerController>(Controller) : XMBPlayerController;
