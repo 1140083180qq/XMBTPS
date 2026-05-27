@@ -31,6 +31,8 @@ void AXMBPlayerController::XMBTEST()
 	ShowReturnToMainMenu();
 }
 
+
+
 /**
  * @brief 控制器初始化 - 游戏开始时调用
  *
@@ -925,4 +927,46 @@ void AXMBPlayerController::CheckPing(float DeltaTime)
 void AXMBPlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
 {
 	HighPingDelegate.Broadcast(bHighPing);
+}
+
+
+
+
+void AXMBPlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* Victim)
+{
+	ClientElimAnnouncement(Attacker,Victim);
+}
+
+void AXMBPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
+{
+	APlayerState* Self = GetPlayerState<APlayerState>();
+	if (Attacker && Victim && Self)
+	{
+		XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+		if (XMBHUD)
+		{
+			if (Attacker == Self && Victim != Self)
+			{
+				XMBHUD->AddElimAnnouncement("You", Victim->GetPlayerName());
+				return;
+			}
+			if (Victim == Self && Attacker != Self)
+			{
+				XMBHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "you");
+				return;
+			}
+			if (Attacker == Victim && Attacker == Self)
+			{
+				XMBHUD->AddElimAnnouncement("You", "yourself");
+				return;
+			}
+			if (Attacker == Victim && Attacker != Self)
+			{
+				XMBHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "themselves");
+				return;
+			}
+			XMBHUD->AddElimAnnouncement(Attacker->GetPlayerName(), Victim->GetPlayerName());
+			
+		}
+	}
 }

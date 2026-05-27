@@ -50,7 +50,10 @@ public:
 
 	FHighPingDelegate HighPingDelegate;
 
-	void XMBTEST();
+	void XMBTEST();//XMBTODO:暂时是这个，用来提供player的quitbuttonpressed的调用函数
+
+	
+	void BroadcastElim(APlayerState* Attacker, APlayerState* Victim);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -101,6 +104,10 @@ protected:
 	 * Menu
 	 */
 	void ShowReturnToMainMenu();
+
+
+	UFUNCTION(Client,Reliable)
+	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
 	
 private:
 	UPROPERTY()

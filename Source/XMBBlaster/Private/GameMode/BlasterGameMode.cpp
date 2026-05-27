@@ -249,6 +249,15 @@ void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXM
 	{
 		ElimmedCharacter->Elim(false);
 	}
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AXMBPlayerController* BlasterPlayer = Cast<AXMBPlayerController>(*It);
+		if (BlasterPlayer && AttackerPlayerState && VictimPlayerState)
+		{
+			BlasterPlayer->BroadcastElim(AttackerPlayerState, VictimPlayerState);
+		}
+	}
 }
 
 

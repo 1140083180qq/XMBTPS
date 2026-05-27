@@ -8,6 +8,8 @@
 #include "UI/Widget/CharacterOverlayWidget.h"
 #include "XMBHUD.generated.h"
 
+class UElimAnnouncement;
+
 USTRUCT(BlueprintType)
 struct FHUDPackage
 {
@@ -51,17 +53,24 @@ public:
 	UPROPERTY()
 	UAnnouncementWidget* AnnouncementWidget;
 
+	void AddElimAnnouncement(FString Attacker, FString victim);
+
 protected:
 	virtual void BeginPlay() override;
 	
 private:
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportContent,FVector2D Spread, FLinearColor CrosshairColor);
 
+	UPROPERTY()
+	APlayerController* OwningController;
+	
 	FHUDPackage HUDPackage;
 
 	UPROPERTY(EditAnywhere)
 	float CrosshairSpreadMax = 16.f;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UElimAnnouncement> ElimAnnouncementClass;
 
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }

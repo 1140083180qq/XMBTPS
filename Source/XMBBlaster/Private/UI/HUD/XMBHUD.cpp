@@ -1,21 +1,6 @@
 
-// ============================================================
-// @file XMBHUD.cpp
-// @brief HUD管理器实现 - 负责十字准心绘制和UMG Widget容器管理
-//
-// 【核心功能概述】：
-// 本类继承 AHUD（UE5 的 Head-Up Display 基类），负责：
-// 1. 在屏幕中心绘制5向十字准心（Center/Left/Right/Top/Bottom）
-// 2. 准心的动态散布效果（根据 UIComponent 传入的 HUDPackage 数据）
-// 3. UMG Widget 容器管理：
-//    - CharacterOverlayWidget: 主游戏HUD（血量/弹药/分数等）
-//    - AnnouncementWidget: 公告面板（热身倒计时/结算信息）
-//
-// 【绘制机制】：使用 DrawHUD() 每帧调用 DrawTexture 绘制准心纹理，
-// 通过 FHUDPackage 结构体接收来自 UIComponent 的准心配置数据
-// ============================================================
-
 #include "UI/HUD/XMBHUD.h"
+#include "UI/Widget/ElimAnnouncement.h"
 
 /**
  * @brief 每帧绘制回调 - 在渲染管线中每帧调用一次，用于绘制2D HUD元素
@@ -89,6 +74,7 @@ void AXMBHUD::DrawHUD()
 
 
 
+
 /**
  * @brief 游戏开始时初始化
  * （当前为空实现，预留扩展位置）
@@ -97,8 +83,10 @@ void AXMBHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	// AddElimAnnouncement("Player1","Player2");
 }
+
+
 
 /**
  * @brief 创建并显示主游戏覆盖层 Widget（CharacterOverlayWidget）
@@ -183,3 +171,19 @@ void AXMBHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportContent, FVec
 		1.f,     // UV高度（使用完整纹理高度）
 		CrosshairColor); // 应用指定的颜色（白/红等）
 }
+
+
+void AXMBHUD::AddElimAnnouncement(FString Attacker, FString victim)
+{
+	OwningController = OwningController == nullptr ? GetOwningPlayerController() : OwningController;
+	if (OwningController && ElimAnnouncementClass)
+	{
+		UElimAnnouncement* ElimAnnouncementWidget = CreateWidget<UElimAnnouncement>(OwningController, ElimAnnouncementClass);
+		if (ElimAnnouncementWidget)
+		{
+			ElimAnnouncementWidget->SerElimAnnouncementText(Attacker,victim);
+			ElimAnnouncementWidget->AddToViewport();
+		}
+	}
+}
+
