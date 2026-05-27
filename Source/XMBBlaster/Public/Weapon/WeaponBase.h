@@ -317,5 +317,7 @@ public:
 	FORCEINLINE void SetWeaponDestroy(bool InbDestroy) { bDestroyWeapon = InbDestroy; }
 
 	FORCEINLINE float GetDamage() const { return Damage; }
+
+	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 };
 

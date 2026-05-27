@@ -985,21 +985,16 @@ void AXMBCharacterBase::DropOrDestroyWeapons()
  * 3. 启动重生倒计时(ElimDelay=3秒)
  *    - 计时结束后调用ElimTimerFinished → GameMode.RequestRespawn
  */
-void AXMBCharacterBase::Elim()
+void AXMBCharacterBase::Elim(bool bPlayerLeftGame)
 {
 	// 步骤1：掉落武器
 	DropOrDestroyWeapons();
 	
 	// 步骤2：多播淘汰效果到所有客户端
-	MulticastElim();
+	MulticastElim(bPlayerLeftGame);
 	
-	// 步骤3：启动重生计时器
-	GetWorldTimerManager().SetTimer(
-		ElimTimer,
-		this,
-		&AXMBCharacterBase::ElimTimerFinished,
-		ElimDelay  // 默认3秒后重生
-	);
+	
+	
 }
 
 /**
@@ -1016,8 +1011,9 @@ void AXMBCharacterBase::Elim()
  * 8. 禁用碰撞（防止其他角色与尸体交互）
  * 9. 生成回收机器人和音效
  */
-void AXMBCharacterBase::MulticastElim_Implementation()
+void AXMBCharacterBase::MulticastElim_Implementation(bool bPlayerLeftGame)
 {
+	bLeftGame = bPlayerLeftGame;
 	// HUD弹药显示清零
 	if (XMBPlayerController)
 	{
@@ -1095,6 +1091,14 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 	{
 		ShowSniperScopeWidget(false);
 	}
+
+	//设置在此处则客户端上也工作
+	GetWorldTimerManager().SetTimer(
+		ElimTimer,
+		this,
+		&AXMBCharacterBase::ElimTimerFinished,
+		ElimDelay  // 默认3秒后重生
+	);
 	
 }
 
@@ -1109,10 +1113,26 @@ void AXMBCharacterBase::MulticastElim_Implementation()
 void AXMBCharacterBase::ElimTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
-	if (BlasterGameMode)
+	if (BlasterGameMode && !bLeftGame)
 	{
 		bDoOnce = true;  // 重置PollInit标志供新角色使用
 		BlasterGameMode->RequestRespawn(this, Controller);
+	}
+	if (bLeftGame && IsLocallyControlled())
+	{
+		bDoOnce = false;
+		OnLeftGame.Broadcast();
+	}
+}
+
+void AXMBCharacterBase::ServerLeaveGame_Implementation()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	XMBPlayerState = XMBPlayerState == nullptr ? GetPlayerState<AXMBPlayerState>() : XMBPlayerState;
+	if (BlasterGameMode && XMBPlayerState)
+	{
+		bDoOnce = false;
+		BlasterGameMode->PlayerLeftGame(XMBPlayerState);
 	}
 }
 
@@ -1259,6 +1279,8 @@ void AXMBCharacterBase::FireButtonReleased()
 	CombatComponent->FireButtonPressed(false);
 }
 
+
+
 /** 蹲伏按钮切换（已蹲伏→取消，未蹲伏→蹲下）*/
 void AXMBCharacterBase::CrouchButtonPressed()
 {
@@ -1313,6 +1335,15 @@ void AXMBCharacterBase::GrenadeButtonPressed()
 	}
 }
 
+void AXMBCharacterBase::QuitButtonReleased()
+{
+	if (XMBPlayerController)
+	{
+		XMBPlayerController->XMBTEST();
+	}
+}
+
+
 /** @return 是否已装备武器 */
 bool AXMBCharacterBase::IsWeaponEquipped()
 {
@@ -1335,4 +1366,10 @@ bool AXMBCharacterBase::IsLocallyReloading()
 {
 	if (CombatComponent == nullptr) return false;
 	return CombatComponent->bLocallyReloading;
+}
+
+bool AXMBCharacterBase::IsHoldingTheFlag() const
+{
+	if (CombatComponent == nullptr) return false;
+	return CombatComponent->bHoldingTheFlag;
 }

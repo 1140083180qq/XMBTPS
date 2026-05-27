@@ -22,6 +22,9 @@ class USpringArmComponent;
 class UCombatComponent;
 class AXMBPlayerState;
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 UCLASS()
 class XMBBLASTER_API AXMBCharacterBase : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -57,6 +60,7 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensationComponent; }
 	bool IsLocallyReloading();
+	FORCEINLINE bool IsHoldingTheFlag() const;
 	/*XMBUITEST*/
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
@@ -88,13 +92,14 @@ public:
 	/*
 	 * 死亡
 	 */
-	void Elim();//这个函数仅在服务器执行
+	void Elim(bool bPlayerLeftGame);//这个函数仅在服务器执行
 	
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastElim();
+	void MulticastElim(bool bPlayerLeftGame);
 	
 	UPROPERTY(Replicated)//TODO:这个变量仅用来设置禁止使用技能以及用来设置游戏开始前的弹药不消耗(但是可以开枪)
 	bool bDisableGameplay = false;//这个变量用于禁止玩家进行输入,false为可以，true为不可以
+
 	
 	/*
 	 * 更新HUD
@@ -119,7 +124,15 @@ public:
 	 * 交换武器
 	 */
 	bool bFinishedSwapping = false;
-	
+
+
+	/*
+	 * MainMenu
+	 */
+	UFUNCTION(Server,Reliable)
+	void ServerLeaveGame();
+
+	FOnLeftGame OnLeftGame;
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -161,6 +174,8 @@ protected:
 	void FireButtonPressed();
 	UFUNCTION(BlueprintCallable)
 	void FireButtonReleased();
+	UFUNCTION(BlueprintCallable)
+	void QuitButtonReleased();
 
 	virtual void Jump() override;
 
@@ -388,6 +403,11 @@ private:
 
 	void ElimTimerFinished();
 
+	bool bLeftGame = false;
+
+	
+
+	
 	
 	/*
 	 * Grenade

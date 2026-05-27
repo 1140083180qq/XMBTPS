@@ -68,6 +68,7 @@ public:
 	float LevelStartingTime = 0.f;
 
 
+	void PlayerLeftGame(AXMBPlayerState* PlayerLeaving);
 	
 protected:
 	/** 游戏开始时初始化计时器等 */

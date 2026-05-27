@@ -61,6 +61,8 @@ ABlasterGameMode::ABlasterGameMode()
 	bDelayedStart = true; // 不自动开始，由 Tick 中的倒计时控制何时开始
 }
 
+
+
 /**
  * @brief 游戏开始初始化 - 记录关卡起始时刻的服务器时间戳
  *
@@ -218,7 +220,7 @@ void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXM
 	// 触发被淘汰角色的淘汰流程（动画→溶解→粒子→重生定时器）
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Elim();
+		ElimmedCharacter->Elim(false);
 	}
 }
 
@@ -272,7 +274,22 @@ void ABlasterGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AController*
 	}
 }
 
+void ABlasterGameMode::PlayerLeftGame(AXMBPlayerState* PlayerLeaving)
+{
+	if (PlayerLeaving == nullptr) return;
+	AXMBBlasterGameState* BlasterGameState = GetGameState<AXMBBlasterGameState>();
+	if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(PlayerLeaving))
+	{
+		BlasterGameState->TopScoringPlayers.Remove(PlayerLeaving);
+	}
 
+	AXMBCharacterBase* CharacterLeaving = Cast<AXMBCharacterBase>(PlayerLeaving->GetPawn());
+	if (CharacterLeaving)
+	{
+		CharacterLeaving->Elim(true);
+	}
+	
+}
 
 /**
  * @brief MatchState 变化时的广播通知 - 将状态变化推送给所有 PlayerController

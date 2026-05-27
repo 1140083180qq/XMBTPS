@@ -160,6 +160,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	EquippedWeapon = XMBCharacter->GetEquippedWeapon();     // 获取当前装备的武器引用
 	// TODO: 可优化为仅在装备/更换/丢弃武器时才更新此引用，避免每帧查询
 	bElimmed = XMBCharacter->IsElimmed();                 // 角色是否已被淘汰（死亡）
+	bHoldingTheFlag = XMBCharacter->IsHoldingTheFlag();
 
 	// ════════════════════════════════════════
 	// 模块3: YawOffset 横移偏移计算 ★核心★

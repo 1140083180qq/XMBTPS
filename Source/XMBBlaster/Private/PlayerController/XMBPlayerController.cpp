@@ -23,7 +23,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PlayerState/XMBPlayerState.h"
+#include "UI/Widget/ReturnToMainMenu.h"
 
+
+void AXMBPlayerController::XMBTEST()
+{
+	ShowReturnToMainMenu();
+}
 
 /**
  * @brief 控制器初始化 - 游戏开始时调用
@@ -58,6 +64,8 @@ void AXMBPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 	DOREPLIFETIME(AXMBPlayerController, MatchState);
 }
+
+
 
 /**
  * @brief 当控制器成功控制（Possess）一个 Pawn 时调用
@@ -100,6 +108,39 @@ void AXMBPlayerController::Tick(float DeltaSeconds)
 	
 }
 
+
+void AXMBPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (InputComponent == nullptr) return;
+
+	// InputComponent->BindAction("IA_Quit",IE_Pressed,this,&AXMBPlayerController::ShowReturnToMainMenu);
+	
+}
+
+void AXMBPlayerController::ShowReturnToMainMenu()
+{
+	if (ReturnToMainMenuWidget == nullptr) return;
+	if (ReturnToMainMenu == nullptr)
+	{
+		ReturnToMainMenu = CreateWidget<UReturnToMainMenu>(this, ReturnToMainMenuWidget);
+	}
+	if (ReturnToMainMenu)
+	{
+		bReturnToMainMenuOpen = !bReturnToMainMenuOpen;
+		if (bReturnToMainMenuOpen)
+		{
+			ReturnToMainMenu->MenuSetup();
+		}
+		else
+		{
+			ReturnToMainMenu->MenuTearDown();
+		}
+	}
+	
+	
+}
 
 
 /**

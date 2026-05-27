@@ -148,4 +148,7 @@ private:
 	/** 是否需要变换右手旋转（瞄准时调整枪口位置） */
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
 	bool bTransformRightHand;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (allowprivateaccess = "true"))
+	bool bHoldingTheFlag;
 };

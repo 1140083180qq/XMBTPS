@@ -8,6 +8,7 @@
 #include "UI/HUD/XMBHUD.h"
 #include "XMBPlayerController.generated.h"
 
+class UReturnToMainMenu;
 class ABlasterGameMode;
 
 //用于设置有关ping过高
@@ -25,7 +26,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 	
 	virtual float GetServerTime();//本地与服务器的延迟(因为请求发送返回都需要时间)
 	virtual void ReceivedPlayer() override;//从本地客户端中获取到时间
@@ -48,9 +49,12 @@ public:
 	float SingleTripTime = 0.f;
 
 	FHighPingDelegate HighPingDelegate;
+
+	void XMBTEST();
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 	
 	void SetHUDTime();
 
@@ -92,6 +96,11 @@ protected:
 	void HighPingWarning();
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
+
+	/*
+	 * Menu
+	 */
+	void ShowReturnToMainMenu();
 	
 private:
 	UPROPERTY()
@@ -153,7 +162,18 @@ private:
 	float PingAnimationRunningTime = 0.f;
 
 
-	
+	/*
+	 * Return to main Menu
+	 */
+	UPROPERTY(EditAnywhere,Category = "MainMenu")
+	TSubclassOf<UUserWidget> ReturnToMainMenuWidget;
+
+	UPROPERTY()
+	UReturnToMainMenu* ReturnToMainMenu;
+
+	bool bReturnToMainMenuOpen = false;
+		
 };
+
 
 

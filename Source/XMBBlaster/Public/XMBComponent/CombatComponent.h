@@ -349,6 +349,11 @@ private:
 	int64 ShotgunReloadFrameCounter = -1;/** 霰弹枪装填防重入：记录上一次成功执行 UpdateShotgunAmmoValues 的帧号 */
 
 
+	/*
+	 * FLAG
+	 */
+	bool bHoldingTheFlag = false;
+	
 public:
 	/** @return 当前装备的武器 */
 	FORCEINLINE AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
