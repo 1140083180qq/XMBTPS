@@ -34,6 +34,7 @@ void AXMBPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>
 
 	// 注册自定义的 Defeats 变量进行网络同步
 	DOREPLIFETIME(AXMBPlayerState, Defeats);
+	DOREPLIFETIME(AXMBPlayerState, Team);
 
 }
 
@@ -140,5 +141,27 @@ void AXMBPlayerState::OnRep_Defeats()
 		{
 			Controller->SetHUDDefeats(Defeats); // 将最新击败数传给 HUD
 		}
+	}
+}
+
+
+void AXMBPlayerState::SetTeam(ETeam TeamToSet)
+{
+	Team = TeamToSet;
+
+	AXMBCharacterBase* BCharacter = Cast<AXMBCharacterBase>(GetPawn());
+	if (BCharacter)
+	{
+		BCharacter->SetTeamColor(Team);
+	}
+}
+
+
+void AXMBPlayerState::OnRep_Team()
+{
+	AXMBCharacterBase* BCharacter = Cast<AXMBCharacterBase>(GetPawn());
+	if (BCharacter)
+	{
+		BCharacter->SetTeamColor(Team);
 	}
 }

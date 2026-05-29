@@ -30,6 +30,8 @@ void AXMBBlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 	// 注册最高分玩家列表为网络复制属性
 	DOREPLIFETIME(AXMBBlasterGameState, TopScoringPlayers);
+	DOREPLIFETIME(AXMBBlasterGameState, RedTeamScore);
+	DOREPLIFETIME(AXMBBlasterGameState, BlueTeamScore);
 }
 
 /**
@@ -81,4 +83,12 @@ void AXMBBlasterGameState::UpdateTopScore(AXMBPlayerState* ScoringPlayer)
 		TopScoringPlayers.AddUnique(ScoringPlayer); // 新冠军
 		TopScore = ScoringPlayer->GetScore(); // 更新最高分记录
 	}
+}
+
+void AXMBBlasterGameState::OnRep_RedTeamScore()
+{
+}
+
+void AXMBBlasterGameState::OnRep_BlueTeamScore()
+{
 }

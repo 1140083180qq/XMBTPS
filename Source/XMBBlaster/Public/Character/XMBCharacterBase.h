@@ -14,6 +14,7 @@
 
 #include "XMBCharacterBase.generated.h"
 
+enum class ETeam : uint8;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class ULagCompensationComponent;
@@ -141,6 +142,13 @@ public:
 
 	UFUNCTION(NetMulticast,Reliable)
 	void MulticastLostTheLead();
+
+
+	/*
+	 *Team Colors
+	 */
+	void SetTeamColor(ETeam Team);
+	
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -387,6 +395,23 @@ private:
 	UPROPERTY(EditAnywhere,Category = Elim)
 	UMaterialInstance* DissolveMaterialInstance;
 
+	/*
+	 * Team Colors
+	 */
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* RedDissolveMatInst;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* RedMaterial;
+	
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* BlueDissolveMatInst;
+	
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* BlueMaterial;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* OriginalMaterial;
 	
 	/*
 	 * Elim bot

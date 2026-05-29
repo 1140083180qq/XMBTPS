@@ -40,6 +40,24 @@ public:
 	UPROPERTY(Replicated)
 	TArray<AXMBPlayerState*> TopScoringPlayers;
 
+	/*
+	 * Team
+	 */
+
+	TArray<AXMBPlayerState*> RedTeam;
+	TArray<AXMBPlayerState*> BlueTeam;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RedTeamScore)
+	float RedTeamScore = 0.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_BlueTeamScore)
+	float BlueTeamScore = 0.f;
+	
+	UFUNCTION()
+	void OnRep_RedTeamScore();
+
+	UFUNCTION()
+	void OnRep_BlueTeamScore();
 
 private:
 	/** 当前最高分记录 */

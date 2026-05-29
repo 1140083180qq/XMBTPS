@@ -188,6 +188,7 @@ void AXMBCharacterBase::BeginPlay()
 
 
 
+
 /**@brief 每帧调用*/
 void AXMBCharacterBase::Tick(float DeltaSeconds)
 {
@@ -618,6 +619,11 @@ void AXMBCharacterBase::HideCameraIfCharacterClose()
 			// bOwnerNoSee=true 让拥有者看不到自己的武器（第一人称效果）
 			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
+		if (CombatComponent && CombatComponent->SecondaryWeapon && CombatComponent->SecondaryWeapon->GetWeaponMesh())
+		{
+			// bOwnerNoSee=true 让拥有者看不到自己的武器（第一人称效果）
+			CombatComponent->SecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
 	}
 	else
 	{
@@ -626,6 +632,11 @@ void AXMBCharacterBase::HideCameraIfCharacterClose()
 		if (CombatComponent && CombatComponent->GetEquippedWeapon() && CombatComponent->EquippedWeapon->GetWeaponMesh())
 		{
 			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+		if (CombatComponent && CombatComponent->SecondaryWeapon && CombatComponent->SecondaryWeapon->GetWeaponMesh())
+		{
+			// bOwnerNoSee=true 让拥有者看不到自己的武器（第一人称效果）
+			CombatComponent->SecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
 }
@@ -946,6 +957,7 @@ void AXMBCharacterBase::PollInit()
 			// 用0值触发一次更新，确保HUD显示正确的初始值
 			XMBPlayerState->AddToScore(0.f);
 			XMBPlayerState->AddToDefeats(0);
+			SetTeamColor(XMBPlayerState->GetTeam());
 
 			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
 			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(XMBPlayerState))
@@ -1066,11 +1078,12 @@ void AXMBCharacterBase::MulticastElim_Implementation(bool bPlayerLeftGame)
 	if (XMBPlayerController)
 	{
 		DisableInput(XMBPlayerController);
-	}
+	} 
 	
 	// 禁用碰撞（尸体不会阻挡其他角色或投射物）
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 生成淘汰回收机器人特效（在角色上方200单位处）
 	if (ElimBotEffect)
@@ -1423,4 +1436,27 @@ bool AXMBCharacterBase::IsHoldingTheFlag() const
 {
 	if (CombatComponent == nullptr) return false;
 	return CombatComponent->bHoldingTheFlag;
+}
+
+
+
+
+void AXMBCharacterBase::SetTeamColor(ETeam Team)
+{
+	if (OriginalMaterial == nullptr || GetMesh() == nullptr) return;
+	switch (Team)
+	{
+	case ETeam::ET_NoTeam:
+		GetMesh()->SetMaterial(0, OriginalMaterial);
+		DissolveMaterialInstance = BlueDissolveMatInst;
+		break;
+	case ETeam::ET_BlueTeam:
+		GetMesh()->SetMaterial(0, BlueMaterial);
+		DissolveMaterialInstance = BlueDissolveMatInst;
+		break;
+	case ETeam::ET_RedTeam:
+		GetMesh()->SetMaterial(0, RedMaterial);
+		DissolveMaterialInstance = RedDissolveMatInst;
+		break;
+	}
 }
