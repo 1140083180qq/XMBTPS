@@ -44,6 +44,9 @@ public:
 	 * Team
 	 */
 
+	void RedTeamScores();
+	void BlueTeamScores();
+
 	TArray<AXMBPlayerState*> RedTeam;
 	TArray<AXMBPlayerState*> BlueTeam;
 

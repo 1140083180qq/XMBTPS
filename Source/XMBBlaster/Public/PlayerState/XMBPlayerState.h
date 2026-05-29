@@ -74,7 +74,7 @@ private:
 	
 public:
 	FORCEINLINE ETeam GetTeam() const { return Team; }
-	FORCEINLINE void SetTeam(ETeam TeamToSet) 
+	FORCEINLINE void SetTeam(ETeam TeamToSet);
 	
 	
 };

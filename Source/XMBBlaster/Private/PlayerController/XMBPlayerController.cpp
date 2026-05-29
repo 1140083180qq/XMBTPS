@@ -20,6 +20,7 @@
 #include "GameFramework/GameMode.h"
 #include "GameMode/BlasterGameMode.h"
 #include "GameState/XMBBlasterGameState.h"
+#include "GameTypes/Announcement.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PlayerState/XMBPlayerState.h"
@@ -65,6 +66,7 @@ void AXMBPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AXMBPlayerController, MatchState);
+	DOREPLIFETIME(AXMBPlayerController, bShowTeamScores);
 }
 
 
@@ -140,9 +142,21 @@ void AXMBPlayerController::ShowReturnToMainMenu()
 			ReturnToMainMenu->MenuTearDown();
 		}
 	}
-	
-	
 }
+
+void AXMBPlayerController::OnRep_ShowTeamScores()
+{
+	if (bShowTeamScores)
+	{
+		InitTeamScores();
+	}
+	else
+	{
+		HideTeamScores();
+	}
+}
+
+
 
 
 /**
@@ -215,12 +229,12 @@ void AXMBPlayerController::ReceivedPlayer()
  * - InProgress → HandleMatchHasStarted()：隐藏公告栏、显示主HUD
  * - Cooldown → HandleCooldown()：移除主HUD、显示结算信息
  */
-void AXMBPlayerController::OnMatchStateSet(FName State)
+void AXMBPlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 {
 	MatchState = State;
 
 	// 根据新状态分发到对应的处理函数
-	if (MatchState == MatchState::InProgress) HandleMatchHasStarted();
+	if (MatchState == MatchState::InProgress) HandleMatchHasStarted(bTeamsMatch);
 	else if (MatchState == MatchState::Cooldown) HandleCooldown();
 }
 
@@ -252,8 +266,9 @@ void AXMBPlayerController::OnRep_MatchState()
  *
  * 【效果】：玩家从热身界面切换到游戏主界面（血量/弹药/分数等覆盖层）
  */
-void AXMBPlayerController::HandleMatchHasStarted()
+void AXMBPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 {
+	if (HasAuthority()) bShowTeamScores = bTeamsMatch;
 	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
 	if (XMBHUD)
 	{
@@ -263,6 +278,17 @@ void AXMBPlayerController::HandleMatchHasStarted()
 		if (XMBHUD->AnnouncementWidget)
 		{
 			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+
+		if (!HasAuthority()) return;
+		
+		if (bTeamsMatch)
+		{
+			InitTeamScores();
+		}
+		else
+		{
+			HideTeamScores();
 		}
 	}
 }
@@ -305,39 +331,19 @@ void AXMBPlayerController::HandleCooldown()
 			// 显示公告面板
 			XMBHUD->AnnouncementWidget->SetVisibility(ESlateVisibility::Visible);
 			// 设置公告标题
-			FString AnnouncementText("New Match Starts In:");
+			FString AnnouncementText = Announcement::NewMatchStartsIn;
 			XMBHUD->AnnouncementWidget->AnnouncementText->SetText(FText::FromString(AnnouncementText));
 
 			// 获取 GameState 以访问排行榜数据
 			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
 			// 获取自己的 PlayerState 用于对比
 			AXMBPlayerState* BlasterPlayerState = GetPlayerState<AXMBPlayerState>();
+			
 			if (BlasterGameState)
 			{
 				TArray<AXMBPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
-				FString InfoTextString;
-
-				// 根据排行榜情况生成不同的结果文字
-				if (TopPlayers.Num() == 0)
-				{
-					InfoTextString = FString("没有最高分");
-				}
-				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
-				{
-					InfoTextString = FString("你是胜利者!"); // 我是唯一的第一名
-				}
-				else if (TopPlayers.Num() == 1)
-				{
-					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *TopPlayers[0]->GetPlayerName()); // 别人是第一名
-				}
-				else if (TopPlayers.Num() > 1)
-				{
-					InfoTextString = FString("Players tied for the win:\n"); // 多人同分
-					for (auto TiedPlayer : TopPlayers)
-					{
-						InfoTextString.Append(FString::Printf(TEXT("\n%s"), *TiedPlayer->GetPlayerName()));
-					}
-				}
+				FString InfoTextString = bShowTeamScores ? GetTeamInfoText(BlasterGameState) : GetInfoText(TopPlayers);
+				
 				XMBHUD->AnnouncementWidget->InfoText->SetText(FText::FromString(InfoTextString));
 			}
 		}
@@ -352,6 +358,76 @@ void AXMBPlayerController::HandleCooldown()
 		// XMBCharacter->GetCombatComponent()->FireButtonPressed(false);
 	}
 }
+
+
+FString AXMBPlayerController::GetInfoText(const TArray<AXMBPlayerState*>& Players)
+{
+	FString InfoTextString;
+	AXMBPlayerState* BlasterPlayerState = GetPlayerState<AXMBPlayerState>();
+
+	if (BlasterPlayerState == nullptr) return FString();
+	
+	if (Players.Num() == 0)
+	{
+		InfoTextString = Announcement::ThereIsNoWinner;
+	}
+	else if (Players.Num() == 1 && Players[0] == BlasterPlayerState)
+	{
+		InfoTextString = Announcement::YouAreTheWinner; // 我是唯一的第一名
+	}
+	else if (Players.Num() == 1)
+	{
+		InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *Players[0]->GetPlayerName()); // 别人是第一名
+	}
+	else if (Players.Num() > 1)
+	{
+		InfoTextString = Announcement::PlayersTiedForTheWin;
+		for (auto TiedPlayer : Players)
+		{
+			InfoTextString.Append(FString::Printf(TEXT("\n%s"), *TiedPlayer->GetPlayerName()));
+		}
+	}
+
+	return InfoTextString;
+}
+
+
+FString AXMBPlayerController::GetTeamInfoText(AXMBBlasterGameState* BlasterGameState)
+{
+	if (BlasterGameState == nullptr) return FString();
+	FString InfoTextString;
+
+	const int32 RedTeamScore = BlasterGameState->RedTeamScore;
+	const int32 BlueTeamScore = BlasterGameState->BlueTeamScore;
+
+	if (RedTeamScore == 0 && BlueTeamScore == 0) InfoTextString = Announcement::ThereIsNoWinner;
+	else if (RedTeamScore == BlueTeamScore)
+	{
+		InfoTextString = FString::Printf(TEXT("%s\n"),*Announcement::TeamsTiedForTheWin);
+		InfoTextString.Append(Announcement::RedTeam);
+		InfoTextString.Append(TEXT("\n"));
+		InfoTextString.Append(Announcement::BlueTeam);
+		InfoTextString.Append(TEXT("\n"));
+	}
+	else if (RedTeamScore > BlueTeamScore)
+	{
+		InfoTextString = Announcement::RedTeamWins;
+		InfoTextString.Append(TEXT("\n"));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"),*Announcement::RedTeam, RedTeamScore));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"),*Announcement::BlueTeam, RedTeamScore));
+	}
+	else if (BlueTeamScore > RedTeamScore)
+	{
+		InfoTextString = Announcement::BlueTeamWins;
+		InfoTextString.Append(TEXT("\n"));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"),*Announcement::BlueTeam, RedTeamScore));
+		InfoTextString.Append(FString::Printf(TEXT("%s: %d\n"),*Announcement::RedTeam, RedTeamScore));
+	}
+ 
+	return InfoTextString;
+	
+}
+
 
 /**
  * @brief 延迟初始化 CharacterOverlayWidget 并恢复之前暂存的HUD数据
@@ -717,6 +793,75 @@ void AXMBPlayerController::SetHUDGrenades(int32 Grenades)
 	{
 		bInitializeGrenades = true;
 		HUDGrenades = Grenades;
+	}
+}
+
+
+
+void AXMBPlayerController::SetHUDRedTeamScore(int32 RedScore)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->RedTeamScore;
+	if (bHUDValid)
+	{
+		FString ScoreText = FString::Printf(TEXT("%d"), RedScore);
+		
+		XMBHUD->CharacterOverlayWidget->RedTeamScore->SetText(FText::FromString(ScoreText));
+	}
+}
+
+void AXMBPlayerController::SetHUDBlueTeamScore(int32 BlueScore)
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->BlueTeamScore;
+	if (bHUDValid)
+	{
+		FString ScoreText = FString::Printf(TEXT("%d"), BlueScore);
+		
+		XMBHUD->CharacterOverlayWidget->BlueTeamScore->SetText(FText::FromString(ScoreText));
+	}
+}
+
+void AXMBPlayerController::HideTeamScores()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->RedTeamScore
+		&& XMBHUD->CharacterOverlayWidget->BlueTeamScore
+		&& XMBHUD->CharacterOverlayWidget->ScoreSpacerText;
+	if (bHUDValid)
+	{
+		XMBHUD->CharacterOverlayWidget->RedTeamScore->SetText(FText());
+		XMBHUD->CharacterOverlayWidget->BlueTeamScore->SetText(FText());
+		XMBHUD->CharacterOverlayWidget->ScoreSpacerText->SetText(FText());
+	}
+}
+
+void AXMBPlayerController::InitTeamScores()
+{
+	XMBHUD = XMBHUD == nullptr ? Cast<AXMBHUD>(GetHUD()) : XMBHUD;
+	
+	bool bHUDValid = XMBHUD
+		&& XMBHUD->CharacterOverlayWidget
+		&& XMBHUD->CharacterOverlayWidget->RedTeamScore
+		&& XMBHUD->CharacterOverlayWidget->BlueTeamScore
+		&& XMBHUD->CharacterOverlayWidget->ScoreSpacerText;
+	if (bHUDValid)
+	{
+		FString Zero("0");
+		FString Spacer("|");
+		
+		XMBHUD->CharacterOverlayWidget->RedTeamScore->SetText(FText::FromString(Zero));
+		XMBHUD->CharacterOverlayWidget->BlueTeamScore->SetText(FText::FromString(Zero));
+		XMBHUD->CharacterOverlayWidget->ScoreSpacerText->SetText(FText::FromString(Spacer));
 	}
 }
 

@@ -160,6 +160,12 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 }
 
 
+float ABlasterGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
+{
+	return BaseDamage;
+}
+
+
 
 /**
  * @brief 处理玩家被淘汰事件 - 游戏规则的核心判决函数
@@ -262,6 +268,8 @@ void ABlasterGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter, AXM
 
 
 
+
+
 /**
  * @brief 请求重生被淘汰的角色
  * @param ElimmedCharacter - 要销毁的旧角色
@@ -310,6 +318,8 @@ void ABlasterGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AController*
 	}
 }
 
+
+
 void ABlasterGameMode::PlayerLeftGame(AXMBPlayerState* PlayerLeaving)
 {
 	if (PlayerLeaving == nullptr) return;
@@ -351,7 +361,7 @@ void ABlasterGameMode::OnMatchStateSet()
 		AXMBPlayerController* BlasterPlayerController = Cast<AXMBPlayerController>(*It);
 		if (BlasterPlayerController)
 		{
-			BlasterPlayerController->OnMatchStateSet(MatchState);
+			BlasterPlayerController->OnMatchStateSet(MatchState, bTeamsMatch);
 		}
 	}
 }

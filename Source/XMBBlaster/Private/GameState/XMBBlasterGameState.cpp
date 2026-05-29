@@ -85,10 +85,42 @@ void AXMBBlasterGameState::UpdateTopScore(AXMBPlayerState* ScoringPlayer)
 	}
 }
 
+void AXMBBlasterGameState::RedTeamScores()
+{
+	++RedTeamScore;
+
+	AXMBPlayerController* BPlayer = Cast<AXMBPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (BPlayer)
+	{
+		BPlayer->SetHUDRedTeamScore(RedTeamScore);
+	}
+}
+
+void AXMBBlasterGameState::BlueTeamScores()
+{
+	++BlueTeamScore;
+	
+	AXMBPlayerController* BPlayer = Cast<AXMBPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (BPlayer)
+	{
+		BPlayer->SetHUDBlueTeamScore(BlueTeamScore);
+	}
+}
+
 void AXMBBlasterGameState::OnRep_RedTeamScore()
 {
+	AXMBPlayerController* BPlayer = Cast<AXMBPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (BPlayer)
+	{
+		BPlayer->SetHUDRedTeamScore(RedTeamScore);
+	}
 }
 
 void AXMBBlasterGameState::OnRep_BlueTeamScore()
 {
+	AXMBPlayerController* BPlayer = Cast<AXMBPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (BPlayer)
+	{
+		BPlayer->SetHUDBlueTeamScore(BlueTeamScore);
+	}
 }

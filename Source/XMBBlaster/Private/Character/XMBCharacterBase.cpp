@@ -545,8 +545,11 @@ void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
 void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatorController, AActor* DmaageCauser)
 {
-	if (bElimmed) return;
-
+	
+	BlasterGameMode =  BlasterGameMode == nullptr ? GetWorld()->GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
+	if (bElimmed || BlasterGameMode == nullptr) return;
+	Damage = BlasterGameMode->CalculateDamage(InstigatorController, Controller, Damage);
+	
 	float DamageToHealth = Damage;
 
 	if (Shield > 0.f)
@@ -577,7 +580,7 @@ void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	// 生命值归零 → 触发淘汰流程
 	if (Health == 0.f)
 	{
-		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+		
 		if (BlasterGameMode)
 		{
 			// 缓存控制器引用（避免每次都Cast）
@@ -1142,7 +1145,7 @@ void AXMBCharacterBase::MulticastElim_Implementation(bool bPlayerLeftGame)
  */
 void AXMBCharacterBase::ElimTimerFinished()
 {
-	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterGameMode =  BlasterGameMode == nullptr ? GetWorld()->GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
 	if (BlasterGameMode && !bLeftGame)
 	{
 		bDoOnce = true;  // 重置PollInit标志供新角色使用
@@ -1191,7 +1194,7 @@ void AXMBCharacterBase::MulticastLostTheLead_Implementation()
 
 void AXMBCharacterBase::ServerLeaveGame_Implementation()
 {
-	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterGameMode =  BlasterGameMode == nullptr ? GetWorld()->GetAuthGameMode<ABlasterGameMode>() : BlasterGameMode;
 	XMBPlayerState = XMBPlayerState == nullptr ? GetPlayerState<AXMBPlayerState>() : XMBPlayerState;
 	if (BlasterGameMode && XMBPlayerState)
 	{

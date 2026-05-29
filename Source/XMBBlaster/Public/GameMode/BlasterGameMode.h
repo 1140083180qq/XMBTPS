@@ -50,6 +50,8 @@ public:
 	 */
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
 
+	virtual float CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage);
+
 
 	
 	/** 热身等待时长（秒） */
@@ -69,6 +71,8 @@ public:
 
 
 	void PlayerLeftGame(AXMBPlayerState* PlayerLeaving);
+
+	bool bTeamsMatch = false;
 	
 protected:
 	/** 游戏开始时初始化计时器等 */

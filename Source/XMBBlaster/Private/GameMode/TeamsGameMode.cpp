@@ -7,6 +7,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "PlayerState/XMBPlayerState.h"
 
+ATeamsGameMode::ATeamsGameMode()
+{
+	bTeamsMatch = true;
+}
+
 void ATeamsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -52,6 +57,8 @@ void ATeamsGameMode::Logout(AController* Exiting)
 }
 
 
+
+
 void ATeamsGameMode::HandleMatchHasStarted()
 {
 	Super::HandleMatchHasStarted();
@@ -75,6 +82,39 @@ void ATeamsGameMode::HandleMatchHasStarted()
 					BPState->SetTeam(ETeam::ET_BlueTeam);
 				}
 			}
+		}
+	}
+}
+
+
+float ATeamsGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
+{
+	AXMBPlayerState* AttackerPState = Attacker->GetPlayerState<AXMBPlayerState>();
+	AXMBPlayerState* VictimPState = Victim->GetPlayerState<AXMBPlayerState>();
+	
+	if (AttackerPState == nullptr || VictimPState == nullptr) return BaseDamage;
+	if (VictimPState == AttackerPState) return BaseDamage;
+	if (AttackerPState->GetTeam() == VictimPState->GetTeam()) return 0.f;
+	return BaseDamage;
+}
+
+
+void ATeamsGameMode::PlayerEliminated(AXMBCharacterBase* ElimmedCharacter,
+	AXMBPlayerController* VictimController, AXMBPlayerController* AttackerController)
+{
+	Super::PlayerEliminated(ElimmedCharacter, VictimController, AttackerController);
+
+	AXMBBlasterGameState* BGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
+	AXMBPlayerState* AttackerPlayerState = AttackerController ? Cast<AXMBPlayerState>(AttackerController->PlayerState) : nullptr;
+	if (BGameState && AttackerPlayerState)
+	{
+		if (AttackerPlayerState->GetTeam() == ETeam::ET_BlueTeam)
+		{
+			BGameState->BlueTeamScores();
+		}
+		if (AttackerPlayerState->GetTeam() == ETeam::ET_RedTeam)
+		{
+			BGameState->RedTeamScores();
 		}
 	}
 	

@@ -444,7 +444,11 @@ private:
 	UPROPERTY()
 	UNiagaraComponent* CrownComponent;
 
-	
+
+
+	//
+	UPROPERTY()
+	ABlasterGameMode* BlasterGameMode;
 
 	
 	

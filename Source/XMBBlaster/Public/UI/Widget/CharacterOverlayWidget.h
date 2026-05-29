@@ -52,6 +52,15 @@ public:
 	UTextBlock* GrenadeText;
 
 	UPROPERTY(meta = (BindWidget))
+	UTextBlock* BlueTeamScore;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* RedTeamScore;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ScoreSpacerText;
+
+	UPROPERTY(meta = (BindWidget))
 	UImage* HighPingImage;
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)//TODO:了解这个宏

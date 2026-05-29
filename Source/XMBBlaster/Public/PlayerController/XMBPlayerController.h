@@ -8,6 +8,8 @@
 #include "UI/HUD/XMBHUD.h"
 #include "XMBPlayerController.generated.h"
 
+class AXMBBlasterGameState;
+class AXMBPlayerState;
 class UReturnToMainMenu;
 class ABlasterGameMode;
 
@@ -32,7 +34,7 @@ public:
 	virtual void ReceivedPlayer() override;//从本地客户端中获取到时间
 
 	
-	void OnMatchStateSet(FName State);//更改MatchState时的设置
+	void OnMatchStateSet(FName State, bool bTeamsMatch = false);//更改MatchState时的设置
 	
 
 	void SetHUDHealth(float Health, float MaxHealth);//设置生命
@@ -44,6 +46,11 @@ public:
 	void SetHUDMatchCountdown(float CountdownTime);//设置比赛计时
 	void SetHUDAnnouncementCountdown(float CountdownTime);//设置热身时的计时
 	void SetHUDGrenades(int32 Grenades);
+	void HideTeamScores();
+	void InitTeamScores();
+	void SetHUDRedTeamScore(int32 RedScore);
+	void SetHUDBlueTeamScore(int32 BlueScore);
+	
 
 	//单程时间
 	float SingleTripTime = 0.f;
@@ -85,7 +92,7 @@ protected:
 	void PollInit();
 
 	
-	void HandleMatchHasStarted();
+	void HandleMatchHasStarted(bool bTeamsMatch = false);
 	void HandleCooldown();
 	
 	UFUNCTION(Server,Reliable)
@@ -108,6 +115,16 @@ protected:
 
 	UFUNCTION(Client,Reliable)
 	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
+
+
+	UPROPERTY(ReplicatedUsing = OnRep_ShowTeamScores)
+	bool bShowTeamScores = false;
+
+	UFUNCTION()
+	void OnRep_ShowTeamScores();
+
+	FString GetInfoText(const TArray<AXMBPlayerState*>& Players);
+	FString GetTeamInfoText(AXMBBlasterGameState* BlasterGameState);
 	
 private:
 	UPROPERTY()
