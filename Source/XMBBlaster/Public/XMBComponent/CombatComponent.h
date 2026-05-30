@@ -180,6 +180,8 @@ protected:
 	
 	void AttachActorToLeftHand(AActor* ActorToAttach);
 
+	void AttachFlagToLeftHand(AWeaponBase* Flag);
+
 	void AttachActorToBackpack(AActor* ActorToAttach);
 	
 	UFUNCTION(BlueprintCallable)/*显示手雷*/
@@ -352,7 +354,11 @@ private:
 	/*
 	 * FLAG
 	 */
+	UPROPERTY(ReplicatedUsing = OnRep_HoldingTheFlag)
 	bool bHoldingTheFlag = false;
+
+	UFUNCTION()
+	void OnRep_HoldingTheFlag();
 	
 public:
 	/** @return 当前装备的武器 */

@@ -80,6 +80,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, Grenades);
+	DOREPLIFETIME(UCombatComponent, bHoldingTheFlag);
 
 }
 
@@ -203,20 +204,30 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	if (Owner == nullptr || WeaponToEquip == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	//将武器装备到另一个插槽
-	if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+	if (WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Flag)
 	{
-		EquipSecondaryWeapon(WeaponToEquip);
+		Owner->Crouch();
+		bHoldingTheFlag = true;
+		WeaponToEquip->SetOwner(Owner);
+		WeaponToEquip->SetWeaponState(EWeaponState::EWS_Equipped);
+		AttachFlagToLeftHand(WeaponToEquip);
 	}
 	else
 	{
-		EquipPrimaryWeapon(WeaponToEquip);
+		//将武器装备到另一个插槽
+		if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+		{
+			EquipSecondaryWeapon(WeaponToEquip);
+		}
+		else
+		{
+			EquipPrimaryWeapon(WeaponToEquip);
+		}
+		
+		// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
+		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Owner->bUseControllerRotationYaw = true;
 	}
-	
-	
-	// 切换角色朝向模式：持枪状态下面向控制器方向（而非移动方向）
-	Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Owner->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::EquipPrimaryWeapon(AWeaponBase* WeaponToEquip)
@@ -962,6 +973,8 @@ void UCombatComponent::UpdateHUDGrenades()
 	}
 }
 
+
+
 void UCombatComponent::UpdateCarriedAmmo()
 {
 	if (EquippedWeapon == nullptr) return;
@@ -1162,6 +1175,16 @@ void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach)
 	}
 }
 
+void UCombatComponent::AttachFlagToLeftHand(AWeaponBase* Flag)
+{
+	if (Owner == nullptr || Owner->GetMesh() == nullptr || Flag == nullptr) return;
+	const USkeletalMeshSocket* HandSocket = Owner->GetMesh()->GetSocketByName(FName("FlagSocket"));
+	if (HandSocket)
+	{
+		HandSocket->AttachActor(Flag, Owner->GetMesh());
+	}
+}
+
 
 
 
@@ -1352,4 +1375,12 @@ void UCombatComponent::FinishSwapAttachWeapon()
 	
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	AttachActorToBackpack(SecondaryWeapon);
+}
+
+void UCombatComponent::OnRep_HoldingTheFlag()
+{
+	if (bHoldingTheFlag && Owner && Owner->IsLocallyControlled())
+	{
+		Owner->Crouch();
+	}
 }

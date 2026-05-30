@@ -16,7 +16,11 @@ class XMBBLASTER_API AFlag : public AWeaponBase
 
 public:
 	AFlag();
+	virtual void Dropped() override;
 
+protected:
+	virtual void OnEquippedState() override;
+	virtual void OnDroppedState() override;
 	
 private:
 	

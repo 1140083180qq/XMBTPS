@@ -145,9 +145,11 @@ public:
 
 
 	/*
-	 *Team Colors
+	 *Team 
 	 */
 	void SetTeamColor(ETeam Team);
+
+	ETeam GetTeam();
 	
 	
 protected:
@@ -486,5 +488,6 @@ private:
 	UFUNCTION()
 	void OnRep_MaxShield();
 };
+
 
 

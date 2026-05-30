@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Actor.h"
 
+enum class ETeam : uint8;
 class AXMBPlayerController;
 class AXMBCharacterBase;
 #include "WeaponBase.generated.h"
@@ -128,7 +129,7 @@ public:
 	bool bAutomatic = true;
 
 	/** 丢弃武器（从角色手上掉落到地面） */
-	void Dropped();
+	virtual void Dropped();
 
 	/** @brief 添加弹药 */
 	void AddAmmo(int32 AmmoToAdd);
@@ -294,7 +295,8 @@ private:
 	bool bDestroyWeapon = false;
 
 
-
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
 
 	
 	

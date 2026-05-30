@@ -535,6 +535,11 @@ void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
 	if (XMBCharacter && PickupWidget)
 	{
+		//TODO:此处可由一个bool来控制玩家是否可以从flag切换为可拾取武器
+		//检测武器与当前重叠的角色是否同一队伍
+		if (WeaponType == EWeaponType::EWT_Flag && XMBOwnerCharacter->GetTeam() != Team) return;
+		//当持有flag的角色与武器重叠时，不会显示可拾取的ui
+		if (XMBOwnerCharacter->IsHoldingTheFlag()) return;
 		// 通知角色"你附近有一把可拾取的武器"，触发网络同步显示拾取提示UI
 		XMBCharacter->SetOverlappingWeapon(this);
 	}
@@ -553,6 +558,8 @@ void AWeaponBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 	AXMBCharacterBase* XMBCharacter = Cast<AXMBCharacterBase>(OtherActor);
 	if (XMBCharacter && PickupWidget)
 	{
+		if (WeaponType == EWeaponType::EWT_Flag && XMBOwnerCharacter->GetTeam() != Team) return;
+		if (XMBOwnerCharacter->IsHoldingTheFlag()) return;
 		// 传入 nullptr 表示没有重叠的武器了
 		XMBCharacter->SetOverlappingWeapon(nullptr);
 	}

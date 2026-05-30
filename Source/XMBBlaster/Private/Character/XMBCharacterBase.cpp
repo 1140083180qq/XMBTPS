@@ -503,6 +503,21 @@ void AXMBCharacterBase::SimProxiesTurn()
  */
 void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
 {
+	if (CombatComponent && CombatComponent->bHoldingTheFlag)
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	
+	if (bDisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	
 	// 本地控制的角色：使用基于相机的AimOffset
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
 	{
@@ -822,8 +837,11 @@ void AXMBCharacterBase::ExecuteReloadMontage(FName SectionName, bool bIsSniper)
  */
 void AXMBCharacterBase::EquipButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
+		if (CombatComponent->bHoldingTheFlag) return;
+		
 		if (GetCombatState() == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed();
 
 		bool bSwap = CombatComponent->ShouldSwapWeapons()
@@ -1244,6 +1262,7 @@ void AXMBCharacterBase::StartDissolve()
  */
 void AXMBCharacterBase::Jump()
 {
+	if (CombatComponent && CombatComponent->bHoldingTheFlag) return;
 	if (bIsCrouched)
 	{
 		UnCrouch();  // 蹲伏状态下按跳跃键取消蹲伏
@@ -1337,12 +1356,14 @@ void AXMBCharacterBase::OnRep_MaxShield()
 /** 开火按钮按下 → 通知CombatComponent */
 void AXMBCharacterBase::FireButtonPressed()
 {
+	if (CombatComponent && CombatComponent->bHoldingTheFlag) return;
 	CombatComponent->FireButtonPressed(true);
 }
 
 /** 开火按钮释放 → 通知CombatComponent */
 void AXMBCharacterBase::FireButtonReleased()
 {
+	if (CombatComponent && CombatComponent->bHoldingTheFlag) return;
 	CombatComponent->FireButtonPressed(false);
 }
 
@@ -1351,6 +1372,7 @@ void AXMBCharacterBase::FireButtonReleased()
 /** 蹲伏按钮切换（已蹲伏→取消，未蹲伏→蹲下）*/
 void AXMBCharacterBase::CrouchButtonPressed()
 {
+	if (CombatComponent && CombatComponent->bHoldingTheFlag) return;
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -1364,32 +1386,53 @@ void AXMBCharacterBase::CrouchButtonPressed()
 /** 瞄准按钮按下 → 通知CombatComponent开启瞄准 */
 void AXMBCharacterBase::AimButtonPressed()
 {
-	if (CombatComponent) CombatComponent->SetAiming(true);
+	if (CombatComponent && CombatComponent->bHoldingTheFlag) return;
+	if (CombatComponent)
+	{
+		if (CombatComponent->bHoldingTheFlag) return;
+		CombatComponent->SetAiming(true);
+	}
 }
 
 /** 瞄准按钮释放 → 通知CombatComponent关闭瞄准 */
 void AXMBCharacterBase::AimButtonReleased()
 {
-	if (CombatComponent) CombatComponent->SetAiming(false);
+	if (CombatComponent)
+	{
+		if (CombatComponent->bHoldingTheFlag) return;
+		CombatComponent->SetAiming(false);
+	}
+	
 }
 
 /** 肩射按钮按下 → 通知CombatComponent开启肩射 */
 void AXMBCharacterBase::ShoulderAimButtonPressed()
 {
-	if (CombatComponent) CombatComponent->SetShoulderAiming(true);
+	if (CombatComponent)
+	{
+		if (CombatComponent->bHoldingTheFlag) return;
+		CombatComponent->SetShoulderAiming(true);
+	}
 }
 
 /** 肩射按钮释放 → 通知CombatComponent关闭肩射 */
 void AXMBCharacterBase::ShoulderAimButtonReleased()
 {
-	if (CombatComponent) CombatComponent->SetShoulderAiming(false);
+	
+	if (CombatComponent)
+	{
+		if (CombatComponent->bHoldingTheFlag) return;
+		CombatComponent->SetShoulderAiming(false);
+	}
 }
 
 /** 换弹按钮按下 → 通知CombatComponent触发换弹 */
 void AXMBCharacterBase::ReloadButtonPressed()
 {
+	
 	if (CombatComponent)
 	{
+		if (CombatComponent->bHoldingTheFlag) return;
 		CombatComponent->Reload();
 	}
 }
@@ -1398,6 +1441,7 @@ void AXMBCharacterBase::GrenadeButtonPressed()
 {
 	if (CombatComponent)
 	{
+		if (CombatComponent->bHoldingTheFlag) return;
 		CombatComponent->ThrowGrenade();
 	}
 }
@@ -1462,4 +1506,12 @@ void AXMBCharacterBase::SetTeamColor(ETeam Team)
 		DissolveMaterialInstance = RedDissolveMatInst;
 		break;
 	}
+}
+
+
+ETeam AXMBCharacterBase::GetTeam()
+{
+	XMBPlayerState = XMBPlayerState == nullptr ? GetPlayerState<AXMBPlayerState>() : XMBPlayerState;
+	if (XMBPlayerState == nullptr) return ETeam::ET_NoTeam;
+	return XMBPlayerState->GetTeam();
 }
