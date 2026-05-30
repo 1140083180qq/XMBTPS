@@ -4,14 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerStart.h"
-#include "MyPlayerStart.generated.h"
+#include "TeamPlayerStart.generated.h"
 
+enum class ETeam : uint8;
 /**
  * 
  */
 UCLASS()
-class XMBBLASTER_API AMyPlayerStart : public APlayerStart
+class XMBBLASTER_API ATeamPlayerStart : public APlayerStart
 {
 	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
+
+	
 	
 };

@@ -21,6 +21,7 @@
 #include "XMBComponent/LagCompensationComponent.h"
 
 #include "NiagaraComponent.h"
+#include "PlayerStart/TeamPlayerStart.h"
 
 AXMBCharacterBase::AXMBCharacterBase()
 {
@@ -510,6 +511,12 @@ void AXMBCharacterBase::RotateInPlace(float DeltaSeconds)
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 		return;
 	}
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
+	}
+
 	
 	if (bDisableGameplay)
 	{
@@ -607,6 +614,8 @@ void AXMBCharacterBase::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 		}
 	}
 }
+
+
 
 
 /**
@@ -974,12 +983,8 @@ void AXMBCharacterBase::PollInit()
 		XMBPlayerState = GetPlayerState<AXMBPlayerState>();
 		if (XMBPlayerState)
 		{
-			bDoOnce = false;
-			// 用0值触发一次更新，确保HUD显示正确的初始值
-			XMBPlayerState->AddToScore(0.f);
-			XMBPlayerState->AddToDefeats(0);
-			SetTeamColor(XMBPlayerState->GetTeam());
-
+			OnPlayerStateInitialized();
+			
 			AXMBBlasterGameState* BlasterGameState = Cast<AXMBBlasterGameState>(UGameplayStatics::GetGameState(this));
 			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(XMBPlayerState))
 			{
@@ -989,7 +994,15 @@ void AXMBCharacterBase::PollInit()
 	}
 }
 
-
+void AXMBCharacterBase::OnPlayerStateInitialized()
+{
+	bDoOnce = false;
+	// 用0值触发一次更新，确保HUD显示正确的初始值
+	XMBPlayerState->AddToScore(0.f);
+	XMBPlayerState->AddToDefeats(0);
+	SetTeamColor(XMBPlayerState->GetTeam());
+	SetSpawnPoint();
+}
 
 
 void AXMBCharacterBase::DropOrDestroyWeapon(AWeaponBase* Weapon)
@@ -1515,3 +1528,37 @@ ETeam AXMBCharacterBase::GetTeam()
 	if (XMBPlayerState == nullptr) return ETeam::ET_NoTeam;
 	return XMBPlayerState->GetTeam();
 }
+
+
+
+void AXMBCharacterBase::SetSpawnPoint()
+{
+	if (HasAuthority() && XMBPlayerState->GetTeam() != ETeam::ET_NoTeam)
+	{
+		TArray<AActor*> PlayerStartPoints;
+		UGameplayStatics::GetAllActorsOfClass(this, ATeamPlayerStart::StaticClass(),PlayerStartPoints);
+		TArray<ATeamPlayerStart*> TeamPlayerStarts;
+		for (auto Start : PlayerStartPoints)
+		{
+			ATeamPlayerStart* TeamStart = Cast<ATeamPlayerStart>(Start);
+			if (TeamStart && TeamStart->Team == XMBPlayerState->GetTeam())
+			{
+				TeamPlayerStarts.Add(TeamStart);
+			}
+		}
+
+		if (TeamPlayerStarts.Num() > 0)
+		{
+			ATeamPlayerStart* ChosenPlayerStart = TeamPlayerStarts[FMath::RandRange(0,TeamPlayerStarts.Num() - 1)];
+			SetActorLocationAndRotation(ChosenPlayerStart->GetActorLocation(), ChosenPlayerStart->GetActorRotation());
+		}
+	}
+}
+
+
+void AXMBCharacterBase::SetHoldingTheFlag(bool bHolding)
+{
+	if (CombatComponent == nullptr) return;
+	CombatComponent->bHoldingTheFlag = bHolding;
+}
+

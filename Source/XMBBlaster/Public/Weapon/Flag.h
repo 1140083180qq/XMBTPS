@@ -18,13 +18,21 @@ public:
 	AFlag();
 	virtual void Dropped() override;
 
+	void ResetFlag();
+
 protected:
 	virtual void OnEquippedState() override;
 	virtual void OnDroppedState() override;
+	virtual void BeginPlay() override;
 	
 private:
 	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* FlagMesh;
+
+	FTransform InitialTransform;
+
+public:
+	FORCEINLINE FTransform GetInitialLocation() const { return InitialTransform; }
 	
 };

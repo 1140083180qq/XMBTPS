@@ -64,6 +64,7 @@ public:
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensationComponent; }
 	bool IsLocallyReloading();
 	FORCEINLINE bool IsHoldingTheFlag() const;
+	
 	/*XMBUITEST*/
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UUIComponent* GetUIComponent() const { return UIComponent; }
@@ -150,7 +151,8 @@ public:
 	void SetTeamColor(ETeam Team);
 
 	ETeam GetTeam();
-	
+
+	void SetHoldingTheFlag(bool bHolding);
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -279,6 +281,8 @@ protected:
 
 	
 
+	void SetSpawnPoint();
+	void OnPlayerStateInitialized();
 
 	
 

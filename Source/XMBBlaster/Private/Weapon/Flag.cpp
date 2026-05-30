@@ -2,6 +2,7 @@
 
 
 #include "Weapon/Flag.h"
+#include "Character/XMBCharacterBase.h"
 
 AFlag::AFlag()
 {
@@ -29,6 +30,8 @@ void AFlag::Dropped()
 	XMBOwnerController = nullptr; // 清空控制器缓存
 }
 
+
+
 void AFlag::OnEquippedState()
 {
 	// 装备状态下禁用拾取相关功能
@@ -38,7 +41,8 @@ void AFlag::OnEquippedState()
 	// 武器变为"附着模式"：无物理、无重力、无碰撞
 	FlagMesh->SetSimulatePhysics(false);      // 关闭物理模拟
 	FlagMesh->SetEnableGravity(false);         // 关闭重力
-	FlagMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 关闭碰撞
+	FlagMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 关闭碰撞
+	FlagMesh->SetCollisionResponseToChannel(ECC_WorldDynamic,ECR_Overlap);
 	EnableCustomDepth(false);
 }
 
@@ -57,4 +61,38 @@ void AFlag::OnDroppedState()
 	FlagMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	FlagMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
+}
+
+void AFlag::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	InitialTransform = GetActorTransform();
+}
+
+
+void AFlag::ResetFlag()
+{
+
+	AXMBCharacterBase* FlagBearer = Cast<AXMBCharacterBase>(GetOwner());
+	if (FlagBearer)
+	{
+		FlagBearer->SetHoldingTheFlag(false);
+		FlagBearer->SetOverlappingWeapon(nullptr);
+		FlagBearer->UnCrouch();
+	}
+
+	if (!HasAuthority()) return;
+	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+	FlagMesh->DetachFromComponent(DetachRules);
+
+	SetWeaponState(EWeaponState::EWS_Initial);
+	GetAreaSphere()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetAreaSphere()->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
+
+	SetOwner(nullptr); // 解除拥有者关系（触发 OnRep_Owner 清理缓存）
+	XMBOwnerCharacter = nullptr; // 清空角色缓存
+	XMBOwnerController = nullptr; // 清空控制器缓存
+
+	SetActorTransform(InitialTransform);
 }
