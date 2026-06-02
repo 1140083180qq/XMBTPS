@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4U_VrmUtil_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmUtil_h_339_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmUtil_h_339_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FImportOptionData_Statics; \
 	static class UScriptStruct* StaticStruct();
 
@@ -22,7 +22,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FImportOptionData>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmUtil_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmUtil_h
 
 
 #define FOREACH_ENUM_EVRMIMPORTMATERIALTYPE(op) \

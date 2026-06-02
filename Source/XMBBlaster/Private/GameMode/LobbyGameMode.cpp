@@ -23,6 +23,7 @@
 
 #include "GameMode/LobbyGameMode.h"
 
+#include "MultiplayerSessionsSubsystem.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
 
@@ -59,18 +60,40 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	// 统计当前房间内的玩家总数
 	int32 NumberOfPlayers = GetGameState<AGameStateBase>()->PlayerArray.Num();
 
-	// 当第2名玩家加入时，自动开始游戏（可修改此阈值支持更多人）
-	if (NumberOfPlayers == 2)
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance)
 	{
-		UWorld* World = GetWorld();
-		if (World)
+		UMultiplayerSessionsSubsystem* Subsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		check(Subsystem);
+
+		// 当第2名玩家加入时，自动开始游戏（可修改此阈值支持更多人）
+		if (NumberOfPlayers == Subsystem->DesiredNumPublicConnections)
 		{
-			// 启用无缝旅行模式（避免加载黑屏）
-			bUseSeamlessTravel = true;
-			// 服务器旅行到主游戏地图，?listen 保持服务器运行状态
-			World->ServerTravel(FString("/Game/Maps/BlasterMap?listen"));
+			UWorld* World = GetWorld();
+			if (World)
+			{
+				// 启用无缝旅行模式（避免加载黑屏）
+				bUseSeamlessTravel = true;
+
+				FString MatchType = Subsystem->DesiredMatchType;
+				if (MatchType == "FreeForAll")//TOOD:可以将此处的Fstring换为一个变量
+				{
+					// 服务器旅行到主游戏地图，?listen 保持服务器运行状态
+					World->ServerTravel(FString("/Game/Maps/BlasterMap?listen"));
+				}
+				else if (MatchType == "Teams")
+				{
+					World->ServerTravel(FString("/Game/Maps/Teams?listen"));
+				}
+				else if (MatchType == "CaptureTheFlag")
+				{
+					World->ServerTravel(FString("/Game/Maps/CaptureTheFlag?listen"));
+				}
+			}
 		}
 	}
+	
+	
 
 	/*
 	 * 【调试代码块 - 已注释】

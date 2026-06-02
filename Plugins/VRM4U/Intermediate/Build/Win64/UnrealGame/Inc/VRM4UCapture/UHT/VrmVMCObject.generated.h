@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4UCAPTURE_VrmVMCObject_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_INCLASS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUVrmVMCObject(); \
 	friend struct Z_Construct_UClass_UVrmVMCObject_Statics; \
@@ -23,7 +23,7 @@ public: \
 	DECLARE_SERIALIZER(UVrmVMCObject)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_ENHANCED_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_ENHANCED_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVrmVMCObject(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 private: \
@@ -37,12 +37,12 @@ public: \
 	NO_API virtual ~UVrmVMCObject();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_34_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_34_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_INCLASS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_ENHANCED_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_INCLASS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h_37_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -50,7 +50,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4UCAPTURE_API UClass* StaticClass<class UVrmVMCObject>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmVMCObject_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

@@ -24,7 +24,7 @@ struct FKawaiiPhysicsSettings;
 #endif
 #define KAWAIIPHYSICS_KawaiiPhysicsLibrary_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_43_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_43_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsReference_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct(); \
 	typedef FAnimNodeReference Super;
@@ -32,7 +32,7 @@ struct FKawaiiPhysicsSettings;
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsReference>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execGetExternalForceTransformProperty); \
 	DECLARE_FUNCTION(execSetExternalForceTransformProperty); \
 	DECLARE_FUNCTION(execGetExternalForceRotatorProperty); \
@@ -80,7 +80,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsRe
 	DECLARE_FUNCTION(execConvertToKawaiiPhysics);
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_INCLASS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUKawaiiPhysicsLibrary(); \
 	friend struct Z_Construct_UClass_UKawaiiPhysicsLibrary_Statics; \
@@ -89,7 +89,7 @@ public: \
 	DECLARE_SERIALIZER(UKawaiiPhysicsLibrary)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_ENHANCED_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_ENHANCED_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UKawaiiPhysicsLibrary(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 private: \
@@ -103,13 +103,13 @@ public: \
 	NO_API virtual ~UKawaiiPhysicsLibrary();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_51_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_51_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_INCLASS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_ENHANCED_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_INCLASS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h_54_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -117,7 +117,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> KAWAIIPHYSICS_API UClass* StaticClass<class UKawaiiPhysicsLibrary>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsLibrary_h
 
 
 #define FOREACH_ENUM_EKAWAIIPHYSICSACCESSEXTERNALFORCERESULT(op) \

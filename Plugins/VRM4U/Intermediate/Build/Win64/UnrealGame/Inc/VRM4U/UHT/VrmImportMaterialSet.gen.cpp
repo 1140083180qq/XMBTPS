@@ -111,14 +111,14 @@ UVrmImportMaterialSet::~UVrmImportMaterialSet() {}
 // End Class UVrmImportMaterialSet
 
 // Begin Registration
-struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics
+struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
 		{ Z_Construct_UClass_UVrmImportMaterialSet, UVrmImportMaterialSet::StaticClass, TEXT("UVrmImportMaterialSet"), &Z_Registration_Info_UClass_UVrmImportMaterialSet, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVrmImportMaterialSet), 2542909503U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_4090297579(TEXT("/Script/VRM4U"),
-	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_4090297579(TEXT("/Script/VRM4U"),
+	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmImportMaterialSet_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // End Registration

@@ -14,14 +14,14 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define KAWAIIPHYSICS_AnimNode_KawaiiPhysics_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_114_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_114_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FCollisionLimitBase_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FCollisionLimitBase>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_180_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_180_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FSphericalLimit_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct(); \
 	typedef FCollisionLimitBase Super;
@@ -29,7 +29,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FCollisionLimitB
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FSphericalLimit>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_215_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_215_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FCapsuleLimit_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct(); \
 	typedef FCollisionLimitBase Super;
@@ -37,7 +37,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FSphericalLimit>
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FCapsuleLimit>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_250_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_250_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FBoxLimit_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct(); \
 	typedef FCollisionLimitBase Super;
@@ -45,7 +45,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FCapsuleLimit>()
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FBoxLimit>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_280_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_280_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FPlanarLimit_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct(); \
 	typedef FCollisionLimitBase Super;
@@ -53,35 +53,35 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FBoxLimit>();
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FPlanarLimit>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_310_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_310_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsRootBoneSetting_Statics; \
 	static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsRootBoneSetting>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_336_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_336_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsSettings_Statics; \
 	static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSettings>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_388_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_388_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsModifyBone_Statics; \
 	static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsModifyBone>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_485_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_485_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FModifyBoneConstraint_Statics; \
 	KAWAIIPHYSICS_API static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FModifyBoneConstraint>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_557_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h_557_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FAnimNode_KawaiiPhysics_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimNode_SkeletalControlBase Super;
@@ -90,7 +90,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FModifyBoneConst
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FAnimNode_KawaiiPhysics>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_AnimNode_KawaiiPhysics_h
 
 
 #define FOREACH_ENUM_EKAWAIIPHYSICSSIMULATIONSPACE(op) \

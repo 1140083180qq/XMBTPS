@@ -14,14 +14,14 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4U_AnimNode_VrmQuestHandBone_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h_20_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h_20_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FVRMQuestHandBone_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct();
 
 
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FVRMQuestHandBone>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h_36_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h_36_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FAnimNode_VrmQuestHandBone_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimNode_SkeletalControlBase Super;
@@ -30,7 +30,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FVRMQuestHandBone>();
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FAnimNode_VrmQuestHandBone>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmQuestHandBone_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

@@ -14,12 +14,12 @@
 			"AnimNode_VrmSpringBone.gen.cpp.obj",
 			"RigUnit_VrmDynamicHierarchy.gen.cpp.obj",
 			"Vrm1LicenseObject.gen.cpp.obj",
-			"VRM4U.init.gen.cpp.obj",
 			"VRM4U_AnimSubsystem.gen.cpp.obj",
 			"VrmAnimInstance.gen.cpp.obj",
 			"VrmAnimInstanceCopy.gen.cpp.obj",
 			"VrmAnimInstanceRetargetFromMannequin.gen.cpp.obj",
-			"VrmAnimInstanceTemplate.gen.cpp.obj"
+			"VrmAnimInstanceTemplate.gen.cpp.obj",
+			"VRM4U.init.gen.cpp.obj"
 		],
 		"Module.VRM4U.2.cpp.obj": [
 			"VrmAssetListObject.gen.cpp.obj",

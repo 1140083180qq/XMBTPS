@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4U_AnimNode_VrmConstraint_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmConstraint_h_23_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmConstraint_h_23_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FAnimNode_VrmConstraint_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimNode_SkeletalControlBase Super;
@@ -23,7 +23,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FAnimNode_VrmConstraint>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmConstraint_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmConstraint_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

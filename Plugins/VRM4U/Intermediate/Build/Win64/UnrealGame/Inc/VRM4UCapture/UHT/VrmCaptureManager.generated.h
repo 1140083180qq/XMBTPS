@@ -16,11 +16,11 @@ class UVrmMocopiReceiver;
 #endif
 #define VRM4UCAPTURE_VrmCaptureManager_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execCreateVrmMocopiReceiver);
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_INCLASS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUVrmCaptureManager(); \
 	friend struct Z_Construct_UClass_UVrmCaptureManager_Statics; \
@@ -29,7 +29,7 @@ public: \
 	DECLARE_SERIALIZER(UVrmCaptureManager)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_ENHANCED_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_ENHANCED_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVrmCaptureManager(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 private: \
@@ -43,13 +43,13 @@ public: \
 	NO_API virtual ~UVrmCaptureManager();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_10_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_10_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_INCLASS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_ENHANCED_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_INCLASS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h_13_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -57,7 +57,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4UCAPTURE_API UClass* StaticClass<class UVrmCaptureManager>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4UCapture_Public_VrmCaptureManager_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

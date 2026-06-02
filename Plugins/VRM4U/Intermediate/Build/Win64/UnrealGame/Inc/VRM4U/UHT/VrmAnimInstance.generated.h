@@ -17,7 +17,7 @@ enum class EVRMBlendShapeGroup : uint8;
 #endif
 #define VRM4U_VrmAnimInstance_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_43_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_43_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FVrmAnimInstanceProxy_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimInstanceProxy Super;
@@ -25,12 +25,12 @@ enum class EVRMBlendShapeGroup : uint8;
 
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FVrmAnimInstanceProxy>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_RPC_WRAPPERS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_RPC_WRAPPERS \
 	DECLARE_FUNCTION(execSetVrmData); \
 	DECLARE_FUNCTION(execSetMorphTargetVRM);
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_INCLASS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_INCLASS \
 private: \
 	static void StaticRegisterNativesUVrmAnimInstance(); \
 	friend struct Z_Construct_UClass_UVrmAnimInstance_Statics; \
@@ -39,7 +39,7 @@ public: \
 	DECLARE_SERIALIZER(UVrmAnimInstance)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_STANDARD_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_STANDARD_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVrmAnimInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 	DEFINE_DEFAULT_OBJECT_INITIALIZER_CONSTRUCTOR_CALL(UVrmAnimInstance) \
@@ -53,13 +53,13 @@ public: \
 	NO_API virtual ~UVrmAnimInstance();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_67_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_GENERATED_BODY_LEGACY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_67_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_GENERATED_BODY_LEGACY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_RPC_WRAPPERS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_INCLASS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_STANDARD_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_RPC_WRAPPERS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_INCLASS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h_70_STANDARD_CONSTRUCTORS \
 public: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -67,7 +67,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UClass* StaticClass<class UVrmAnimInstance>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstance_h
 
 
 #define FOREACH_ENUM_EVRMBLENDSHAPEGROUP(op) \

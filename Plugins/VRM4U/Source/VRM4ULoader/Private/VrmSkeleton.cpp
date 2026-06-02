@@ -249,33 +249,38 @@ void VRMSkeleton::readVrmBone(aiScene* scene, int& boneOffset, FReferenceSkeleto
 		rr(scene->mRootNode, nodeArray, dummy, bSimpleRootBone, scene);
 	}
 	{
-		// rename bone
-		TMap<FString, int> count;
-		for (int i = 0; i < nodeArray.Num(); ++i) {
-			auto& node = nodeArray[i];
+		
+		
+			
+			// rename bone
+			TMap<FString, int> count;
+			for (int i = 0; i < nodeArray.Num(); ++i) {
+				auto& node = nodeArray[i];
 
-			FString str = UTF8_TO_TCHAR(node->mName.C_Str());
-			if (count.Contains(str)) {
-				count[str]++;
-			} else {
-				count.Add(str, 1);
+				FString str = UTF8_TO_TCHAR(node->mName.C_Str());
+				if (count.Contains(str)) {
+					count[str]++;
+				} else {
+					count.Add(str, 1);
+				}
 			}
-		}
-		for (int i = nodeArray.Num() - 1; i >= 0; --i) {
-			aiNode* node = const_cast<aiNode*>(nodeArray[i]);
+			for (int i = nodeArray.Num() - 1; i >= 0; --i) {
+				aiNode* node = const_cast<aiNode*>(nodeArray[i]);
 
-			FString str = UTF8_TO_TCHAR(node->mName.C_Str());
-			if (count.Contains(str) == false) continue;
+				FString str = UTF8_TO_TCHAR(node->mName.C_Str());
+				if (count.Contains(str) == false) continue;
 
-			auto c = count[str];
-			if (c >= 2) {
-				char tmp[512];
-				snprintf(tmp, 512, "%s_%02d", node->mName.C_Str(), c);
+				auto c = count[str];
+				if (c >= 2) {
+					char tmp[512];
+					snprintf(tmp, 512, "%s_%02d", node->mName.C_Str(), c);
 
-				node->mName = tmp;
-				count[str]--;
+					node->mName = tmp;
+					count[str]--;
+				}
 			}
-		}
+		
+		
 	}
 
 
@@ -470,6 +475,7 @@ void VRMSkeleton::readVrmBone(aiScene* scene, int& boneOffset, FReferenceSkeleto
 				}
 			}
 
+			
 			// bone name check
 			{
 				auto baseName = info.Name.ToString();
@@ -480,10 +486,12 @@ void VRMSkeleton::readVrmBone(aiScene* scene, int& boneOffset, FReferenceSkeleto
 					info.Name = *FString::Printf(TEXT("%s_vrm4u%02d"), *baseName, c);
 				}
 			}
+			
 			if (totalBoneCount > 0 && ParentIndexByNode == INDEX_NONE) {
 				// bad bone. root?
 				continue;
 			}
+			
 			if (VRMConverter::Options::Get().IsVRMAModel()) {
 				if (vrmAssetList->VrmMetaObject) {
 					for (auto& t : vrmAssetList->VrmMetaObject->humanoidBoneTable) {
@@ -495,7 +503,7 @@ void VRMSkeleton::readVrmBone(aiScene* scene, int& boneOffset, FReferenceSkeleto
 					}
 				}
 			}
-
+			
 			RefSkelModifier.Add(info, pose);
 			totalBoneCount++;
 

@@ -178,14 +178,14 @@ UVrmLicenseObject::~UVrmLicenseObject() {}
 // End Class UVrmLicenseObject
 
 // Begin Registration
-struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics
+struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
 		{ Z_Construct_UClass_UVrmLicenseObject, UVrmLicenseObject::StaticClass, TEXT("UVrmLicenseObject"), &Z_Registration_Info_UClass_UVrmLicenseObject, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVrmLicenseObject), 2205525469U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_2906640659(TEXT("/Script/VRM4U"),
-	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_2906640659(TEXT("/Script/VRM4U"),
+	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmLicenseObject_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // End Registration

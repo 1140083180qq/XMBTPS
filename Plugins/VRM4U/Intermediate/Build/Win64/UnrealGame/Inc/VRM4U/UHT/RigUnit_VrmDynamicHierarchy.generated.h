@@ -22,7 +22,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		TArray<FName>& Items_Curve \
 	)
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_18_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_18_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FRigUnit_VRMGetCurveNameFromMesh_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct(); \
 	void Execute(FControlRigExecuteContext& InExecuteContext); \
@@ -63,7 +63,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FRigUnit_VRMGetCurveName
 		TArray<FRigElementKey>& Items_Curve \
 	)
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_41_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_41_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FRigUnit_VRMAddCurveFromMesh_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct(); \
 	void Execute(FControlRigExecuteContext& InExecuteContext); \
@@ -112,7 +112,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FRigUnit_VRMAddCurveFrom
 		TArray<FName>& Items_VRMBone \
 	)
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_76_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_76_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FRigUnit_VRMGenerateBoneToControlTable_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct(); \
 	void Execute(FControlRigExecuteContext& InExecuteContext); \
@@ -147,7 +147,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FRigUnit_VRMGenerateBone
 		FControlRigExecuteContext& ExecuteContext \
 	)
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_98_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h_98_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FRigUnit_VRMInitControllerTransform_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct(); \
 	void Execute(FControlRigExecuteContext& InExecuteContext); \
@@ -170,7 +170,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FRigUnit_VRMGenerateBone
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FRigUnit_VRMInitControllerTransform>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_RigUnit_VrmDynamicHierarchy_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

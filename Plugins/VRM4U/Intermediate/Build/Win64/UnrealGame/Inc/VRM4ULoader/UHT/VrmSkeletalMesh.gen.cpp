@@ -81,14 +81,14 @@ UVrmSkeletalMesh::~UVrmSkeletalMesh() {}
 // End Class UVrmSkeletalMesh
 
 // Begin Registration
-struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics
+struct Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
 		{ Z_Construct_UClass_UVrmSkeletalMesh, UVrmSkeletalMesh::StaticClass, TEXT("UVrmSkeletalMesh"), &Z_Registration_Info_UClass_UVrmSkeletalMesh, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVrmSkeletalMesh), 288436416U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_3719815905(TEXT("/Script/VRM4ULoader"),
-	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_3719815905(TEXT("/Script/VRM4ULoader"),
+	Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4ULoader_Public_VrmSkeletalMesh_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // End Registration

@@ -17,7 +17,7 @@ class UVrmMetaObject;
 #endif
 #define VRM4U_VrmAnimInstanceRetargetFromMannequin_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_28_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_28_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FVrmAnimInstanceRetargetFromMannequinProxy_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimInstanceProxy Super;
@@ -25,7 +25,7 @@ class UVrmMetaObject;
 
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FVrmAnimInstanceRetargetFromMannequinProxy>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_RPC_WRAPPERS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_RPC_WRAPPERS \
 	DECLARE_FUNCTION(execSetVrmSpringBoneIgnoreWingBone); \
 	DECLARE_FUNCTION(execSetVrmSpringBoneBool); \
 	DECLARE_FUNCTION(execSetVrmSpringBoneParam); \
@@ -34,7 +34,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FVrmAnimInstanceRetarget
 	DECLARE_FUNCTION(execSetRetargetData);
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_INCLASS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_INCLASS \
 private: \
 	static void StaticRegisterNativesUVrmAnimInstanceRetargetFromMannequin(); \
 	friend struct Z_Construct_UClass_UVrmAnimInstanceRetargetFromMannequin_Statics; \
@@ -43,7 +43,7 @@ public: \
 	DECLARE_SERIALIZER(UVrmAnimInstanceRetargetFromMannequin)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_STANDARD_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_STANDARD_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVrmAnimInstanceRetargetFromMannequin(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 	DEFINE_DEFAULT_OBJECT_INITIALIZER_CONSTRUCTOR_CALL(UVrmAnimInstanceRetargetFromMannequin) \
@@ -57,13 +57,13 @@ public: \
 	NO_API virtual ~UVrmAnimInstanceRetargetFromMannequin();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_64_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_GENERATED_BODY_LEGACY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_64_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_GENERATED_BODY_LEGACY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_RPC_WRAPPERS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_INCLASS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_STANDARD_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_RPC_WRAPPERS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_INCLASS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h_67_STANDARD_CONSTRUCTORS \
 public: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -71,7 +71,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UClass* StaticClass<class UVrmAnimInstanceRetargetFromMannequin>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VrmAnimInstanceRetargetFromMannequin_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

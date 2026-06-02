@@ -15,14 +15,14 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4U_VRM4U_AnimSubsystem_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_21_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_21_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FVrmTransformData_Statics; \
 	VRM4U_API static class UScriptStruct* StaticStruct();
 
 
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FVrmTransformData>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execSetRawData); \
 	DECLARE_FUNCTION(execSetBoneTransform); \
 	DECLARE_FUNCTION(execGetRawdataByPort); \
@@ -32,7 +32,7 @@ template<> VRM4U_API UScriptStruct* StaticStruct<struct FVrmTransformData>();
 	DECLARE_FUNCTION(execClear);
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_INCLASS_NO_PURE_DECLS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUVRM4U_AnimSubsystem(); \
 	friend struct Z_Construct_UClass_UVRM4U_AnimSubsystem_Statics; \
@@ -41,7 +41,7 @@ public: \
 	DECLARE_SERIALIZER(UVRM4U_AnimSubsystem)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_ENHANCED_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_ENHANCED_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVRM4U_AnimSubsystem(); \
 private: \
@@ -55,13 +55,13 @@ public: \
 	NO_API virtual ~UVRM4U_AnimSubsystem();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_35_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_35_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_INCLASS_NO_PURE_DECLS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_ENHANCED_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_INCLASS_NO_PURE_DECLS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h_38_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -69,7 +69,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UClass* StaticClass<class UVRM4U_AnimSubsystem>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_VRM4U_AnimSubsystem_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

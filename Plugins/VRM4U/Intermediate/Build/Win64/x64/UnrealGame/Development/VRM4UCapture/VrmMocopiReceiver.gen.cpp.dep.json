@@ -1,12 +1,12 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.gen.cpp",
+        "Source": "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.gen.cpp",
         "ProvidedModule": "",
-        "PCH": "g:\\uegame\\5.4\\xmbguns\\intermediate\\build\\win64\\x64\\xmbguns\\development\\engine\\sharedpch.engine.project.valapi.cpp20.h.pch",
+        "PCH": "g:\\uegame\\5.4\\xmbblaster\\intermediate\\build\\win64\\x64\\xmbblaster\\development\\engine\\sharedpch.engine.project.valapi.cpp20.inclorderoldest.h.pch",
         "Includes": [
-            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4ucapture\\definitions.vrm4ucapture.h",
-            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrmmocopireceiver.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\x64\\unrealgame\\development\\vrm4ucapture\\definitions.vrm4ucapture.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\source\\vrm4ucapture\\public\\vrmmocopireceiver.h",
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\uobject\\noexporttypes.h",
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\uobject\\propertyaccessutil.h",
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\coreuobject\\public\\serialization\\testundeclaredscriptstructobjectreferences.h",
@@ -25,7 +25,8 @@
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\networking\\public\\common\\udpsocketbuilder.h",
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\misc\\engineversioncomparison.h",
             "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\containers\\ringbuffer.h",
-            "g:\\uegame\\5.4\\xmbguns\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.generated.h"
+            "g:\\ue\\ue_5.4\\engine\\source\\runtime\\core\\public\\templates\\makesigned.h",
+            "g:\\uegame\\5.4\\xmbblaster\\plugins\\vrm4u\\intermediate\\build\\win64\\unrealgame\\inc\\vrm4ucapture\\uht\\vrmmocopireceiver.generated.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

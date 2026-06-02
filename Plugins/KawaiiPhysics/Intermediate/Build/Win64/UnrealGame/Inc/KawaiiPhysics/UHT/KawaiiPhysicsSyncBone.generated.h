@@ -14,14 +14,14 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define KAWAIIPHYSICS_KawaiiPhysicsSyncBone_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_31_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_31_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsSyncTarget_Statics; \
 	static class UScriptStruct* StaticStruct();
 
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSyncTarget>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_101_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_101_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsSyncTargetRoot_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FKawaiiPhysicsSyncTarget Super;
@@ -29,7 +29,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSy
 
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSyncTargetRoot>();
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_144_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h_144_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysicsSyncBone_Statics; \
 	static class UScriptStruct* StaticStruct();
 
@@ -37,7 +37,7 @@ template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSy
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysicsSyncBone>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_KawaiiPhysicsSyncBone_h
 
 
 #define FOREACH_ENUM_ESYNCBONEDIRECTION(op) \

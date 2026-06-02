@@ -6,7 +6,9 @@
 /NAME:"UnrealEditor-VRM4UImporter.dll"
 /IGNORE:4221
 /NODEFAULTLIB
-"G:\UEGAME\5.4\XMBGuns\Intermediate\Build\Win64\x64\XMBGunsEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
-"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\Module.VRM4UImporter.cpp.obj"
-"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\Default.rc2.res"
-/OUT:"G:\UEGAME\5.4\XMBGuns\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\UnrealEditor-VRM4UImporter.lib"
+"G:\UEGAME\5.4\XMBBlaster\Intermediate\Build\Win64\x64\XMBBlasterEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderOldest.h.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\Module.VRM4UImporter.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\VRM4UImporter.init.gen.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\VrmImportUI.gen.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\Default.rc2.res"
+/OUT:"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UImporter\UnrealEditor-VRM4UImporter.lib"

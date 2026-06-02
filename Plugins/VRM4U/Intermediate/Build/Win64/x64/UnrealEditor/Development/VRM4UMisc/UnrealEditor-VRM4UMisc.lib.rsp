@@ -7,6 +7,6 @@
 /IGNORE:4221
 /NODEFAULTLIB
 "G:\UEGAME\5.4\XMBBlaster\Intermediate\Build\Win64\x64\XMBBlasterEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderOldest.h.obj"
-"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UMisc\VRM4UMisc.cpp.obj"
+"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UMisc\Module.VRM4UMisc.cpp.obj"
 "G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UMisc\Default.rc2.res"
 /OUT:"G:\UEGAME\5.4\XMBBlaster\Plugins\VRM4U\Intermediate\Build\Win64\x64\UnrealEditor\Development\VRM4UMisc\UnrealEditor-VRM4UMisc.lib"

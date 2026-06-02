@@ -18,11 +18,11 @@
 			"VrmLoaderComponent.cpp.obj",
 			"VrmLoaderUtil.cpp.obj",
 			"VrmSkeletalMesh.cpp.obj",
-			"VrmSkeleton.cpp.obj",
 			"LoaderBPFunctionLibrary.gen.cpp.obj",
 			"VRM4ULoader.init.gen.cpp.obj",
 			"VrmLoaderComponent.gen.cpp.obj",
-			"VrmSkeletalMesh.gen.cpp.obj"
+			"VrmSkeletalMesh.gen.cpp.obj",
+			"VrmSkeleton.cpp.obj"
 		]
 	}
 }

@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4URENDER_VrmExtensionRimFilterData_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_INCLASS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_INCLASS \
 private: \
 	static void StaticRegisterNativesUVrmExtensionRimFilterData(); \
 	friend struct Z_Construct_UClass_UVrmExtensionRimFilterData_Statics; \
@@ -23,7 +23,7 @@ public: \
 	DECLARE_SERIALIZER(UVrmExtensionRimFilterData)
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_STANDARD_CONSTRUCTORS \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_STANDARD_CONSTRUCTORS \
 	/** Standard constructor, called after all reflected properties have been initialized */ \
 	NO_API UVrmExtensionRimFilterData(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()); \
 	DEFINE_DEFAULT_OBJECT_INITIALIZER_CONSTRUCTOR_CALL(UVrmExtensionRimFilterData) \
@@ -37,12 +37,12 @@ public: \
 	NO_API virtual ~UVrmExtensionRimFilterData();
 
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_10_PROLOG
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_GENERATED_BODY_LEGACY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_10_PROLOG
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_GENERATED_BODY_LEGACY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_INCLASS \
-	FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_STANDARD_CONSTRUCTORS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_INCLASS \
+	FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h_13_STANDARD_CONSTRUCTORS \
 public: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -50,7 +50,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> VRM4URENDER_API UClass* StaticClass<class UVrmExtensionRimFilterData>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4URender_Public_VrmExtensionRimFilterData_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

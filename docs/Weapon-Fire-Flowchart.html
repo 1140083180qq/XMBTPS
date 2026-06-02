@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XMBBlaster 武器开火系统 - 完整数据流分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563EB;
+            --primary-dark: #1E40AF;
+            --primary-light: #3B82F6;
+            --bg-main: #0F172A;
+            --bg-card: #1E293B;
+            --bg-card-hover: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --info: #06B6D4;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        code, pre {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
+        /* 背景装饰 */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(37, 99, 235, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .gradient-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            top: -200px;
+            right: -200px;
+            background: var(--primary);
+        }
+
+        .orb-2 {
+            bottom: -200px;
+            left: -200px;
+            background: var(--info);
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(15, 23, 42, 0.85);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #60A5FA, #3B82F6, #818CF8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-link.active {
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 6rem 2rem 4rem;
+        }
+
+        /* 章节样式 */
+        .section {
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+        .section:nth-child(5) { animation-delay: 0.5s; }
+        .section:nth-child(6) { animation-delay: 0.6s; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 600px;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.4));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(37, 99, 235, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Mermaid 图表容器 */
+        .mermaid-container {
+            background: linear-gradient(145deg, #1a2234, #162032);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 0.75rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .code-block code {
+            color: #e6edf3;
+        }
+
+        /* 表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(99, 102, 241, 0.08));
+        }
+
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #93C5FD;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            vertical-align: top;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 标签/徽章 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-server {
+            background: rgba(239, 68, 68, 0.15);
+            color: #FCA5A5;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge-client {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93C5FD;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .badge-multicast {
+            background: rgba(168, 85, 247, 0.15);
+            color: #D8B4FE;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        .badge-replicated {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6EE7B7;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #FCD34D;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* 信息框 */
+        .info-box {
+            border-left: 4px solid var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+            padding: 1rem 1.25rem;
+            border-radius: 0 12px 12px 0;
+            margin: 1.25rem 0;
+        }
+
+        .info-box.warning {
+            border-left-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .info-box.danger {
+            border-left-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .info-box.success {
+            border-left-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        /* 流程箭头连接线 */
+        .flow-step {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin: 0.75rem 0;
+        }
+
+        .flow-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-light);
+            font-size: 1.25rem;
+            padding: 0 0.5rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 5rem 1rem 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 1.25rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* 高亮关键词 */
+        .hl-function { color: #D8B4FE; font-weight: 600; }
+        .hl-class { color: #7DD3FC; font-weight: 600; }
+        .hl-variable { color: #FDE68A; }
+        .hl-rpc { color: #FCA5A5; }
+        .hl-replicated { color: #6EE7B7; }
+        .hl-file { color: #93C5FD; font-style: italic; }
+    </style>
+</head>
+<body>
+    <!-- 背景效果 -->
+    <div class="bg-grid"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="logo">XMBBlaster / Fire System</div>
+            <div class="nav-links">
+                <button class="nav-link active" onclick="scrollToSection('class-hierarchy')">01 类体系</button>
+                <button class="nav-link" onclick="scrollToSection('fire-flow')">02 开火流程</button>
+                <button class="nav-link" onclick="scrollToSection('weapon-types')">03 武器类型</button>
+                <button class="nav-link" onclick="scrollToSection('scatter')">04 散射算法</button>
+                <button class="nav-link" onclick="scrollToSection('replicated')">05 网络同步</button>
+                <button class="nav-link" onclick="scrollToSection('design')">06 设计总结</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+
+        <!-- ========== 标题区 ========== -->
+        <header style="text-align: center; padding: 3rem 0 2rem;">
+            <h1 style="font-size: 3rem; font-weight: 900; letter-spacing: -1.5px; background: linear-gradient(135deg, #fff, #93C5FD, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">
+                武器开火系统 · 完整数据流分析
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 700px; margin: 0 auto;">
+                从本地客户端输入 → 服务器权威验证 → 其他客户端同步的完整链路解析
+            </p>
+            <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+                <span class="badge badge-client">UE5.4 C++</span>
+                <span class="badge badge-server">Dedicated Server</span>
+                <span class="badge badge-multicast">RPC + Replication</span>
+                <span class="badge badge-replicated">12 源文件</span>
+            </div>
+        </header>
+
+        <!-- ========== Section 1: 类继承体系 ========== -->
+        <section id="class-hierarchy" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white;">01</div>
+                <div>
+                    <h2 class="section-title">类继承体系</h2>
+                    <p class="section-desc">Weapon 和 Projectile 两大类族的完整继承层次与职责划分</p>
+                </div>
+            </div>
+
+            <!-- 武器类继承图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #60A5FA;">🔫 武器类族 (Weapon Hierarchy)</h3>
+                <div class="mermaid-container">
+                    <pre class="mermaid">
+graph TD
+    AActor["<b>AActor</b><br/>UE Actor基类"]
+    
+    AWeaponBase["<b>AWeaponBase</b><br/><span style='color:#94A3B8'>武器基类</span><br/>
+    ──────────────<br/>
+    <span style='color:#FDE68A'>Fire()</span> 开火虚函数<br/>
+    <span style='color:#FDE68A'>SpendRound()</span> 扣弹药<br/>
+    <span style='color:#FDE68A'>TraceEndWithScatter()</span> 散射算法<br/>
+    <span style='color:#6EE7B7'>Replicated:</span> WeaponState, Ammo<br/>
+    <span style='color:#93C5FD'>File:</span> WeaponBase.h/cpp"]
+    
+    AHitScanWeapon["<b>AHitScanWeapon</b><br/><span style='color:#94A3B8'>射线检测武器（即时命中）</span><br/>
+    ──────────────<br/>
+    <span style='color:#D8B4FE'>Fire() override</span><br/>
+    &nbsp;&nbsp;├─ LineTraceSingleByChannel<br/>
+    &nbsp;&nbsp;├─ ApplyDamage [Server]<br/>
+    &nbsp;&nbsp;└─ 粒子/音效<br/>
+    <span style='color:#FDE68A'>Damage = 20.f</span><br/>
+    <span style='color:#93C5FD'>File:</span> HitScanWeapon.h/cpp"]
+    
+    AShotGun["<b>AShotGun</b><br/><span style='color:#94A3B8'>霰弹枪（多弹丸散射）</span><br/>
+    ──────────────<br/>
+    <span style='color:#D8B4FE'>FireShotgun()</span><br/>
+    &nbsp;&nbsp;├─ 循环 NumberOfPellets 次<br/>
+    &nbsp;&nbsp;├─ TMap 统计命中<br/>
+    &nbsp;&nbsp;└─ Damage × HitCount<br/>
+    <span style='color:#FDE68A'>NumberOfPellets = 10</span><br/>
+    <span style='color:#93C5FD'>File:</span> ShotGun.h/cpp"]
+    
+    AProjectileWeapon["<b>AProjectileWeapon</b><br/><span style='color:#94A3B8'>投射物武器（子弹飞行）</span><br/>
+    ──────────────<br/>
+    <span style='color:#D8B4FE'>Fire() override</span><br/>
+    &nbsp;&nbsp;├─ Super.Fire()<br/>
+    &nbsp;&nbsp;└─ SpawnActor&lt;AProjectile&gt; [Server]<br/>
+    <span style='color:#FDE68A'>ProjectileClass</span><br/>
+    <span style='color:#93C5FD'>File:</span> ProjectileWeapon.h/cpp"]
+
+    AActor --> AWeaponBase
+    AWeaponBase --> AHitScanWeapon
+    AWeaponBase --> AProjectileWeapon
+    AHitScanWeapon --> AShotGun
+
+    style AActor fill:#1e293b,stroke:#475569,color:#e2e8f0
+    style AWeaponBase fill:#1e3a5f,stroke:#3b82f6,color:#bfdbfe
+    style AHitScanWeapon fill:#1e3a5f,stroke:#8b5cf6,color:#ddd6fe
+    style AShotGun fill:#312e81,stroke:#a78bfa,color:#e9d5ff
+    style AProjectileWeapon fill:#1e3a5f,stroke:#06b6d4,color:#67e8f9
+                    </pre>
+                </div>
+            </div>
+
+            <!-- 投射物类继承图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #67E8F9;">🎯 投射物类族 (Projectile Hierarchy)</h3>
+                <div class="mermaid-container">
+                    <pre class="mermaid">
+graph TD
+    PA["<b>AActor</b><br/>UE Actor基类"]
+
+    PBase["<b>AProjectile</b><br/><span style='color:#94A3B8'>投射物基类</span><br/>
+    ──────────────<br/>
+    <span style='color:#D8B4FE'>OnHit()</span> 碰撞回调<br/>
+    <span style='color:#D8B4FE'>Destroyed()</span> 销毁特效<br/>
+    <span style='color:#D8B4FE'>ExplodeDamage()</span> 范围伤害<br/>
+    <span style='color:#6EE7B7'>bReplicates = true</span><br/>
+    <span style='color:#FDE68A'>Damage/BaseDamage/MiniDamage</span><br/>
+    <span style='color:#93C5FD'>File:</span> Projectile.h/cpp"]
+
+    PBullet["<b>AProjectileBullet</b><br/><span style='color:#94A3B8'>子弹（点伤害）</span><br/>
+    ──────────────<br/>
+    OnHit → ApplyDamage<br/>
+    即时命中单目标"]
+
+    PRocket["<b>AProjectileRocket</b><br/><span style='color:#94A3B8'>火箭弹（范围伤害）</span><br/>
+    ──────────────<br/>
+    OnHit → ExplodeDamage<br/>
+    ApplyRadialDamageWithFalloff"]
+
+    PGrenade["<b>AProjectileGrenade</b><br/><span style='color:#94A3B8'>手雷（反弹+延时）</span><br/>
+    ──────────────<br/>
+    物理反弹<br/>
+    定时器延时爆炸"]
+
+    PA --> PBase
+    PBase --> PBullet
+    PBase --> PRocket
+    PBase --> PGrenade
+
+    style PA fill:#1e293b,stroke:#475569,color:#e2e8f0
+    style PBase fill:#164e63,stroke:#06b6d4,color:#67e8f9
+    style PBullet fill:#134e4a,stroke:#14b8a6,color:#5eead4
+    style PRocket fill:#7f1d1d,stroke:#ef4444,#fca5a5
+    style PGrenade fill:#78350f,stroke:#f59e0b,color:#fcd34d
+                    </pre>
+                </div>
+            </div>
+
+            <!-- CombatComponent 角色 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FBBF24;">⚔️ CombatComponent - 开火调度中枢</h3>
+                <div class="mermaid-container">
+                    <pre class="mermaid">
+graph LR
+    Input["<b>玩家输入</b><br/>按键按下/释放"]
+    
+    CC["<b>UCombatComponent</b><br/><span style='color:#94A3B8'>战斗组件（核心调度器）</span><br/>
+    ───────────────────────<br/>
+    <span style='color:#D8B4FE'>FireButtonPressed()</span> 入口<br/>
+    <span style='color:#D8B4FE'>Fire()</span> 主开火逻辑<br/>
+    <span style='color:#D8B4FE'>LocalFire()</span> 本地预测<br/>
+    <span style='color:#FCA5A5'>ServerFire()</span> Server RPC<br/>
+    <span style='color:#D8B4FE'>MulticastFire()</span> 广播<br/>
+    <span style='color:#D8B4FE'>TraceUnderCrosshairs()</span> 射线检测<br/>
+    <span style='color:#6EE7B7'>Replicated:</span><br/>
+    &nbsp;&nbsp;EquippedWeapon<br/>
+    &nbsp;&nbsp;bAiming / bShoulderAiming<br/>
+    &nbsp;&nbsp;bFireButtonPressed<br/>
+    &nbsp;&nbsp;CarriedAmmo / CombatState / Grenades<br/>
+    <span style='color:#93C5FD'>File:</span> CombatComponent.h/cpp"]
+    
+    Weapon["<b>AWeaponBase*</b><br/>当前装备的武器"]
+    
+    Char["<b>AXMBCharacterBase</b><br/>角色实例"]
+
+    Input --> CC
+    CC --> Weapon
+    CC -.->|"拥有者"| Char
+    Weapon -.->|"Attach"| Char
+
+    style Input fill:#1e293b,stroke:#475569,color:#e2e8f0
+    style CC fill:#451a03,stroke:#f59e0b,color:#fcd34d
+    style Weapon fill:#1e3a5f,stroke:#3b82f6,color:#bfdbfe
+    style Char fill:#1e293b,stroke:#64748b,color:#94a3b8
+                    </pre>
+                </div>
+            </div>
+
+            <!-- 文件路径速查表 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">📁 源文件速查表</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>文件</th>
+                            <th>路径</th>
+                            <th>核心职责</th>
+                            <th>代码行数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="hl-class">AWeaponBase</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/Weapon/</code></td>
+                            <td>状态机、弹药、散射、拾取</td>
+                            <td>~557 行</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-class">AHitScanWeapon</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/Weapon/</code></td>
+                            <td>LineTrace 射击 + 即时伤害</td>
+                            <td>~132 行</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-class">AShotGun</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/Weapon/</code></td>
+                            <td>多弹丸散射 + 聚合统计</td>
+                            <td>~111 行</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-class">AProjectileWeapon</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/Weapon/</code></td>
+                            <td>SpawnActor 子弹生成</td>
+                            <td>~98 行</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-class">AProjectile</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/Actor/</code></td>
+                            <td>碰撞/范围伤害/特效</td>
+                            <td>~165 行</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-class">UCombatComponent</code></td>
+                            <td><code class="hl-file">Source/XMBBlaster/Public/Private/XMBComponent/</code></td>
+                            <td>开火调度中枢（核心枢纽）</td>
+                            <td>~1249 行</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========== Section 2: 开火主流程时序图 ========== -->
+        <section id="fire-flow" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;">02</div>
+                <div>
+                    <h2 class="section-title">开火主流程时序图</h2>
+                    <p class="section-desc">从玩家按键到伤害结算的完整调用链路，含 Client / Server / OtherClient 三列泳道</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 核心设计：本地预测 + 服务器权威验证</strong><br/>
+                客户端先执行 <code class="hl-function">LocalFire()</code> 做预测性显示（动画/粒子/音效），同时通过 RPC 发送 <code class="hl-rpc">ServerFire()</code> 给服务器。
+                服务器收到后通过 <code class="hl-function">MulticastFire()</code> 广播给<strong>所有客户端</strong>，原始客户端因 <code>IsLocallyControlled && !HasAuthority</code> 检查跳过重复执行。
+            </div>
+
+            <!-- 完整时序图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #C4B5FD;">🔄 完整开火时序（以 HitScan 为例）</h3>
+                <div class="mermaid-container" style="padding: 1.5rem;">
+                    <pre class="mermaid">
+sequenceDiagram
+    participant C as 🖥️ 本地客户端
+    participant CC as ⚙️ CombatComponent
+    participant W as 🔫 Weapon
+    participant S as 🖥️ 服务器
+    participant OC as 👁️ 其他客户端
+
+    Note over C,S: ═══════════ 阶段1: 玩家输入 ═══════════
+    
+    C->>C: 按下鼠标左键
+    C->>CC: FireButtonPressed(true)
+    
+    Note over CC: bFireButtonPressed = true [Replicated]
+    CC->>CC: Fire() ← 首次立即触发
+    
+    Note over C,S: ═══════════ 阶段2: 本地预测 ═══════════
+    
+    CC->>CC: CanFire() 检查三条件:
+    Note right of CC: ✅ 有弹药? <br/>✅ bCanFire==true? <br/>✅ CombatState==Unoccupied?
+    
+    CC->>CC: bCanFire = false (防重复)
+    
+    alt EFT_HitScan
+        CC->>CC: FireHitScanWeapon()
+        CC->>W: LocalFire(HitTarget)
+        
+        Note over W: ① PlayFireMontage() 动画<br/>② Super::Fire() 动画+弹壳<br/>③ LineTraceSingleByChannel<br/>④ [Server] ApplyDamage<br/>⑤ Impact/Muzzle/Beam特效
+        
+    else EFT_Projectile
+        CC->>CC: FireProjectileWeapon()
+        CC->>W: LocalFire(HitTarget)
+        Note over W: 同上 + 仅Server生成投射物
+        
+    else EFT_Shotgun
+        CC->>CC: FireShotgun()
+        Note over CC: 计算10个散射目标点
+        CC->>W: ShotgunLocalFire(HitTargets)
+    end
+    
+    Note over C,S: ═══════════ 阶段3: 网络同步 ═══════════
+    
+    CC->>S: ServerFire(HitTarget) 📡 RPC
+    Note right of S: [Server RPC]<br/>Reliable 保证送达
+    
+    Note over S: 服务器收到请求...
+    S->>S: MulticastFire(HitTarget)
+    Note left of S: [Multicast RPC]<br/>广播→所有客户端
+    
+    S->>OC: MulticastFire_Implementation()
+    Note over OC: 检查: IsLocallyControlled?<br/>→ false (这是其他客户端)<br/>→ 执行 LocalFire()
+    
+    OC->>OC: LocalFire(HitTarget)
+    Note over OC: ① 播放开火动画<br/>② 武器Fire() 特效<br/>③ 显示弹道轨迹
+
+    Note over C,S: ═══════════ 阶段4: 冷却与连发 ═══════════
+    
+    CC->>CC: StartFireTimer(FireDelay)
+    Note right of CC: 设置定时器: 0.15秒后回调
+    
+    Note over CC: ... 等待 FireDelay ...
+    
+    CC->>CC: FireTimerFinished()
+    Note right of CC: bCanFire = true
+    
+    alt 全自动模式 + 仍按住
+        CC->>CC: Fire() ← 自动循环开火
+        Note right of CC: bAutomatic == true<br/>&& bFireButtonPressed
+    else 弹夹为空
+        CC->>CC: ReloadEmptyWeapon() ← 自动换弹
+    end
+                    </pre>
+                </div>
+            </div>
+
+            <!-- 函数调用详情卡片 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">📋 关键函数调用栈详解</h3>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #93C5FD; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;"><code class="hl-function">CombatComponent::Fire()</code> — 主入口</h4>
+                    <div class="code-block" data-lang="C++ (CombatComponent.cpp:417-448)">
+<pre><code>void UCombatComponent::Fire()
+{
+    if (EquippedWeapon == nullptr) return;
+
+    if (CanFire())                              // 三条件检查
+    {
+        bCanFire = false;                       // 防重复标记
+        
+        Owner->GetUIComponent()->SetCrosshairShootingFactor(0.75f);
+
+        switch (EquippedWeapon->FireType)       // 根据 FireType 分发
+        {
+        case EFireType::EFT_Projectile:
+            FireProjectileWeapon(); break;
+        case EFireType::EFT_HitScan:
+            FireHitScanWeapon();   break;
+        case EFireType::EFT_Shotgun:
+            FireShotgun();         break;
+        }
+        
+        StartFireTimer();                       // 启动冷却
+    }
+}</code></pre>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #93C5FD; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;"><code class="hl-function">CombatComponent::FireHitScanWeapon()</code> — 射线武器分支</h4>
+                    <div class="code-block" data-lang="C++ (CombatComponent.cpp:494-502)">
+<pre><code>void UCombatComponent::FireHitScanWeapon()
+{
+    if (EquippedWeapon && Owner)
+    {
+        // ★ 先在本地计算散射偏移（确保客户端和服务器用同一套结果）
+        HitTarget = EquippedWeapon->bUseScatter 
+            ? EquippedWeapon->TraceEndWithScatter(HitTarget) 
+            : HitTarget;
+            
+        if (!Owner->HasAuthority()) 
+            LocalFire(HitTarget);               // ★ 本地预测
+            
+        ServerFire(HitTarget);                  // ★ 发送给服务器
+    }
+}</code></pre>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #93C5FD; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;"><code class="hl-rpc">ServerFire → MulticastFire</code> — 网络传播链</h4>
+                    <div class="code-block" data-lang="C++ (CombatComponent.cpp:533-558)">
+<pre><code>// ====== 服务器端实现 ======
+void UCombatComponent::ServerFire_Implementation(
+    const FVector_NetQuantize& TraceHitTarget)
+{
+    MulticastFire(TraceHitTarget);             // 收到后立即广播
+}
+
+// ====== 多播到所有客户端 ======
+void UCombatComponent::MulticastFire_Implementation(
+    const FVector_NetQuantize& TraceHitTarget)
+{
+    // ★ 防重复：跳过发起请求的本地客户端
+    // （因为已经执行过 LocalFire 了）
+    if (Owner && Owner->IsLocallyControlled() 
+        && !Owner->HasAuthority()) return;      // ← 关键！
+    
+    LocalFire(TraceHitTarget);                 // 其他客户端执行
+}</code></pre>
+                </div>
+
+                <div>
+                    <h4 style="color: #93C5FD; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;"><code class="hl-function">CombatComponent::LocalFire()</code> — 本地预测执行</h4>
+                    <div class="code-block" data-lang="C++ (CombatComponent.cpp:450-462)">
+<pre><code>void UCombatComponent::LocalFire(
+    const FVector_NetQuantize& TraceHitTarget)
+{
+    if (EquippedWeapon == nullptr) return;
+    
+    if (Owner && CombatState == ECombatState::ECS_Unoccupied)
+    {
+        Owner->PlayFireMontage(bAiming);        // 播放角色开火动画
+        EquippedWeapon->Fire(TraceHitTarget);   // 调用武器的 Fire()
+        // → HitScan: 射线检测+伤害+特效
+        // → Projectile: 生成投射物[仅Server]
+        // → Shotgun: 多弹丸检测+聚合伤害
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- 数据流摘要 -->
+            <div class="info-box success">
+                <strong>✅ 数据流完整性保证</strong><br/>
+                <ul style="margin-top: 0.5rem; margin-left: 1.25rem;">
+                    <li><strong>FVector_NetQuantize</strong>: 使用网络量化向量压缩传输，减少带宽消耗</li>
+                    <li><strong>Reliable RPC</strong>: ServerFire/MulticastFire 均使用 Reliable 保证不丢包</li>
+                    <li><strong>bUseScatter 散射计算在 Client 端先执行</strong>: 确保 LocalFire 和 ServerFire 使用同一组随机值</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== Section 3: 三种武器类型对比 ========== -->
+        <section id="weapon-types" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white;">03</div>
+                <div>
+                    <h2 class="section-title">三种武器类型分支对比</h2>
+                    <p class="section-desc">HitScan 射线检测 vs Projectile 投射物 vs Shotgun 霰弹枪的差异化逻辑</p>
+                </div>
+            </div>
+
+            <!-- 对比总览图 -->
+            <div class="mermaid-container">
+                <pre class="mermaid">
+graph TB
+    subgraph Entry["🎮 Fire() 入口分发"]
+        direction TB
+        Fire["<b>CombatComponent::Fire()</b><br/>根据 FireType 分发"]
+        
+        Fire --> HS["<span style='color:#D8B4FE'>EFT_HitScan</span><br/>FireHitScanWeapon()"]
+        Fire --> PJ["<span style='color:#67E8F9'>EFT_Projectile</span><br/>FireProjectileWeapon()"]
+        Fire --> SG["<span style='color:#FCD34D'>EFT_Shotgun</span><br/>FireShotgun()"]
+    end
+
+    subgraph HitScanFlow["📍 HitScan 流程"]
+        direction TB
+        HS1["TraceEndWithScatter()"] --> HS2["LocalFire()"]
+        HS2 --> HS3["ServerFire(RPC)"]
+        HS3 --> HS4["MulticastFire(广播)"]
+        HS4 --> HS5["Weapon::Fire()"]
+        HS5 --> HS6["LineTraceSingleByChannel"]
+        HS6 --> HS7{"命中Actor?"}
+        HS7 -->|Yes| HS8["ApplyDamage [Server Only]"]
+        HS7 -->|No| HS9["ImpactParticles at End"]
+        HS8 --> HS10["MuzzleFlash + Beam + Sound"]
+    end
+
+    subgraph ProjectileFlow["🚀 Projectile 流程"]
+        direction TB
+        PJ1["TraceEndWithScatter()"] --> PJ2["LocalFire()"]
+        PJ2 --> PJ3["ServerFire(RPC)"]
+        PJ3 --> PJ4["MulticastFire(广播)"]
+        PJ4 --> PJ5["Weapon::Fire()"]
+        PJ5 --> PJ6{"HasAuthority?"}
+        PJ6 -->|Yes| PJ7["SpawnActor&lt;Projectile&gt;"]
+        PJ6 -->|No| PJ8["仅显示动画/弹壳"]
+        PJ7 -->PJ9["Projectile.bReplicates=true<br/>自动同步到所有客户端"]
+        PJ9 --> PJ10["Projectile.OnHit() → Destroyed()"]
+    end
+
+    subgraph ShotgunFlow["💥 Shotgun 流程"]
+        direction TB
+        SG1["ShotgunTraceEndWithScatter()"] --> SG2["计算10个散射点"]
+        SG2 --> SG3["ShotgunLocalFire()"]
+        SG3 --> SG4["ServerShotgunFire(RPC)"]
+        SG4 --> SG5["MulticastShotgunFire(广播)"]
+        SG5 --> SG6["FireShotgun(HitTargets)"]
+        SG6 --> SG7["for each pellet:"]
+        SG7 --> SG8["WeaponTraceHit()"]
+        SG8 --> SG9["TMap 统计命中次数"]
+        SG9 --> SG10["ApplyDamage(Damage × HitCount)"]
+    end
+
+    HS -.-> HitScanFlow
+    PJ -.-> ProjectileFlow
+    SG -.-> ShotgunFlow
+
+    style Entry fill:#1e293b,stroke:#475569,color:#e2e8f0
+    style HitScanFlow fill:#1e1035,stroke:#7c3aed,color:#e9d5ff
+    style ProjectileFlow fill:#042f2e,stroke:#0891b2,color:#67e8f9
+    style ShotgunFlow fill:#451a03,stroke:#ea580c,color:#fed7aa
+                </pre>
+            </div>
+
+            <!-- 详细对比表格 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">⚡ 三种武器特性对比表</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>特性维度</th>
+                            <th><span class="badge badge-client" style="margin-right:0.5rem;">HitScan</span>射线检测</th>
+                            <th><span class="badge badge-replicated" style="margin-right:0.5rem;">Projectile</span>投射物</th>
+                            <th><span class="badge badge-warning" style="margin-right:0.5rem;">Shotgun</span>霰弹枪</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>命中方式</strong></td>
+                            <td>即时 LineTrace（瞬间命中）</td>
+                            <td>物理飞行碰撞（有飞行时间）</td>
+                            <td>10 条独立 LineTrace</td>
+                        </tr>
+                        <tr>
+                            <td><strong>伤害结算时机</strong></td>
+                            <td>Fire() 内立即 ApplyDamage</td>
+                            <td>OnHit 回调中 ApplyDamage</td>
+                            <td>聚合统计后一次 ApplyDamage</td>
+                        </tr>
+                        <tr>
+                            <td><strong>服务器权限检查</strong></td>
+                            <td>ApplyDamage 在 HasAuthority 分支内</td>
+                            <td>SpawnActor 在 HasAuthority 分支内；OnHit 仅 Server 绑定</td>
+                            <td>同 HitScan</td>
+                        </tr>
+                        <tr>
+                            <td><strong>网络同步方式</strong></td>
+                            <td>MulticastFire → 各客户端重做 LineTrace</td>
+                            <td>Server SpawnActor → bReplicates 自动同步</td>
+                            <td>传递 TArray&lt;FVector&gt; 10个目标点</td>
+                        </tr>
+                        <tr>
+                            <td><strong>视觉效果差异</strong></td>
+                            <td>BeamParticles 枪口到命中点的激光束</td>
+                            <td>Tracer/TrailSystem 跟随子弹的轨迹粒子</td>
+                            <td>10 组 ImpactParticles + HitSound</td>
+                        </tr>
+                        <tr>
+                            <td><strong>散射支持</strong></td>
+                            <td><code class="hl-variable">bUseScatter</code> → 单次 TraceEndWithScatter</td>
+                            <td><code class="hl-variable">bUseScatter</code> → 单次 TraceEndWithScatter</td>
+                            <td>固定多弹丸 <code class="hl-variable">NumberOfPellets=10</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>典型用途</strong></td>
+                            <td>步枪/手枪/狙击枪</td>
+                            <td>火箭筒/榴弹发射器</td>
+                            <td>近战霰弹枪</td>
+                        </tr>
+                        <tr>
+                            <td><strong>源文件</strong></td>
+                            <td><code class="hl-file">HitScanWeapon.cpp</code></td>
+                            <td><code class="hl-file">ProjectileWeapon.cpp</code></td>
+                            <td><code class="hl-file">ShotGun.cpp</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- HitScan 详细代码 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #DDD6FE;">📍 HitScanWeapon::Fire() 完整实现</h3>
+                <div class="code-block" data-lang="C++ (HitScanWeapon.cpp:17-83)">
+<pre><code>void AHitScanWeapon::Fire(const FVector& HitTarget)
+{
+    Super::Fire(HitTarget);                     // 基类: 动画+弹壳+SpendRound
+
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn == nullptr) return;
+    AController* InstigatorController = OwnerPawn->GetController();
+
+    const USkeletalMeshSocket* MuzzleFlashSocket = 
+        GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+    if (MuzzleFlashSocket)
+    {
+        FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+        FVector Start = SocketTransform.GetLocation();
+
+        FHitResult FireHit;
+        WeaponTraceHit(Start, HitTarget, FireHit);     // ★ 执行射线检测
+
+        AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(FireHit.GetActor());
+        if (OwnerPawn != BlasterCharacter)              // 不能打自己
+        {
+            if (BlasterCharacter && HasAuthority() && InstigatorController)
+            {
+                // ★★★ 仅服务器端执行伤害！★★★
+                UGameplayStatics::ApplyDamage(
+                    BlasterCharacter,
+                    Damage,                             // 默认 20.f
+                    InstigatorController,
+                    this,
+                    UDamageType::StaticClass()
+                );
+            }
+        }
+        
+        // 以下特效在所有客户端都播放（视觉层）
+        if (ImpactParticles)  { /* 生成命中点粒子 */ }
+        if (HitSound)         { /* 播放命中音效 */ }
+        if (MuzzleFlash)      { /* 生成枪口火焰 */ }
+        if (FireSound)        { /* 播放射击音效 */ }
+    }
+}</code></pre>
+                
+                <div class="info-box warning" style="margin-top: 1rem;">
+                    <strong>⚠️ 已知 BUG（代码注释第16行）</strong><br/>
+                    <code>TODO:BUG:在客户端进行开枪后，装填时子弹会一次装两颗,而且在客户端开火时会有两条弹道</code><br/>
+                    原因分析：客户端执行了 LocalFire，又收到了 MulticastFire 导致重复执行。当前通过 <code>IsLocallyControlled && !HasAuthority</code> 检查已部分解决。
+                </div>
+            </div>
+
+            <!-- Projectile 详细代码 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #67E8F9;">🚀 ProjectileWeapon::Fire() 完整实现</h3>
+                <div class="code-block" data-lang="C++ (ProjectileWeapon.cpp:57-97)">
+<pre><code>void AProjectileWeapon::Fire(const FVector& HitTarget)
+{
+    // 步骤1: 执行基类的通用开火逻辑（动画/弹壳/扣弹药）
+    Super::Fire(HitTarget);
+
+    // 步骤2: ★ 仅服务器端生成投射物 ★
+    // 客户端不需要自行生成——服务器的投射物通过 bReplicates 自动同步
+    if (!HasAuthority()) return;                  // ← 关键！
+    
+    const USkeletalMeshSocket* MuzzleFlashSocket = 
+        GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+    if (MuzzleFlashSocket)
+    {
+        FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+        
+        // 计算射击方向
+        FVector ToTarget = HitTarget - SocketTransform.GetLocation();
+        FRotator TargetRotation = ToTarget.Rotation();
+
+        if (ProjectileClass)
+        {
+            FActorSpawnParameters SpawnParams;
+            SpawnParams.Owner = GetOwner();
+            SpawnParams.Instigator = InstigatorPawn;
+
+            // 步骤3: 在枪口位置生成投射物
+            AProjectile* Projectile = World->SpawnActor<AProjectile>(
+                ProjectileClass,
+                SocketTransform.GetLocation(),
+                TargetRotation,
+                SpawnParams
+            );
+            // 投射物会自动通过网络复制到所有客户端 (bReplicates=true)
+        }
+    }
+}</code></pre>
+
+                <div class="info-box success" style="margin-top: 1rem;">
+                    <strong>✅ 设计优势：投射物的网络同步完全由引擎管理</strong><br/>
+                    因为 <code>AProjectile::bReplicates = true</code>，服务器 Spawn 后引擎会自动将位置/旋转/速度同步到所有客户端，无需手动 RPC。
+                </div>
+            </div>
+
+            <!-- Shotgun 详细代码 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCD34D;">💥 ShotGun::FireShotgun() 完整实现</h3>
+                <div class="code-block" data-lang="C++ (ShotGun.cpp:14-82)">
+<pre><code>void AShotGun::FireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
+{
+    AWeaponBase::Fire(FVector());              // 基类动画+弹壳
+
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn == nullptr) return;
+    AController* InstigatorController = OwnerPawn->GetController();
+
+    const USkeletalMeshSocket* MuzzleFlashSocket = 
+        GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+    if (MuzzleFlashSocket)
+    {
+        FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+        FVector Start = SocketTransform.GetLocation();
+
+        TMap<AXMBCharacterBase*, uint32> HitMap;  // ★ 命中统计表
+
+        for (auto HitTarget : HitTargets)          // 循环每个弹丸
+        {
+            FHitResult FireHit;
+            WeaponTraceHit(Start, HitTarget, FireHit);  // 射线检测
+
+            AXMBCharacterBase* BlasterCharacter = Cast<AXMBCharacterBase>(FireHit.GetActor());
+            if (BlasterCharacter)
+            {
+                // ★ 聚合同一目标的命中次数
+                if (HitMap.Contains(BlasterCharacter))
+                    HitMap[BlasterCharacter]++;      // 再次命中
+                else
+                    HitMap.Emplace(BlasterCharacter, 1); // 首次命中
+
+                // 每颗弹丸都有独立的命中特效和音效
+                if (ImpactParticles) { /* 生成命中粒子 */ }
+                if (HitSound)         { /* 播放命中音效 */ }
+            }
+        }
+
+        // ★ 统一计算伤害：基础伤害 × 命中弹丸数
+        for (auto HitPair : HitMap)
+        {
+            if (HitPair.Key && HasAuthority() && InstigatorController)
+            {
+                UGameplayStatics::ApplyDamage(
+                    HitPair.Key,
+                    Damage * HitPair.Value,           // 伤害 × 命中数
+                    InstigatorController,
+                    this,
+                    UDamageType::StaticClass()
+                );
+            }
+        }
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- ========== Section 4: 散射算法 ========== -->
+        <section id="scatter" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white;">04</div>
+                <div>
+                    <h2 class="section-title">散射(Scatter)算法数学原理</h2>
+                    <p class="section-desc">TraceEndWithScatter 的球面随机偏移构造与几何示意图</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🎯 为什么需要散射？</strong><br/>
+                如果每次开火都用完全相同的准心瞄准点，射击会过于精准（"激光枪"）。引入散射模拟真实武器的弹道散布——距离越远、散布越大。
+            </div>
+
+            <!-- 几何示意图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCD34D;">📐 散射几何构造</h3>
+                <div class="mermaid-container">
+                    <pre class="mermaid">
+graph LR
+        subgraph Geometry["几何参数定义"]
+            direction TB
+            GUN["🔫 枪口位置<br/><code>Start</code><br/>MuzzleFlash Socket"]
+            
+            TARGET["🎯 准心瞄准点<br/><code>HitTarget</code><br/>来自 TraceUnderCrosshairs"]
+            
+            SPHERE["⭕ 散射球体中心<br/><code>SphereCenter</code><br/>Start + 方向 × DistanceToSphere"]
+            
+            RANDOM["🎲 随机偏移点<br/><code>EndLoc</code><br/>SphereCenter + RandomVec"]
+            
+            FINAL["📍 最终弹道终点<br/><code>返回值</code><br/>Start + 方向 × TRACE_LENGTH"]
+        end
+
+        subgraph Params["可调参数"]
+            P1["<code>DistanceToSphere = 800.f</code><br/>散射球体距枪口的距离"]
+            P2["<code>SphereRadius = 75.f</code><br/>散射球体的最大半径"]
+            P3["<code>TRACE_LENGTH = 80000.f</code><br/>射线最大长度"]
+        end
+
+        GUN -->|"归一化方向向量"| SPHERE
+        TARGET -->|"瞄准方向"| SPHERE
+        SPHERE -->|"随机偏移 ±Radius"| RANDOM
+        RANDOM -->|"延伸至最大长度"| FINAL
+
+        style Geometry fill:#451a03,stroke:#f59e0b,color:#fcd34d
+        style Params fill:#1e293b,stroke:#475569,color:#94a3b8
+        style GUN fill:#1e3a5f,stroke:#3b82f6,color:#bfdbfe
+        style TARGET fill:#1e3a5f,stroke:#ef4444,#fca5a5
+        style SPHERE fill:#312e81,stroke:#8b5cf6,color:#ddd6fe
+        style RANDOM fill:#14532d,stroke:#22c55e,color:#86efac
+        style FINAL fill:#7f1d1d,stroke:#ef4444,#fca5a5
+                    </pre>
+                </div>
+            </div>
+
+            <!-- ASCII 示意图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">🔍 散射原理可视化</h3>
+                <div style="background: #0d1117; border-radius: 12px; padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.6; overflow-x: auto;">
+<pre style="color: #e6edf3; margin: 0;">
+<span style="color: #60a5fa;">● 枪口 (Start)</span>
+
+\
+ \
+  \
+   \___________ _________________ <span style="color: #f59e0b;">━━━ ⭕ 散射球面 (半径=75)</span>
+              \  <span style="color: #8b5cf6;">○ SphereCenter</span>    \
+               \                      \
+                \                      <span style="color: #22c55e;">● EndLoc (随机)</span>
+                 \                        \
+                  \________________________\______ TRACE_LENGTH → <span style="color: #ef4444;">● 最终终点</span>
+
+
+<span style="color: #94a3b8; font-size: 0.75rem;">  ↑ DistanceToSphere=800                          ↑ 最大射线长度=80000</span>
+
+<span style="color: #f59e0b;">
+┌─────────────────────────────────────────────────────────────────┐
+│  散射公式:                                                       │
+│  1. ToTargetNormalized = (HitTarget - Start).GetSafeNormal()     │
+│  2. SphereCenter = Start + ToTargetNormalized × 800             │
+│  3. RandomVec = RandomUnitVector() × RandRange(0, 75)          │
+│  4. EndLoc = SphereCenter + RandomVec                           │
+│  5. ToEndLoc = EndLoc - Start                                   │
+│  6. 返回 = Start + ToEndLoc × 80000 / |ToEndLoc|                │
+└─────────────────────────────────────────────────────────────────┘</span>
+</pre>
+                </div>
+            </div>
+
+            <!-- 代码实现 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">💻 TraceEndWithScatter 完整实现</h3>
+                <div class="code-block" data-lang="C++ (WeaponBase.cpp:173-190)">
+<pre><code>FVector AWeaponBase::TraceEndWithScatter(const FVector& HitTarget)
+{
+    // 获取枪口插槽的世界坐标
+    const USkeletalMeshSocket* MuzzleFlashSocket = 
+        GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+    if (MuzzleFlashSocket == nullptr) return FVector();
+    
+    FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+    FVector Start = SocketTransform.GetLocation();          // ① 起点
+    
+    // 计算从枪口到目标的单位方向向量
+    FVector ToTargetNormalized = (HitTarget - Start).GetSafeNormal();  // ② 归一化
+    
+    // 在瞄准方向上 DistanceToSphere(800) 单位处建立散射球心
+    FVector SphereCenter = Start + ToTargetNormalized * DistanceToSphere;  // ③
+    
+    // ★ 在球面上取一个随机点：单位随机向量 × [0, SphereRadius]
+    FVector RandomVec = UKismetMathLibrary::RandomUnitVector() 
+        * FMath::FRandRange(0.f, SphereRadius);             // ④ 随机偏移
+    
+    FVector EndLoc = SphereCenter + RandomVec;             // ⑤ 偏移后的终点
+    FVector ToEndLoc = EndLoc - Start;                     // ⑥ 到偏移点的向量
+    
+    // 将射线延伸到 TRACE_LENGTH(80000)，保持相同的偏移角度
+    return FVector(Start + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());  // ⑦
+}
+</code></pre>
+                </div>
+            </div>
+
+            <!-- 霰弹枪特殊散射 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCD34D;">🎯 ShotgunTraceEndWithScatter — 多弹丸版本</h3>
+                <div class="code-block" data-lang="C++ (ShotGun.cpp:84-108)">
+<pre><code>void AShotGun::ShotgunTraceEndWithScatter(
+    const FVector& HitTarget, 
+    TArray<FVector_NetQuantize>& HitTargets)
+{
+    const USkeletalMeshSocket* MuzzleFlashSocket = 
+        GetWeaponMesh()->GetSocketByName("MuzzleFlash");
+    if (MuzzleFlashSocket == nullptr) return;
+    
+    FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+    FVector Start = SocketTransform.GetLocation();
+    
+    FVector ToTargetNormalized = (HitTarget - Start).GetSafeNormal();
+    FVector SphereCenter = Start + ToTargetNormalized * DistanceToSphere;
+
+    // ★ 循环生成 NumberOfPellets(10) 个独立的散射终点
+    for (uint32 i = 0; i < NumberOfPellets; i++)
+    {
+        FVector RandomVec = UKismetMathLibrary::RandomUnitVector() 
+            * FMath::FRandRange(0.f, SphereRadius);     // 每颗弹丸独立随机
+        FVector EndLoc = SphereCenter + RandomVec;
+        FVector ToEndLoc = EndLoc - Start;
+
+        ToEndLoc = Start + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size();
+        
+        HitTargets.Add(ToEndLoc);                       // 加入数组传给服务器
+    }
+}
+</code></pre>
+                <div class="info-box" style="margin-top: 1rem;">
+                    <strong>📊 数据量对比：</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.25rem;">
+                        <li><strong>HitScan / Projectile</strong>: 传递 <code>1 个 FVector_NetQuantize</code></li>
+                        <li><strong>Shotgun</strong>: 传递 <code>TArray&lt;FVector_NetQuantize&gt;</code> 含 10 个元素</li>
+                        <li>Shotgun 的带宽消耗约为其他类型的 <strong>10 倍</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== Section 5: Replicated 变量全景 ========== -->
+        <section id="replicated" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #10B981, #059669); color: white;">05</div>
+                <div>
+                    <h2 class="section-title">网络复制变量全景</h2>
+                    <p class="section-desc">WeaponBase + CombatComponent 中所有 DOREPLIFETIME 注册的变量及同步策略</p>
+                </div>
+            </div>
+
+            <div class="info-box success">
+                <strong>🔒 复制条件说明</strong><br/>
+                <code>DOREPLIFETIME</code> = 向所有客户端同步 | 
+                <code>COND_OwnerOnly</code> = 仅向拥有该 Actor 的客户端同步（节省带宽 + 安全）
+            </div>
+
+            <!-- WeaponBase 复制变量 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #BFDBFE;">🔫 WeaponBase 复制变量</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>变量名</th>
+                            <th>类型</th>
+                            <th>复制条件</th>
+                            <th>OnRep 回调</th>
+                            <th>用途说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="hl-variable">WeaponState</code></td>
+                            <td><code>EWeaponState</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_WeaponState()</code></td>
+                            <td>装备/丢弃/副手状态变化 → 触发 Attach/Detach</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">Ammo</code></td>
+                            <td><code>int32</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_Ammo()</code></td>
+                            <td>弹夹弹药数变化 → 更新 HUD + 霰弹枪装填结束判断</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="color: #94A3B8; font-size: 0.9rem; margin: 1.25rem 0 0.75rem;">内置复制变量（UE 引擎）</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>来源</th>
+                            <th>变量</th>
+                            <th>触发动作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>SetOwner()</code></td>
+                            <td><code>Owner</code></td>
+                            <td><code class="hl-function">OnRep_Owner()</code> → 缓存 Character/Controller 引用 + 更新 HUD</td>
+                        </tr>
+                        <tr>
+                            <td><code>bReplicates=true</code></td>
+                            <td><code>Actor Transform</code></td>
+                            <td>武器位置/旋转实时同步</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CombatComponent 复制变量 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCD34D;">⚔️ CombatComponent 复制变量</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>变量名</th>
+                            <th>类型</th>
+                            <th>复制条件</th>
+                            <th>OnRep 回调</th>
+                            <th>用途说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="hl-variable">EquippedWeapon</code></td>
+                            <td><code>AWeaponBase*</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_EquippedWeapon()</code></td>
+                            <td>主武器变化 → Attach 到右手 + 更新朝向模式</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">SecondaryWeapon</code></td>
+                            <td><code>AWeaponBase*</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_SecondaryWeapon()</code></td>
+                            <td>副武器变化 → Attach 到背包</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">bAiming</code></td>
+                            <td><code>bool</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td>—</td>
+                            <td>瞄准状态 → 影响 FOV 插值 + 移动速度</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">bShoulderAiming</code></td>
+                            <td><code>bool</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td>—</td>
+                            <td>肩射瞄准状态 → 移动速度降至 300</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">bFireButtonPressed</code></td>
+                            <td><code>bool</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td>—</td>
+                            <td>开火按钮状态 → 用于全自动连发判断</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">CarriedAmmo</code></td>
+                            <td><code>int32</code></td>
+                            <td><span class="badge badge-client">COND_OwnerOnly</span> ⭐</td>
+                            <td><code class="hl-function">OnRep_CarriedAmmo()</code></td>
+                            <td>携带备用弹药数 → 仅自己能看到</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">CombatState</code></td>
+                            <td><code>ECombatState</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_CombatState()</code></td>
+                            <td>战斗状态 → 换弹/投掷/空闲 → 控制操作可用性</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-variable">Grenades</code></td>
+                            <td><code>int32</code></td>
+                            <td><span class="badge badge-replicated">DOREPLIFETIME</span></td>
+                            <td><code class="hl-function">OnRep_Grenades()</code></td>
+                            <td>手雷数量 → 更新 HUD 手雷图标</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box" style="margin-top: 1rem;">
+                    <strong>💡 COND_OwnerOnly 的安全意义</strong><br/>
+                    <code>CarriedAmmo</code> 使用 <code>COND_OwnerOnly</code> 意味着只有拥有该角色的客户端才能接收到弹药数量变化。<br/>
+                    这样其他玩家无法通过抓包获取你的弹药库存信息，同时大幅减少网络带宽占用。
+                </div>
+            </div>
+
+            <!-- RPC 汇总表 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCA5A5;">📡 RPC 函数汇总</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>函数名</th>
+                            <th>RPC 类型</th>
+                            <th>Reliable</th>
+                            <th>调用方向</th>
+                            <th>用途</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="hl-rpc">ServerFire()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>发送开火请求（带命中点坐标）</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-function">MulticastFire()</code></td>
+                            <td><span class="badge badge-multicast">Multicast</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Server → All Clients</td>
+                            <td>广播开火效果到所有客户端</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerShotgunFire()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>发送霰弹枪开火（带10个目标点）</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-function">MulticastShotgunFire()</code></td>
+                            <td><span class="badge badge-multicast">Multicast</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Server → All Clients</td>
+                            <td>广播霰弹枪开火效果</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerReload()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>请求换弹</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerSetAiming()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>同步瞄准状态</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerSetShoulderAiming()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>同步肩射瞄准状态</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerThrowGrenade()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>投掷手雷请求</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-rpc">ServerLaunchGrenade()</code></td>
+                            <td><span class="badge badge-server">Server</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Client → Server</td>
+                            <td>手雷实际发射（AnimNotify 触发）</td>
+                        </tr>
+                        <tr>
+                            <td><code class="hl-function">MulticastJumpToShotgunEnd()</code></td>
+                            <td><span class="badge badge-multicast">Multicast</span></td>
+                            <td>✅ Reliable</td>
+                            <td>Server → All Clients</td>
+                            <td>广播霰弹枪装填结束动画跳转</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========== Section 6: 设计决策总结 ========== -->
+        <section id="design" class="section">
+            <div class="section-header">
+                <div class="section-number" style="background: linear-gradient(135deg, #EC4899, #DB2777); color: white;">06</div>
+                <div>
+                    <h2 class="section-title">关键设计决策总结</h2>
+                    <p class="section-desc">架构选择的原因、已知 TODO/BUG 清单与优化建议</p>
+                </div>
+            </div>
+
+            <!-- 设计决策 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #F9A8D4;">🏗️ 架构设计决策</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem;">
+                    <div style="background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #93C5FD; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;">🎯 本地预测（LocalFire）</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong>客户端在发送 RPC 之前先执行 <code>LocalFire()</code> 播放本地效果。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>消除网络延迟感知。玩家按下左键后立即看到/听到反馈，无需等待服务器往返。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>代价：</strong>需要防重复机制（IsLocallyControlled 检查），且客户端看到的弹道可能与服务器最终判定不一致。
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #FCA5A5; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rm;">🛡️ 服务器权威保护</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong>所有 <code>ApplyDamage()</code> 和 <code>SpawnActor&lt;Projectile&gt;()</code> 都包裹在 <code>if (HasAuthority())</code> 内。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>防止作弊。客户端无法伪造伤害或非法生成投射物。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>覆盖范围：</strong>HitScan::Fire / Shotgun::FireShotgun / Projectile::Fire / Projectile::OnHit
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #6EE7B7; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rm;">🔒 COND_OwnerOnly 安全策略</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong><code>CarriedAmmo</code> 使用 <code>COND_OwnerOnly</code> 条件复制。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>隐藏敏感信息（弹药库存），防止信息泄露型作弊。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>额外收益：</strong>减少不必要的网络流量（不需要把每个人的弹药发给所有人）。
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #D8B4FE; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rm;">🔄 防重复机制</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong><code>MulticastFire_Implementation()</code> 中检查：
+                            <code>if (Owner->IsLocallyControlled() && !Owner->HasAuthority()) return;</code>
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>避免发起请求的客户端执行两次（一次 LocalFire，一次 MulticastFire）。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>注意：</strong>Host（Listen Server）模式下 IsLocallyControlled 和 HasAuthority 同时为 true，不会触发此检查——这是正确的。
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #FCD34D; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rm;">🎲 散射在客户端先算</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong><code>FireHitScanWeapon()</code> 中先调用 <code>TraceEndWithScatter()</code> 再分别传给 LocalFire 和 ServerFire。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>保证客户端和服务器的散射随机值一致（同一帧计算）。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>潜在风险：</strong>恶意客户端可能修改 HitTarget 参数绕过散射，直接发送精确坐标。
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="color: #67E8F9; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rm;">📦 投射物引擎托管同步</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>做法：</strong>设置 <code>AProjectile::bReplicates = true</code>+<code>SetReplicateMovement(true)</code>。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong>目的：</strong>无需手动编写投射物的位置同步 RPC，引擎自动处理。
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <strong>优势：</strong>简化代码，且引擎的网络优先级/插值/回滚机制都能正常工作。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 已知 TODO 和 BUG -->
+            <div class="card" style="border-left: 4px solid #EF4444;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #FCA5A5;">🐛 已知 TODO / BUG 清单</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="info-box danger">
+                        <strong>[BUG] HitScan 双弹道问题</strong><br/>
+                        📍 <code class="hl-file">HitScanWeapon.cpp:16</code><br/>
+                        💬 <em>"在客户端进行开枪后，装填时子弹会一次装两颗,而且在客户端开火时会有两条弹道"</em><br/>
+                        🔧 当前已有部分修复（MulticastFire 中的 IsLocallyControlled 检查），但可能仍存在边界情况
+                    </div>
+
+                    <div class="info-box warning">
+                        <strong>[TODO] 散射作弊风险</strong><br/>
+                        📍 <code class="hl-file">CombatComponent.cpp:482</code><br/>
+                        💬 <em>"XMBTODO:会出现新的作弊方式，需要修改验证"</em><br/>
+                        🔧 建议：服务器端也应独立计算散射，而非信任客户端传入的 HitTarget
+                    </div>
+
+                    <div class="info-box warning">
+                        <strong>[TODO] 成员访问权限</strong><br/>
+                        📍 <code class="hl-file">CombatComponent.cpp:479</code><br/>
+                        💬 <em>"TODO:需要了解此处有关散射的制作设置，后续需要将成员换成private并添加安全验证"</em><br/>
+                        🔧 bUseScatter、DistanceToSphere、SphereRadius 应设为 private并提供安全的 Getter
+                    </div>
+
+                    <div class="info-box warning">
+                        <strong>[TODO] 拾取武器被炸后卡死</strong><br/>
+                        📍 <code class="hl-file">CombatComponent.cpp:1223</code><br/>
+                        💬 <em>"TODO:修复此处的bug，玩家拾取武器,被手雷炸了之后就无法进行任何操作"</em><br/>
+                        🔧 OnRep_CombatState 可能未正确恢复 ECS_Unoccupied 状态
+                    </div>
+
+                    <div class="info-box">
+                        <strong>[TODO] 控制器-HUD 更新链路理解</strong><br/>
+                        📍 <code class="hl-file">CombatComponent.cpp:1028</code><br/>
+                        💬 <em>"了解一下控制器与HUD，为什么需要通过获取控制器来更新HUD"</em><br/>
+                        🔧 这是 UE 的标准模式：PlayerController 持有 HUD 引用，组件通过 Controller 间接更新 UI
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据流总结图 -->
+            <div class="card">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #A78BFA;">📊 完整数据流总结</h3>
+                <div class="mermaid-container">
+                    <pre class="mermaid">
+flowchart LR
+    subgraph InputLayer["📥 输入层"]
+        Key["🖱️ 鼠标左键按下"]
+        Crosshair["🎯 准心射线检测<br/>(Tick每帧)"]
+    end
+
+    subgraph LogicLayer["⚙️ 逻辑层 (CombatComponent)"]
+        Check["CanFire()?"]
+        Scatter["TraceEndWithScatter()"]
+        Local["LocalFire()<br/>(本地预测)"]
+        RPC["ServerFire(RPC)"]
+    end
+
+    subgraph WeaponLayer["🔫 武器层"]
+        Anim["PlayFireMontage()"]
+        BaseFire["WeaponBase::Fire()<br/>动画+弹壳+SpendRound"]
+        HitScan["HitScan::Fire()<br/>LineTrace+ApplyDamage"]
+        Proj["Projectile::Fire()<br/>SpawnActor"]
+        Shot["Shotgun::FireShotgun()<br/>多弹丸+聚合伤害"]
+    end
+
+    subgraph NetworkLayer["🌐 网络层"]
+        Svr["🖥️ 服务器<br/>权威验证+伤害"]
+        Multi["📡 Multicast<br/>广播到所有客户端"]
+        Other["👁️ 其他客户端<br/>接收并渲染"]
+    end
+
+    subgraph OutputLayer["📤 输出层"]
+        VFX["🎆 粒子特效<br/>Impact/Muzzle/Beam/Trailer"]
+        Audio["🔊 音效<br/>FireSound/HitSound"]
+        HUD["📊 HUD 更新<br/>Ammo/CarriedAmmo"]
+        Damage["💔 伤害结算<br/>ApplyDamage/RadialDamage"]
+    end
+
+    Key --> Check
+    Crosshair --> Check
+    Check --> Scatter
+    Scatter --> Local
+    Scatter --> RPC
+    Local --> Anim
+    Local --> BaseFire
+    BaseFire --> HitScan
+    BaseFire --> Proj
+    BaseFire --> Shot
+    RPC --> Svr
+    Svr --> Multi
+    Multi --> Other
+    Other --> Anim
+    Other --> BaseFire
+    HitScan --> Damage
+    Shot --> Damage
+    Proj --> VFX
+    HitScan --> VFX
+    Shot --> VFX
+    VFX --> Audio
+    BaseFire --> HUD
+
+    style InputLayer fill:#1e3a5f,stroke:#3b82f6,color:#bfdbfe
+    style LogicLayer fill:#312e81,stroke:#7c3aed,color:#ddd6fe
+    style WeaponLayer fill:#451a03,stroke:#ea580c,color:#fed7aa
+    style NetworkLayer fill:#042f2e,stroke:#0891b2,color:#67e8f9
+    style OutputLayer fill:#14532d,stroke:#16a34a,color:#86efac
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer style="text-align: center; padding: 3rem 0 2rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem;">
+            <p>XMBBlaster 武器开火系统 · 数据流分析文档</p>
+            <p style="margin-top: 0.5rem;">基于 UE5.4 C++ 项目源码分析 · 共 12 个核心文件 · 6 大模块</p>
+        </footer>
+    </main>
+
+    <!-- Mermaid.js 加载 -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#1e3a5f',
+                primaryTextColor: '#e2e8f0',
+                primaryBorderColor '#3b82f6',
+                lineColor: '#475569',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#0f172a',
+                fontSize: '14px',
+                fontFamily: "'JetBrains Mono', monospace"
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 30,
+                rankSpacing: 50,
+                useMaxWidth: true
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 50,
+                boxMargin: 10,
+                noteAlign: 'right',
+                messageMargin: 35
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+
+    <!-- 导航交互脚本 -->
+    <script>
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            
+            // 更新导航激活状态
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('onclick').includes(id)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // 滚动监听 - 高亮当前章节导航
+        window.addEventListener('scroll', () => {
+            const sections = ['class-hierarchy', 'fire-flow', 'weapon-types', 'scatter', 'replicated', 'design'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 200) {
+                        current = id;
+                    }
+                }
+            });
+
+            if (current) {
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('onclick').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        // 初始化时触发第一个 section 的动画
+        setTimeout(() => {
+            document.querySelectorAll('.section').forEach(s => s.style.opacity = '1');
+        }, 100);
+    </script>
+</body>
+</html>

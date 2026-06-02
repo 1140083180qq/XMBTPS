@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define KAWAIIPHYSICS_KawaiiPhysicsExternalForce_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_ExternalForces_KawaiiPhysicsExternalForce_h_52_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_ExternalForces_KawaiiPhysicsExternalForce_h_52_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FKawaiiPhysics_ExternalForce_Statics; \
 	static class UScriptStruct* StaticStruct();
 
@@ -22,7 +22,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 template<> KAWAIIPHYSICS_API UScriptStruct* StaticStruct<struct FKawaiiPhysics_ExternalForce>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_ExternalForces_KawaiiPhysicsExternalForce_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_KawaiiPhysics_Source_KawaiiPhysics_Public_ExternalForces_KawaiiPhysicsExternalForce_h
 
 
 #define FOREACH_ENUM_EEXTERNALFORCESPACE(op) \

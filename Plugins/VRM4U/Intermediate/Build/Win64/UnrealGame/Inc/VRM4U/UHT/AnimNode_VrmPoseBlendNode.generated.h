@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define VRM4U_AnimNode_VrmPoseBlendNode_generated_h
 
-#define FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmPoseBlendNode_h_23_GENERATED_BODY \
+#define FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmPoseBlendNode_h_23_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FAnimNode_VrmPoseBlendNode_Statics; \
 	static class UScriptStruct* StaticStruct(); \
 	typedef FAnimNode_PoseBlendNode Super;
@@ -23,7 +23,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 template<> VRM4U_API UScriptStruct* StaticStruct<struct FAnimNode_VrmPoseBlendNode>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBGuns_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmPoseBlendNode_h
+#define CURRENT_FILE_ID FID_UEGAME_5_4_XMBBlaster_Plugins_VRM4U_Source_VRM4U_Public_AnimNode_VrmPoseBlendNode_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
